@@ -1,0 +1,129 @@
+.routine-detail-page {
+  width: 100%;
+}
+
+.routine-detail-container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.routine-detail-header {
+  margin-bottom: 24px;
+}
+
+.routine-detail-title {
+  margin-bottom: 8px;
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+.routine-detail-description {
+  margin: 0;
+  color: #666;
+  font-size: 1rem;
+}
+
+.routine-detail-list {
+  display: grid;
+  gap: 18px;
+}
+
+.routine-exercise-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  padding: 20px 22px;
+}
+
+.routine-exercise-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.routine-exercise-title {
+  margin: 0;
+  font-size: 1.35rem;
+  line-height: 1.2;
+  flex: 1;
+  min-width: 0;
+}
+
+.routine-exercise-history-link {
+  color: #666;
+  text-decoration: none;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.routine-exercise-history-link:hover {
+  color: #111;
+}
+
+.routine-exercise-target {
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.routine-exercise-note {
+  margin-bottom: 14px;
+  color: #666;
+}
+
+.routine-exercise-latest {
+  margin-bottom: 10px;
+  color: #111;
+}
+
+.routine-exercise-meta {
+  margin-bottom: 16px;
+  color: #666;
+}
+
+.routine-exercise-action {
+  display: inline-block;
+  font-weight: 600;
+  border: 1px solid #ddd;
+  border-radius: 7px;
+  padding: 0px 6px;
+}
+
+.routine-exercise-actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.routine-exercise-action {
+  display: inline-block;
+  font-weight: 600;
+}
+
+.routine-exercise-action.secondary {
+  color: #666;
+}
+@media (max-width: 640px) {
+  .routine-exercise-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .routine-exercise-title {
+    flex: 1;
+    min-width: 0;
+    font-size: 1.2rem;
+    line-height: 1.25;
+  }
+
+  .routine-exercise-history-link {
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-size: 0.95rem;
+  }
+}

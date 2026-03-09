@@ -1,0 +1,57 @@
+.simple-page {
+  width: 100%;
+}
+
+.simple-page-container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.simple-page-header {
+  margin-bottom: 24px;
+}
+
+.simple-page-title {
+  margin-bottom: 8px;
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+.simple-page-description {
+  margin: 0;
+  color: #666;
+  font-size: 1rem;
+}
+
+.simple-page-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  padding: 20px 22px;
+}
+
+.simple-page-card-title {
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+}
+
+.simple-page-card-text {
+  margin: 0;
+  color: #666;
+  line-height: 1.6;
+}
+
+@media (max-width: 640px) {
+  .simple-page-container {
+    padding: 18px 12px 36px;
+  }
+
+  .simple-page-title {
+    font-size: 1.7rem;
+  }
+
+  .simple-page-card {
+    padding: 16px;
+  }
+}

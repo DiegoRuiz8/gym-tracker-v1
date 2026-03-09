@@ -1,0 +1,244 @@
+.new-workout-log-page {
+  width: 100%;
+}
+
+.new-workout-log-container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.new-workout-log-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  padding: 20px 22px;
+  margin-bottom: 18px;
+}
+
+.new-workout-log-header-title {
+  margin-bottom: 6px;
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+.new-workout-log-header-subtitle {
+  margin-bottom: 14px;
+  color: #666;
+  font-size: 1rem;
+}
+
+.new-workout-log-header-line {
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.new-workout-log-header-meta {
+  margin: 0;
+  color: #666;
+}
+
+.new-workout-log-section-title {
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+}
+
+.new-workout-log-date-field {
+  margin-bottom: 18px;
+}
+
+.new-workout-log-label {
+  font-weight: 600;
+  display: inline-block;
+  margin-bottom: 6px;
+}
+
+.new-workout-log-date-input,
+.new-workout-log-number-input,
+.new-workout-log-textarea {
+  border: 1px solid #d0d0d0;
+  border-radius: 10px;
+  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.new-workout-log-date-input {
+  padding: 0.7rem 0.85rem;
+}
+
+.new-workout-log-number-input {
+  width: 100%;
+  padding: 0.75rem 0.85rem;
+}
+
+.new-workout-log-textarea {
+  width: 100%;
+  max-width: 100%;
+  min-height: 140px;
+  padding: 0.9rem;
+  resize: vertical;
+}
+
+.new-workout-log-date-input:focus,
+.new-workout-log-number-input:focus,
+.new-workout-log-textarea:focus {
+  outline: none;
+  border-color: #999;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+.new-workout-log-table-head,
+.new-workout-log-table-row {
+  display: grid;
+  grid-template-columns: 56px 170px 120px 120px 110px;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.new-workout-log-table-head {
+  padding-bottom: 0.65rem;
+  margin-bottom: 0.35rem;
+  border-bottom: 1px solid #eee;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #666;
+}
+
+.new-workout-log-table-row {
+  padding: 0.9rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.new-workout-log-table-row:last-of-type {
+  border-bottom: none;
+}
+
+.new-workout-log-set-index {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.new-workout-log-prev {
+  color: #666;
+}
+
+.new-workout-log-actions-row {
+  margin-top: 16px;
+}
+
+.new-workout-log-footer-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 10px;
+}
+
+.new-workout-log-btn {
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.new-workout-log-btn-primary {
+  padding: 0.95rem 1.2rem;
+  border: none;
+  background: #111;
+  color: #fff;
+}
+
+.new-workout-log-btn-primary:hover {
+  background: #222;
+}
+
+.new-workout-log-btn-secondary {
+  padding: 0.95rem 1.2rem;
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #111;
+}
+
+.new-workout-log-btn-secondary:hover {
+  background: #fafafa;
+}
+
+.new-workout-log-btn-tertiary {
+  padding: 0.8rem 1rem;
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #111;
+}
+
+.new-workout-log-btn-tertiary:hover {
+  background: #fafafa;
+}
+
+.new-workout-log-btn-remove {
+  padding: 0.72rem 0.85rem;
+  border: 1px solid #ddd;
+  background: #fafafa;
+  color: #111;
+}
+
+.new-workout-log-btn-remove:hover:not(:disabled) {
+  background: #f3f3f3;
+}
+
+.new-workout-log-btn-remove:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 820px) {
+  .new-workout-log-container {
+    max-width: 100%;
+    padding: 18px 12px 36px;
+  }
+
+  .new-workout-log-card {
+    padding: 16px;
+  }
+
+  .new-workout-log-header-title {
+    font-size: 1.7rem;
+  }
+
+  .new-workout-log-table-head,
+  .new-workout-log-table-row {
+    grid-template-columns: 44px 120px 90px 90px 96px;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .new-workout-log-table-head {
+    display: none;
+  }
+
+  .new-workout-log-table-row {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+    padding: 1rem 0;
+  }
+
+  .new-workout-log-set-index::before {
+    content: "Set ";
+    font-weight: 600;
+  }
+
+  .new-workout-log-prev::before {
+    content: "Prev: ";
+    font-weight: 600;
+    color: #444;
+  }
+
+  .new-workout-log-footer-actions {
+    flex-direction: column;
+  }
+
+  .new-workout-log-btn-primary,
+  .new-workout-log-btn-secondary,
+  .new-workout-log-btn-tertiary,
+  .new-workout-log-btn-remove {
+    width: 100%;
+  }
+}

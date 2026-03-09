@@ -1,0 +1,110 @@
+.variant-history-page {
+  width: 100%;
+}
+
+.variant-history-container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.variant-history-header {
+  margin-bottom: 24px;
+}
+
+.variant-history-back-link {
+  margin-bottom: 10px;
+}
+
+.variant-history-back-link a {
+  color: #666;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.variant-history-back-link a:hover {
+  color: #111;
+}
+
+.variant-history-title {
+  margin-bottom: 8px;
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+.variant-history-subtitle {
+  margin-bottom: 8px;
+  color: #666;
+}
+
+.variant-history-meta {
+  margin: 0;
+  color: #666;
+}
+
+.variant-history-list {
+  display: grid;
+  gap: 18px;
+}
+
+.variant-history-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  padding: 20px 22px;
+}
+
+.variant-history-log-header {
+  margin-bottom: 14px;
+}
+
+.variant-history-card-title {
+  margin-bottom: 6px;
+  font-size: 1.2rem;
+}
+
+.variant-history-card-text {
+  margin: 0;
+  color: #666;
+}
+
+.variant-history-routine {
+  margin: 0;
+  color: #666;
+  font-weight: 600;
+}
+
+.variant-history-sets {
+  display: grid;
+  gap: 10px;
+}
+
+.variant-history-set-line {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.variant-history-set-index {
+  min-width: 56px;
+  font-weight: 700;
+}
+
+.variant-history-notes {
+  margin-top: 14px;
+  color: #666;
+}
+
+@media (max-width: 640px) {
+  .variant-history-container {
+    padding: 18px 12px 36px;
+  }
+
+  .variant-history-card {
+    padding: 16px;
+  }
+
+  .variant-history-title {
+    font-size: 1.7rem;
+  }
+}

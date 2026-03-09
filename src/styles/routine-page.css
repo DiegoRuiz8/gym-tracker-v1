@@ -1,0 +1,81 @@
+.routines-page {
+  width: 100%;
+}
+
+.routines-page-container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.routines-page-header {
+  margin-bottom: 24px;
+}
+
+.routines-page-title {
+  margin-bottom: 8px;
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+.routines-page-empty {
+  color: #666;
+  font-size: 1rem;
+}
+
+.routines-page-list {
+  display: grid;
+  gap: 18px;
+}
+
+.routines-page-card {
+  display: block;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  padding: 20px 22px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.routines-page-card:hover {
+  border-color: #cfcfcf;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.routines-page-card-title {
+  margin-bottom: 10px;
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+.routines-page-card-day {
+  margin-bottom: 8px;
+  color: #444;
+  font-weight: 600;
+}
+
+.routines-page-card-description {
+  margin: 0;
+  color: #666;
+}
+
+@media (max-width: 640px) {
+  .routines-page-container {
+    padding: 18px 12px 36px;
+  }
+
+  .routines-page-card {
+    padding: 16px;
+  }
+
+  .routines-page-title {
+    font-size: 1.7rem;
+  }
+
+  .routines-page-card-title {
+    font-size: 1.2rem;
+  }
+}
