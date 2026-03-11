@@ -1,5 +1,13 @@
 import type { ID } from "./common";
 
+export type TrackingType =
+  | "weight_reps"
+  | "bodyweight_reps"
+  | "weighted_bodyweight_reps"
+  | "assisted_bodyweight_reps"
+  | "duration"
+  | "duration_weight";
+
 export type Exercise = {
   id: ID;
   name: string;
@@ -17,5 +25,6 @@ export type ExerciseVariant = {
   gymLabel?: string;
   notes?: string;
   isActive: boolean;
+  trackingType: TrackingType;
   createdAt: string;
 };

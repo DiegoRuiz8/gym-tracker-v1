@@ -34,3 +34,10 @@ export function getLastLogForVariant(
   return variantLogs[0];
 }
 
+export function getWorkoutLogById(
+  logs: WorkoutLog[],
+  logId: string,
+): WorkoutLog | undefined {
+  return logs.find((log) => log.id === logId);
+}
+

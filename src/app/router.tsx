@@ -6,6 +6,7 @@ import ExercisesPage from "../pages/ExercisesPage";
 import HistoryPage from "../pages/HistoryPage";
 import NewWorkoutLogPage from "../pages/NewWorkoutLogPage";
 import VariantHistoryPage from "../pages/VariantHistoryPage";
+import EditWorkoutLogPage from "../pages/EditWorkoutLogPage";
 import "../styles/app-shell.css";
 
 export function AppRouter() {
@@ -40,6 +41,7 @@ export function AppRouter() {
           <Route path="/exercises" element={<ExercisesPage />} />
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/history/variant/:variantId" element={<VariantHistoryPage />} />
+          <Route path="/history/log/:logId/edit" element={<EditWorkoutLogPage />} />
           
         </Routes>
       </main>

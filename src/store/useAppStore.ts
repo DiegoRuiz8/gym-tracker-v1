@@ -12,7 +12,10 @@ type AppState = {
   exerciseVariants: ExerciseVariant[];
   routines: Routine[];
   workoutLogs: WorkoutLog[];
+
   addWorkoutLog: (log: AddWorkoutLogInput) => void;
+  updateWorkoutLog: (updatedLog: WorkoutLog) => void;
+  deleteWorkoutLog: (logId: string) => void;
 };
 
 const initialData = getInitialAppData();
@@ -26,6 +29,18 @@ export const useAppStore = create<AppState>((set) => ({
   addWorkoutLog: (log) =>
     set((state) => ({
       workoutLogs: [log, ...state.workoutLogs],
+    })),
+
+    updateWorkoutLog: (updatedLog) =>
+    set((state) => ({
+      workoutLogs: state.workoutLogs.map((log) =>
+        log.id === updatedLog.id ? updatedLog : log,
+      ),
+    })),
+
+  deleteWorkoutLog: (logId) =>
+    set((state) => ({
+      workoutLogs: state.workoutLogs.filter((log) => log.id !== logId),
     })),
 }));
 

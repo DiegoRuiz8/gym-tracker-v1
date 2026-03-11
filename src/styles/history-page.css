@@ -1,0 +1,162 @@
+.history-page {
+  width: 100%;
+}
+
+.history-page-container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.history-page-header {
+  margin-bottom: 24px;
+}
+
+.history-page-title {
+  margin-bottom: 8px;
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+.history-page-description {
+  margin: 0;
+  color: #666;
+}
+
+.history-page-empty {
+  color: #666;
+}
+
+.history-page-groups {
+  display: grid;
+  gap: 24px;
+}
+
+.history-page-group {
+  display: grid;
+  gap: 14px;
+}
+
+.history-page-group-title {
+  font-size: 1.35rem;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.history-page-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  padding: 18px 20px;
+}
+
+.history-page-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.history-page-card-title {
+  margin: 0 0 6px;
+  font-size: 1.1rem;
+  line-height: 1.2;
+}
+
+.history-page-card-routine {
+  margin: 0;
+  color: #666;
+  font-weight: 600;
+}
+
+.history-page-card-performance {
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.history-page-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.history-page-btn-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.history-page-btn {
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.46rem 0.8rem;
+  font-size: 0.94rem;
+  line-height: 1.2;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.history-page-btn-secondary {
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #111;
+}
+
+.history-page-btn-secondary:hover {
+  background: #fafafa;
+}
+
+.history-page-btn-danger {
+  border: 1px solid #e2c5c5;
+  background: #fff5f5;
+  color: #9f2d2d;
+}
+
+.history-page-btn-danger:hover {
+  background: #fdeaea;
+}
+
+.history-page-delete-confirm {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid #f0d4d4;
+  border-radius: 10px;
+  background: #fff8f8;
+}
+
+.history-page-delete-text {
+  margin: 0 0 8px;
+  color: #7a2b2b;
+  font-weight: 600;
+}
+
+.history-page-delete-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .history-page-container {
+    padding: 18px 12px 36px;
+  }
+
+  .history-page-title {
+    font-size: 1.7rem;
+  }
+
+  .history-page-group-title {
+    font-size: 1.2rem;
+  }
+
+  .history-page-card {
+    padding: 16px;
+  }
+
+  .history-page-card-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

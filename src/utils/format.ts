@@ -1,6 +1,19 @@
 import type { WorkoutLog } from "../types/log";
 import type { Prescription } from "../types/routine";
 
+function parseDateOnly(dateString: string): Date {
+  const [year, month, day] = dateString.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+export function getTodayDateInputValue(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
 
 export function formatRepRange(min?: number, max?: number): string {
   if (min == null || max == null) return "—";
@@ -23,7 +36,7 @@ export function formatTopWeight(log?: WorkoutLog): string {
 export function formatLogDate(date?: string): string {
   if (!date) return "—";
 
-  const parsed = new Date(date);
+  const parsed = parseDateOnly(date);
 
   return parsed.toLocaleDateString("es-MX", {
     year: "numeric",
@@ -41,7 +54,7 @@ export function formatPrescriptionInline(prescription: Prescription): string {
     prescription.repRange?.max != null
   ) {
     parts.push(
-      `${prescription.sets} × ${prescription.repRange.min}-${prescription.repRange.max}`
+      `${prescription.sets} × ${prescription.repRange.min}-${prescription.repRange.max}`,
     );
   } else if (prescription.sets != null) {
     parts.push(`${prescription.sets} sets`);
@@ -89,7 +102,9 @@ export function formatPerformedSetsDetailed(log?: WorkoutLog): string[] {
     return [];
   }
 
-  return log.performedSets.map(
-    (set) => `${set.weight}kg × ${set.reps}`,
-  );
+  return log.performedSets.map((set) => `${set.weight}kg × ${set.reps}`);
+}
+
+export function getDateKey(date: string): string {
+  return date;
 }

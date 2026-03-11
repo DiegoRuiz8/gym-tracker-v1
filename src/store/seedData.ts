@@ -57,6 +57,7 @@ export const seedExerciseVariants: ExerciseVariant[] = [
     equipment: "barbell",
     gymLabel: "Flat bench",
     isActive: true,
+    trackingType: "weight_reps",
     createdAt: now,
   },
   {
@@ -66,6 +67,7 @@ export const seedExerciseVariants: ExerciseVariant[] = [
     equipment: "smith",
     gymLabel: "Smith machine",
     isActive: true,
+    trackingType: "weight_reps",
     createdAt: now,
   },
   {
@@ -75,6 +77,7 @@ export const seedExerciseVariants: ExerciseVariant[] = [
     equipment: "smith",
     gymLabel: "Incline smith",
     isActive: true,
+    trackingType: "weight_reps",
     createdAt: now,
   },
   {
@@ -84,6 +87,7 @@ export const seedExerciseVariants: ExerciseVariant[] = [
     equipment: "cable",
     gymLabel: "Cable station",
     isActive: true,
+    trackingType: "weight_reps",
     createdAt: now,
   },
   {
@@ -93,6 +97,7 @@ export const seedExerciseVariants: ExerciseVariant[] = [
     equipment: "cable",
     gymLabel: "High pulley rope",
     isActive: true,
+    trackingType: "weight_reps",
     createdAt: now,
   },
   {
@@ -102,6 +107,7 @@ export const seedExerciseVariants: ExerciseVariant[] = [
     equipment: "machine",
     gymLabel: "Lat pulldown machine",
     isActive: true,
+    trackingType: "weight_reps",
     createdAt: now,
   },
   {
@@ -111,6 +117,7 @@ export const seedExerciseVariants: ExerciseVariant[] = [
     equipment: "machine",
     gymLabel: "Chest supported row",
     isActive: true,
+    trackingType: "weight_reps",
     createdAt: now,
   },
 ];

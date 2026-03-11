@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAppStore } from "../store/useAppStore";
 import {
@@ -6,19 +6,20 @@ import {
   getLogsForVariant,
   getVariantById,
 } from "../store/selectors";
-import {
-  formatLogDate,
-  formatPerformedSetsDetailed,
-} from "../utils/format";
+import { formatLogDate, formatPerformedSetsDetailed } from "../utils/format";
 import "../styles/variant-history.css";
 
 export default function VariantHistoryPage() {
   const { variantId } = useParams();
+  const [pendingDeleteLogId, setPendingDeleteLogId] = useState<string | null>(
+    null,
+  );
 
   const exercises = useAppStore((state) => state.exercises);
   const exerciseVariants = useAppStore((state) => state.exerciseVariants);
   const workoutLogs = useAppStore((state) => state.workoutLogs);
   const routines = useAppStore((state) => state.routines);
+  const deleteWorkoutLog = useAppStore((state) => state.deleteWorkoutLog);
 
   const variant = useMemo(
     () => (variantId ? getVariantById(exerciseVariants, variantId) : undefined),
@@ -45,6 +46,19 @@ export default function VariantHistoryPage() {
 
     const routine = routines.find((item) => item.id === routineId);
     return routine?.name ?? "Unknown routine";
+  }
+
+  function handleRequestDelete(logId: string) {
+    setPendingDeleteLogId(logId);
+  }
+
+  function handleCancelDelete() {
+    setPendingDeleteLogId(null);
+  }
+
+  function handleConfirmDelete(logId: string) {
+    deleteWorkoutLog(logId);
+    setPendingDeleteLogId(null);
   }
 
   return (
@@ -77,12 +91,60 @@ export default function VariantHistoryPage() {
               return (
                 <div key={log.id} className="variant-history-card">
                   <div className="variant-history-log-header">
-                    <h2 className="variant-history-card-title">
-                      {formatLogDate(log.date)}
-                    </h2>
-                    <p className="variant-history-routine">
-                      {getRoutineName(log.routineId)}
-                    </p>
+                    <div className="variant-history-log-info">
+                      <h2 className="variant-history-card-title">
+                        {formatLogDate(log.date)}
+                      </h2>
+                      <p className="variant-history-routine">
+                        {getRoutineName(log.routineId)}
+                      </p>
+                    </div>
+
+                    <div className="variant-history-actions-wrapper">
+                      <div className="variant-history-actions">
+                        <Link
+                          to={`/history/log/${log.id}/edit`}
+                          state={{ returnTo: `/history/variant/${variantId}` }}
+                          className="variant-history-btn variant-history-btn-secondary variant-history-btn-link"
+                        >
+                          Edit
+                        </Link>
+
+                        <button
+                          type="button"
+                          className="variant-history-btn variant-history-btn-danger"
+                          onClick={() => handleRequestDelete(log.id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+
+                      {pendingDeleteLogId === log.id && (
+                        <div className="variant-history-delete-confirm-inline">
+                          <p className="variant-history-delete-text">
+                            Delete log?
+                          </p>
+
+                          <div className="variant-history-delete-actions">
+                            <button
+                              type="button"
+                              className="variant-history-btn variant-history-btn-danger "
+                              onClick={() => handleConfirmDelete(log.id)}
+                            >
+                              Confirm
+                            </button>
+
+                            <button
+                              type="button"
+                              className="variant-history-btn variant-history-btn-secondary "
+                              onClick={handleCancelDelete}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="variant-history-sets">

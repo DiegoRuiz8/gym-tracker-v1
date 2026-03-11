@@ -52,10 +52,20 @@
   border: 1px solid #ddd;
   border-radius: 16px;
   padding: 20px 22px;
+  overflow: visible;
 }
 
 .variant-history-log-header {
-  margin-bottom: 14px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.variant-history-log-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .variant-history-card-title {
@@ -72,6 +82,87 @@
   margin: 0;
   color: #666;
   font-weight: 600;
+}
+
+.variant-history-actions-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+  min-width: 190px;
+}
+
+.variant-history-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+}
+
+.variant-history-actions .variant-history-btn {
+  width: 100%;
+}
+
+.variant-history-btn {
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.65rem 0.9rem;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.variant-history-btn-secondary {
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #111;
+}
+
+.variant-history-btn-secondary:hover {
+  background: #fafafa;
+}
+
+.variant-history-btn-danger {
+  border: 1px solid #e2c5c5;
+  background: #fff5f5;
+  color: #9f2d2d;
+}
+
+.variant-history-btn-danger:hover {
+  background: #fdeaea;
+}
+
+
+
+.variant-history-delete-confirm-inline {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 5;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #f0d4d4;
+  border-radius: 10px;
+  background: #fff8f8;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+}
+
+.variant-history-delete-text {
+  margin: 0 0 8px;
+  color: #7a2b2b;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.variant-history-delete-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.variant-history-delete-actions .variant-history-btn {
+  width: 100%;
 }
 
 .variant-history-sets {
@@ -94,6 +185,12 @@
   margin-top: 14px;
   color: #666;
 }
+.variant-history-btn-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
 
 @media (max-width: 640px) {
   .variant-history-container {
@@ -106,5 +203,28 @@
 
   .variant-history-title {
     font-size: 1.7rem;
+  }
+
+  .variant-history-log-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .variant-history-actions-wrapper {
+    width: 100%;
+    align-items: flex-start;
+    min-width: 0;
+  }
+
+  .variant-history-actions {
+    width: auto;
+  }
+
+  .variant-history-delete-confirm-inline {
+    position: static;
+    width: 100%;
+    max-width: 100%;
+    margin-top: 10px;
+    box-shadow: none;
   }
 }

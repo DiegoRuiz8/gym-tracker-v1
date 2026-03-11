@@ -1,43 +1,47 @@
 import { useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useAppStore } from "../store/useAppStore";
 import {
   getExerciseById,
-  getLogsForVariant,
   getVariantById,
+  getWorkoutLogById,
 } from "../store/selectors";
+import { formatLatestPerformance, formatLogDate } from "../utils/format";
 import {
-  formatLogDate,
-  formatPrescriptionInline,
-  formatSetPerformanceInline,
-  getTodayDateInputValue
-} from "../utils/format";
-import { generateId } from "../utils/ids";
-import {
-  buildInitialSetInputs,
+  mapLogToSetInputs,
   createEmptySetInput,
   type SetInput,
 } from "../utils/logForm";
 import "../styles/new-workout-log.css";
 
-export default function NewWorkoutLogPage() {
-  const { routineId, variantId } = useParams();
+export default function EditWorkoutLogPage() {
+  const { logId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const routines = useAppStore((state) => state.routines);
   const exercises = useAppStore((state) => state.exercises);
   const exerciseVariants = useAppStore((state) => state.exerciseVariants);
   const workoutLogs = useAppStore((state) => state.workoutLogs);
-  const addWorkoutLog = useAppStore((state) => state.addWorkoutLog);
+  const updateWorkoutLog = useAppStore((state) => state.updateWorkoutLog);
+
+  const log = useMemo(
+    () => (logId ? getWorkoutLogById(workoutLogs, logId) : undefined),
+    [workoutLogs, logId],
+  );
+
+  const returnTo =
+  (location.state as { returnTo?: string } | null)?.returnTo ??
+  (log ? `/history/variant/${log.variantId}` : "/history");
 
   const routine = useMemo(
-    () => routines.find((item) => item.id === routineId),
-    [routines, routineId],
+    () => routines.find((item) => item.id === log?.routineId),
+    [routines, log],
   );
 
   const variant = useMemo(
-    () => (variantId ? getVariantById(exerciseVariants, variantId) : undefined),
-    [exerciseVariants, variantId],
+    () => (log ? getVariantById(exerciseVariants, log.variantId) : undefined),
+    [exerciseVariants, log],
   );
 
   const exercise = useMemo(
@@ -46,27 +50,12 @@ export default function NewWorkoutLogPage() {
     [exercises, variant],
   );
 
-  const routineExerciseRef = useMemo(
-    () => routine?.exerciseRefs.find((ref) => ref.variantId === variantId),
-    [routine, variantId],
-  );
+  const [date, setDate] = useState(log?.date ?? "");
+  const [notes, setNotes] = useState(log?.notes ?? "");
+  const [sets, setSets] = useState<SetInput[]>(() => mapLogToSetInputs(log));
 
-  const logsForVariant = useMemo(
-    () => (variantId ? getLogsForVariant(workoutLogs, variantId) : []),
-    [workoutLogs, variantId],
-  );
-
-  const lastLog = logsForVariant[0];
-  const initialSetCount = routineExerciseRef?.prescription.sets ?? 3;
-
-  const [date, setDate] = useState(() => getTodayDateInputValue());
-  const [notes, setNotes] = useState("");
-  const [sets, setSets] = useState<SetInput[]>(() =>
-    buildInitialSetInputs(lastLog, initialSetCount),
-  );
-
-  if (!routine || !variant || !exercise || !variantId) {
-    return <p>Missing routine or variant data.</p>;
+  if (!log || !routine || !variant || !exercise) {
+    return <p>Log not found.</p>;
   }
 
   function handleSetChange(
@@ -95,20 +84,20 @@ export default function NewWorkoutLogPage() {
     });
   }
 
-  function getPreviousSetText(index: number): string {
-    if (!lastLog) return "—";
+  function getCurrentSetText(index: number): string {
+    if (!log) return "—";
 
-    const previousSet = lastLog.performedSets[index];
+    const currentSet = log.performedSets[index];
 
-    if (!previousSet) return "—";
+    if (!currentSet) return "—";
 
-    return `${previousSet.weight} kg × ${previousSet.reps}`;
+    return `${currentSet.weight} kg × ${currentSet.reps}`;
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!routine || !variant || !exercise) {
+    if (!log) {
       return;
     }
 
@@ -124,43 +113,34 @@ export default function NewWorkoutLogPage() {
       return;
     }
 
-    const newLog = {
-      id: generateId(),
+    updateWorkoutLog({
+      ...log,
       date,
-      routineId: routine.id,
-      exerciseId: exercise.id,
-      variantId: variant.id,
       performedSets,
       notes: notes.trim() || undefined,
-      createdAt: new Date().toISOString(),
-    };
+    });
 
-    addWorkoutLog(newLog);
-    navigate(`/routines/${routine.id}`);
+    navigate(returnTo);
   }
 
   return (
     <div className="new-workout-log-page">
       <div className="new-workout-log-container">
         <div className="new-workout-log-card">
-          <h1 className="new-workout-log-header-title">{variant.name}</h1>
+          <h1 className="new-workout-log-header-title">Edit log</h1>
 
-          <p className="new-workout-log-header-subtitle">{routine.name}</p>
-
-          {routineExerciseRef && (
-            <p className="new-workout-log-header-line">
-              <strong>Target:</strong>{" "}
-              {formatPrescriptionInline(routineExerciseRef.prescription)}
-            </p>
-          )}
+          <p className="new-workout-log-header-subtitle">{variant.name}</p>
 
           <p className="new-workout-log-header-line">
-            <strong>Previous:</strong> {formatSetPerformanceInline(lastLog)}
+            <strong>Routine:</strong> {routine.name}
+          </p>
+
+          <p className="new-workout-log-header-line">
+            <strong>Current:</strong> {formatLatestPerformance(log)}
           </p>
 
           <p className="new-workout-log-header-meta">
-            {formatLogDate(lastLog?.date)} • {logsForVariant.length} log
-            {logsForVariant.length === 1 ? "" : "s"}
+            {formatLogDate(log.date)}
           </p>
         </div>
 
@@ -179,7 +159,7 @@ export default function NewWorkoutLogPage() {
 
             <div className="new-workout-log-table-head">
               <div>Set</div>
-              <div>Prev</div>
+              <div>Current</div>
               <div>Kg</div>
               <div>Reps</div>
               <div></div>
@@ -190,7 +170,7 @@ export default function NewWorkoutLogPage() {
                 <div className="new-workout-log-set-index">{index + 1}</div>
 
                 <div className="new-workout-log-prev">
-                  {getPreviousSetText(index)}
+                  {getCurrentSetText(index)}
                 </div>
 
                 <input
@@ -253,13 +233,13 @@ export default function NewWorkoutLogPage() {
               className="new-workout-log-btn new-workout-log-btn-primary"
               type="submit"
             >
-              Save sets
+              Save changes
             </button>
 
             <button
               className="new-workout-log-btn new-workout-log-btn-secondary"
               type="button"
-              onClick={() => navigate(`/routines/${routine.id}`)}
+              onClick={() => navigate(returnTo)}
             >
               Cancel
             </button>
