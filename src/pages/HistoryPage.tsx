@@ -134,6 +134,7 @@ export default function HistoryPage() {
                       {variant && (
                         <Link
                           to={`/history/variant/${variant.id}`}
+                          state={{ returnTo: "/history" }}
                           className="history-page-btn history-page-btn-secondary history-page-btn-link"
                         >
                           View variant

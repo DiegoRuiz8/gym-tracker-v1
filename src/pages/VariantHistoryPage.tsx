@@ -7,6 +7,7 @@ import {
   getVariantById,
 } from "../store/selectors";
 import { formatLogDate, formatPerformedSetsDetailed } from "../utils/format";
+import PageBackButton from "../components/navigation/PageBackButton";
 import "../styles/variant-history.css";
 
 export default function VariantHistoryPage() {
@@ -65,9 +66,10 @@ export default function VariantHistoryPage() {
     <div className="variant-history-page">
       <div className="variant-history-container">
         <header className="variant-history-header">
-          <p className="variant-history-back-link">
-            <Link to="/history">History</Link>
-          </p>
+          <div className="variant-history-back-row">
+            <PageBackButton fallbackTo="/history" />
+          </div>
+          
 
           <h1 className="variant-history-title">{variant.name}</h1>
           <p className="variant-history-subtitle">{exercise.name}</p>
@@ -100,52 +102,48 @@ export default function VariantHistoryPage() {
                       </p>
                     </div>
 
-                    <div className="variant-history-actions-wrapper">
-                      <div className="variant-history-actions">
-                        <Link
-                          to={`/history/log/${log.id}/edit`}
-                          state={{ returnTo: `/history/variant/${variantId}` }}
-                          className="variant-history-btn variant-history-btn-secondary variant-history-btn-link"
-                        >
-                          Edit
-                        </Link>
+                    <div className="variant-history-actions">
+                      <Link
+                        to={`/history/log/${log.id}/edit`}
+                        state={{ returnTo: `/history/variant/${variantId}` }}
+                        className="variant-history-btn variant-history-btn-secondary variant-history-btn-link"
+                      >
+                        Edit
+                      </Link>
 
+                      <button
+                        type="button"
+                        className="variant-history-btn variant-history-btn-danger"
+                        onClick={() => handleRequestDelete(log.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+
+                  {pendingDeleteLogId === log.id && (
+                    <div className="variant-history-delete-confirm-inline">
+                      <p className="variant-history-delete-text">Delete log?</p>
+
+                      <div className="variant-history-delete-actions">
                         <button
                           type="button"
                           className="variant-history-btn variant-history-btn-danger"
-                          onClick={() => handleRequestDelete(log.id)}
+                          onClick={() => handleConfirmDelete(log.id)}
                         >
-                          Delete
+                          Confirm
+                        </button>
+
+                        <button
+                          type="button"
+                          className="variant-history-btn variant-history-btn-secondary"
+                          onClick={handleCancelDelete}
+                        >
+                          Cancel
                         </button>
                       </div>
-
-                      {pendingDeleteLogId === log.id && (
-                        <div className="variant-history-delete-confirm-inline">
-                          <p className="variant-history-delete-text">
-                            Delete log?
-                          </p>
-
-                          <div className="variant-history-delete-actions">
-                            <button
-                              type="button"
-                              className="variant-history-btn variant-history-btn-danger "
-                              onClick={() => handleConfirmDelete(log.id)}
-                            >
-                              Confirm
-                            </button>
-
-                            <button
-                              type="button"
-                              className="variant-history-btn variant-history-btn-secondary "
-                              onClick={handleCancelDelete}
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      )}
                     </div>
-                  </div>
+                  )}
 
                   <div className="variant-history-sets">
                     {setLines.map((line, index) => (
@@ -153,13 +151,17 @@ export default function VariantHistoryPage() {
                         <span className="variant-history-set-index">
                           Set {index + 1}
                         </span>
-                        <span>{line}</span>
+                        <span className="variant-history-set-value">
+                          {line}
+                        </span>
                       </div>
                     ))}
                   </div>
 
                   {log.notes && (
-                    <p className="variant-history-notes">{log.notes}</p>
+                    <p className="variant-history-notes">
+                      <strong>Notes:</strong> {log.notes}
+                    </p>
                   )}
                 </div>
               );

@@ -22,3 +22,25 @@ a {
 h1, h2, h3, p {
   margin-top: 0;
 }
+
+.page-back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #666;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.page-back-button:hover {
+  color: #111;
+}
+
+.page-back-button-arrow {
+  font-size: 1rem;
+  line-height: 1;
+}

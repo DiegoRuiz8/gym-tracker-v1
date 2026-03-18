@@ -1,0 +1,170 @@
+.routines-page {
+  width: 100%;
+}
+
+.routines-page-container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.routines-page-header {
+  margin-bottom: 20px;
+}
+
+.routines-page-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.routines-page-title {
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+.routines-page-empty {
+  color: #666;
+  font-size: 1rem;
+}
+
+.routines-page-list {
+  display: grid;
+  gap: 18px;
+}
+
+.routines-page-create-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid #111;
+  background: #111;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.routines-page-create-btn:hover {
+  background: #1c1c1c;
+}
+
+.routines-page-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  padding: 18px 18px 16px;
+}
+
+.routines-page-card-clickable {
+  cursor: pointer;
+}
+
+.routines-page-card-clickable:hover {
+  background: #fcfcfc;
+}
+
+.routines-page-card-clickable:focus {
+  outline: none;
+  border-color: #bbb;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+.routines-page-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.routines-page-card-title-wrap {
+  min-width: 0;
+  flex: 1;
+}
+
+.routines-page-card-title {
+  margin: 0;
+  font-size: 1.35rem;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.routines-page-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.routines-page-card-icon-btn,
+.routines-page-card-edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #111;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.routines-page-card-icon-btn:hover,
+.routines-page-card-edit:hover {
+  background: #fafafa;
+}
+
+.routines-page-card-content {
+  display: grid;
+  gap: 8px;
+}
+
+.routines-page-card-day {
+  margin: 0;
+  color: #444;
+  font-weight: 600;
+}
+
+.routines-page-card-description {
+  margin: 0;
+  color: #666;
+}
+
+@media (max-width: 640px) {
+  .routines-page-container {
+    padding: 18px 12px 36px;
+  }
+
+  .routines-page-header-top {
+    align-items: center;
+  }
+
+  .routines-page-title {
+    font-size: 1.7rem;
+  }
+
+  .routines-page-card {
+    padding: 16px;
+  }
+
+  .routines-page-card-actions {
+    justify-content: flex-end;
+    margin-left: auto;
+  }
+
+  .routines-page-card-title {
+    font-size: 1.2rem;
+  }
+}

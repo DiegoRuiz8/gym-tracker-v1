@@ -17,7 +17,7 @@ export function getTodayDateInputValue(): string {
 
 export function formatRepRange(min?: number, max?: number): string {
   if (min == null || max == null) return "—";
-  return `${min}-${max}`;
+  return min === max ? `${min}` : `${min}-${max}`;
 }
 
 export function formatPerformedSets(log?: WorkoutLog): string {
@@ -53,9 +53,12 @@ export function formatPrescriptionInline(prescription: Prescription): string {
     prescription.repRange?.min != null &&
     prescription.repRange?.max != null
   ) {
-    parts.push(
-      `${prescription.sets} × ${prescription.repRange.min}-${prescription.repRange.max}`,
+    const repText = formatRepRange(
+      prescription.repRange.min,
+      prescription.repRange.max,
     );
+
+    parts.push(`${prescription.sets} × ${repText}`);
   } else if (prescription.sets != null) {
     parts.push(`${prescription.sets} sets`);
   }

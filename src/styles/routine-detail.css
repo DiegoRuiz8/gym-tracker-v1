@@ -9,11 +9,18 @@
 }
 
 .routine-detail-header {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
+}
+
+.routine-detail-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
 }
 
 .routine-detail-title {
-  margin-bottom: 8px;
+  margin: 0 0 8px;
   font-size: 2rem;
   line-height: 1.1;
 }
@@ -26,30 +33,32 @@
 
 .routine-detail-list {
   display: grid;
-  gap: 18px;
+  gap: 16px;
 }
 
 .routine-exercise-card {
   background: #fff;
   border: 1px solid #ddd;
   border-radius: 16px;
-  padding: 20px 22px;
+  padding: 18px 18px 16px;
 }
 
 .routine-exercise-card-top {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 14px;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
 }
 
 .routine-exercise-title {
   margin: 0;
   font-size: 1.35rem;
   line-height: 1.2;
-  flex: 1;
   min-width: 0;
+  flex: 1;
+  word-break: break-word;
 }
 
 .routine-exercise-history-link {
@@ -65,65 +74,101 @@
 }
 
 .routine-exercise-target {
-  margin-bottom: 10px;
+  margin: 0 0 10px;
   color: #333;
+  line-height: 1.45;
 }
 
 .routine-exercise-note {
-  margin-bottom: 14px;
+  margin: 0 0 10px;
   color: #666;
+  line-height: 1.45;
+}
+
+.routine-exercise-latest-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
 }
 
 .routine-exercise-latest {
-  margin-bottom: 10px;
+  margin: 0;
   color: #111;
 }
 
-.routine-exercise-meta {
-  margin-bottom: 16px;
+.routine-exercise-latest-date {
+  margin: 0;
   color: #666;
-}
-
-.routine-exercise-action {
-  display: inline-block;
-  font-weight: 600;
-  border: 1px solid #ddd;
-  border-radius: 7px;
-  padding: 0px 6px;
+  font-size: 0.95rem;
+  white-space: nowrap;
 }
 
 .routine-exercise-actions {
   display: flex;
-  gap: 14px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
 .routine-exercise-action {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  text-decoration: none;
   font-weight: 600;
+  white-space: nowrap;
 }
 
-.routine-exercise-action.secondary {
-  color: #666;
+.routine-exercise-action-primary {
+  background: #111;
+  color: #fff;
+  border: 1px solid #111;
 }
+
+.routine-exercise-action-primary:hover {
+  background: #1c1c1c;
+}
+
+.routine-detail-back-row {
+  margin-bottom: 10px;
+}
+
 @media (max-width: 640px) {
-  .routine-exercise-card-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 12px;
+  .routine-detail-container {
+    padding: 18px 12px 36px;
+  }
+
+  .routine-detail-title {
+    font-size: 1.7rem;
+  }
+
+  .routine-exercise-card {
+    padding: 16px;
   }
 
   .routine-exercise-title {
-    flex: 1;
-    min-width: 0;
     font-size: 1.2rem;
     line-height: 1.25;
   }
 
+  .routine-exercise-card-top {
+    align-items: flex-start;
+  }
+
   .routine-exercise-history-link {
-    flex-shrink: 0;
-    white-space: nowrap;
     font-size: 0.95rem;
+  }
+
+  .routine-exercise-latest-row {
+    align-items: flex-start;
+  }
+
+  .routine-exercise-action {
+    width: 100%;
   }
 }

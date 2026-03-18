@@ -1,15 +1,14 @@
 import { useMemo } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useAppStore } from "../store/useAppStore";
 import {
   getExerciseById,
   getLogsForVariant,
   getVariantById,
 } from "../store/selectors";
-import RoutineExerciseCard from "../components/RoutineExersiceCard";
+import RoutineExerciseCard from "../components/routine/RoutineExersiceCard";
+import PageBackButton from "../components/navigation/PageBackButton";
 import "../styles/routine-detail.css";
-
-
 
 export default function RoutineDetailPage() {
   const { routineId } = useParams();
@@ -32,11 +31,17 @@ export default function RoutineDetailPage() {
     (a, b) => a.order - b.order,
   );
 
- return (
+  return (
     <div className="routine-detail-page">
       <div className="routine-detail-container">
         <header className="routine-detail-header">
-          <h1 className="routine-detail-title">{routine.name}</h1>
+          <div className="routine-detail-back-row"> 
+            <PageBackButton fallbackTo="/routines"/>
+          </div>
+          <div className="routine-detail-header-top">
+            <h1 className="routine-detail-title">{routine.name}</h1>
+          </div>
+
           {routine.description && (
             <p className="routine-detail-description">{routine.description}</p>
           )}
@@ -57,7 +62,6 @@ export default function RoutineDetailPage() {
                 exercise={exercise}
                 variant={variant}
                 lastLog={lastLog}
-                totalLogs={logsForVariant.length}
               />
             );
           })}
