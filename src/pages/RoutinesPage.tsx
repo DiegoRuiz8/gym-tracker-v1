@@ -12,6 +12,11 @@ export default function RoutinesPage() {
     index: number,
   ) {
     event.stopPropagation();
+
+    if (index <= 0) {
+      return;
+    }
+
     moveRoutine(index, index - 1);
   }
 
@@ -20,6 +25,11 @@ export default function RoutinesPage() {
     index: number,
   ) {
     event.stopPropagation();
+
+    if (index >= routines.length - 1) {
+      return;
+    }
+
     moveRoutine(index, index + 1);
   }
 
@@ -34,10 +44,22 @@ export default function RoutinesPage() {
               + New routine
             </Link>
           </div>
+
+          <p className="routines-page-subtitle">
+            Organize your training split and jump into each session fast.
+          </p>
         </header>
 
         {routines.length === 0 ? (
-          <p className="routines-page-empty">No routines found.</p>
+          <section className="routines-page-empty-state" aria-live="polite">
+            <p className="routines-page-empty-title">No routines yet</p>
+            <p className="routines-page-empty-text">
+              Create your first routine to start tracking workouts and progress.
+            </p>
+            <Link to="/routines/new" className="routines-page-empty-cta">
+              Create routine
+            </Link>
+          </section>
         ) : (
           <div className="routines-page-list">
             {routines.map((routine, index) => (
@@ -58,6 +80,10 @@ export default function RoutinesPage() {
                 <div className="routines-page-card-top">
                   <div className="routines-page-card-title-wrap">
                     <h2 className="routines-page-card-title">{routine.name}</h2>
+
+                    {routine.dayType && (
+                      <p className="routines-page-card-day">{routine.dayType}</p>
+                    )}
                   </div>
 
                   <div className="routines-page-card-actions">
@@ -91,17 +117,13 @@ export default function RoutinesPage() {
                   </div>
                 </div>
 
-                <div className="routines-page-card-content">
-                  {routine.dayType && (
-                    <p className="routines-page-card-day">{routine.dayType}</p>
-                  )}
-
-                  {routine.description && (
+                {routine.description && (
+                  <div className="routines-page-card-content">
                     <p className="routines-page-card-description">
                       {routine.description}
                     </p>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

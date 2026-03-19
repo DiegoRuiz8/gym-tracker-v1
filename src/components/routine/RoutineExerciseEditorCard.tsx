@@ -53,52 +53,34 @@ export default function RoutineExerciseEditorCard({
             <h3 className="routine-form-list-item-title">{variantName}</h3>
           </div>
 
-          <div className="routine-form-list-item-actions">
-            <div className="routine-form-prescription-actions routine-form-prescription-actions-top">
-              <button
-                type="button"
-                className="routine-form-btn-icon routine-form-btn-icon-subtle"
-                onClick={() => {
-                  if (canMoveUp) {
-                    onMoveUp(exerciseRef.id);
-                  }
-                }}
-                aria-label={`Move ${variantName} up`}
-                title="Move up"
-              >
-                ↑
-              </button>
+          <div className="routine-form-list-item-order-actions">
+            <button
+              type="button"
+              className="routine-form-btn-icon routine-form-btn-icon-subtle"
+              onClick={() => {
+                if (canMoveUp) {
+                  onMoveUp(exerciseRef.id);
+                }
+              }}
+              aria-label={`Move ${variantName} up`}
+              title="Move up"
+            >
+              ↑
+            </button>
 
-              <button
-                type="button"
-                className="routine-form-btn-icon routine-form-btn-icon-subtle"
-                onClick={() => {
-                  if (canMoveDown) {
-                    onMoveDown(exerciseRef.id);
-                  }
-                }}
-                aria-label={`Move ${variantName} down`}
-                title="Move down"
-              >
-                ↓
-              </button>
-
-              <button
-                type="button"
-                className="routine-form-btn routine-form-btn-primary"
-                onClick={() => onSave(exerciseRef.id)}
-              >
-                Save target
-              </button>
-
-              <button
-                type="button"
-                className="routine-form-btn routine-form-btn-danger-soft"
-                onClick={() => setShowRemoveConfirm(true)}
-              >
-                Remove
-              </button>
-            </div>
+            <button
+              type="button"
+              className="routine-form-btn-icon routine-form-btn-icon-subtle"
+              onClick={() => {
+                if (canMoveDown) {
+                  onMoveDown(exerciseRef.id);
+                }
+              }}
+              aria-label={`Move ${variantName} down`}
+              title="Move down"
+            >
+              ↓
+            </button>
           </div>
         </div>
 
@@ -130,10 +112,6 @@ export default function RoutineExerciseEditorCard({
               </button>
             </div>
           </div>
-        )}
-
-        {success && (
-          <p className="routine-form-prescription-success">Target saved</p>
         )}
 
         <div className="routine-form-prescription-grid">
@@ -219,6 +197,30 @@ export default function RoutineExerciseEditorCard({
         </div>
 
         {error && <p className="routine-form-prescription-error">{error}</p>}
+
+        <div className="routine-form-list-item-footer">
+          <button
+            type="button"
+            className="routine-form-btn routine-form-btn-primary"
+            onClick={() => onSave(exerciseRef.id)}
+          >
+            Save target
+          </button>
+
+          <button
+            type="button"
+            className="routine-form-btn routine-form-btn-danger-soft"
+            onClick={() => setShowRemoveConfirm(true)}
+          >
+            Remove
+          </button>
+        </div>
+
+        {success && (
+          <p className="routine-form-prescription-success routine-form-prescription-success-footer">
+            Target saved
+          </p>
+        )}
       </div>
     </div>
   );

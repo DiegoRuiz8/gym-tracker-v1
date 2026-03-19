@@ -118,7 +118,7 @@ export default function ExercisesPage() {
           </p>
         </header>
 
-        <div className="exercises-page-filters">
+        <section className="exercises-page-filters" aria-label="Exercise filters">
           <div className="exercises-page-filter-field exercises-page-filter-field-search">
             <label
               className="exercises-page-filter-label"
@@ -169,10 +169,15 @@ export default function ExercisesPage() {
               <span>Show inactive</span>
             </label>
           </div>
-        </div>
+        </section>
 
         {filteredExerciseGroups.length === 0 ? (
-          <p className="exercises-page-empty">No exercises found.</p>
+          <div className="exercises-page-empty-state">
+            <h2 className="exercises-page-empty-title">No exercises found</h2>
+            <p className="exercises-page-empty-text">
+              Try adjusting your search or filters, or create a new exercise.
+            </p>
+          </div>
         ) : (
           <div className="exercises-page-groups">
             {filteredExerciseGroups.map(({ exercise, variants }) => (
@@ -194,7 +199,7 @@ export default function ExercisesPage() {
 
                     <Link
                       to={`/exercises/${exercise.id}/variants/new`}
-                      className="exercises-page-group-btn"
+                      className="exercises-page-group-btn exercises-page-group-btn-primary"
                     >
                       Add variant
                     </Link>

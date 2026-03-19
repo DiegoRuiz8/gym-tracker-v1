@@ -57,7 +57,19 @@ export default function EditWorkoutLogPage() {
   const [error, setError] = useState("");
 
   if (!log || !routine || !variant || !exercise) {
-    return <p>Log not found.</p>;
+    return (
+      <div className="new-workout-log-page">
+        <div className="new-workout-log-container">
+          <div className="new-workout-log-card">
+            <div className="new-workout-log-back-row">
+              <PageBackButton fallbackTo={returnTo} />
+            </div>
+
+            <p className="new-workout-log-error">Log not found.</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const safeLog = log;
@@ -93,7 +105,9 @@ export default function EditWorkoutLogPage() {
   function getCurrentSetText(index: number): string {
     const currentSet = safeLog.performedSets[index];
 
-    if (!currentSet) return "—";
+    if (!currentSet) {
+      return "—";
+    }
 
     return `${currentSet.weight} kg × ${currentSet.reps}`;
   }
@@ -128,15 +142,18 @@ export default function EditWorkoutLogPage() {
   return (
     <div className="new-workout-log-page">
       <div className="new-workout-log-container">
-        <div className="new-workout-log-card">
+        <div className="new-workout-log-card new-workout-log-card-header">
           <div className="new-workout-log-back-row">
             <PageBackButton fallbackTo={returnTo} />
           </div>
+
           <div className="new-workout-log-header-top">
-            <h1 className="new-workout-log-header-title">Edit log</h1>
-            <p className="new-workout-log-header-subtitle">
-              {safeVariant.name}
-            </p>
+            <div className="new-workout-log-title-wrap">
+              <h1 className="new-workout-log-header-title">Edit log</h1>
+              <p className="new-workout-log-header-subtitle">
+                {safeVariant.name}
+              </p>
+            </div>
           </div>
 
           <p className="new-workout-log-header-line">
@@ -154,7 +171,7 @@ export default function EditWorkoutLogPage() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="new-workout-log-form">
           <div className="new-workout-log-card">
             <div className="new-workout-log-section-top">
               <h2 className="new-workout-log-section-title">Workout log</h2>
@@ -173,7 +190,7 @@ export default function EditWorkoutLogPage() {
               </div>
             </div>
 
-            <div className="new-workout-log-table-head">
+            <div className="new-workout-log-table-head" aria-hidden="true">
               <div>Set</div>
               <div>Current</div>
               <div>Kg</div>
@@ -195,7 +212,9 @@ export default function EditWorkoutLogPage() {
                     <span className="new-workout-log-mobile-label">
                       Current
                     </span>
-                    {getCurrentSetText(index)}
+                    <span className="new-workout-log-row-prev-value">
+                      {getCurrentSetText(index)}
+                    </span>
                   </div>
 
                   <div className="new-workout-log-row-input-wrap">
@@ -275,21 +294,23 @@ export default function EditWorkoutLogPage() {
 
           {error && <p className="new-workout-log-error">{error}</p>}
 
-          <div className="new-workout-log-footer-actions">
-            <button
-              className="new-workout-log-btn new-workout-log-btn-primary"
-              type="submit"
-            >
-              Save changes
-            </button>
+          <div className="new-workout-log-footer-card">
+            <div className="new-workout-log-footer-actions">
+              <button
+                className="new-workout-log-btn new-workout-log-btn-primary"
+                type="submit"
+              >
+                Save changes
+              </button>
 
-            <button
-              className="new-workout-log-btn new-workout-log-btn-secondary"
-              type="button"
-              onClick={() => navigate(returnTo)}
-            >
-              Cancel
-            </button>
+              <button
+                className="new-workout-log-btn new-workout-log-btn-secondary"
+                type="button"
+                onClick={() => navigate(returnTo)}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </form>
       </div>

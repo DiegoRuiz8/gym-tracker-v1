@@ -81,7 +81,9 @@ export default function EditRoutinePage() {
   const [prescriptionDrafts, setPrescriptionDrafts] = useState<
     Record<string, PrescriptionDraft>
   >(() => {
-    if (!routine) return {};
+    if (!routine) {
+      return {};
+    }
 
     return Object.fromEntries(
       routine.exerciseRefs.map((exerciseRef) => [
@@ -100,7 +102,19 @@ export default function EditRoutinePage() {
   >({});
 
   if (!routine) {
-    return <p>Routine not found.</p>;
+    return (
+      <div className="routine-form-page">
+        <div className="routine-form-container">
+          <div className="routine-form-card">
+            <div className="routine-form-back-row">
+              <PageBackButton fallbackTo="/routines" />
+            </div>
+
+            <p className="routine-form-routine-error">Routine not found.</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const safeRoutine = routine;
@@ -383,9 +397,9 @@ export default function EditRoutinePage() {
     <div className="routine-form-page">
       <div className="routine-form-container">
         <div className="routine-form-card">
-<div className="new-workout-log-back-row">
-    <PageBackButton fallbackTo="/routines" />
-  </div>
+          <div className="routine-form-back-row">
+            <PageBackButton fallbackTo="/routines" />
+          </div>
 
           <h1 className="routine-form-title">Edit routine</h1>
           <p className="routine-form-subtitle">
@@ -586,7 +600,7 @@ export default function EditRoutinePage() {
         </div>
 
         <div className="routine-form-card routine-form-bottom-save">
-          <div className="routine-form-actions">
+          <div className="routine-form-actions routine-form-actions-end">
             <button
               type="button"
               className="routine-form-btn routine-form-btn-primary"

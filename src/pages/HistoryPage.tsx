@@ -9,11 +9,6 @@ import {
 } from "../utils/format";
 import "../styles/history-page.css";
 
-type HistoryGroup = {
-  dateKey: string;
-  logs: ReturnType<typeof buildLogItems>;
-};
-
 function buildLogItems(
   workoutLogs: ReturnType<typeof useAppStore.getState>["workoutLogs"],
   routines: ReturnType<typeof useAppStore.getState>["routines"],
@@ -96,7 +91,13 @@ export default function HistoryPage() {
         </header>
 
         {groupedHistory.length === 0 ? (
-          <p className="history-page-empty">No logs found.</p>
+          <div className="history-page-empty-state">
+            <h2 className="history-page-empty-title">No logs yet</h2>
+            <p className="history-page-empty-text">
+              Your recorded workout logs will appear here once you start logging
+              sets.
+            </p>
+          </div>
         ) : (
           <div className="history-page-groups">
             {groupedHistory.map((group) => (
@@ -105,76 +106,88 @@ export default function HistoryPage() {
                   {formatLogDate(group.dateKey)}
                 </h2>
 
-                {group.logs.map(({ log, routine, variant }) => (
-                  <div key={log.id} className="history-page-card">
-                    <div className="history-page-card-top">
-                      <div>
-                        <h3 className="history-page-card-title">
-                          {variant?.name ?? "Unknown variant"}
-                        </h3>
-                        <p className="history-page-card-routine">
-                          {routine?.name ?? "Unknown routine"}
-                        </p>
+                <div className="history-page-group-list">
+                  {group.logs.map(({ log, routine, variant, exercise }) => (
+                    <div key={log.id} className="history-page-card">
+                      <div className="history-page-card-top">
+                        <div className="history-page-card-info">
+                          <h3 className="history-page-card-title">
+                            {variant?.name ?? "Unknown variant"}
+                          </h3>
+
+                          <p className="history-page-card-routine">
+                            {routine?.name ?? "Unknown routine"}
+                          </p>
+
+                          {exercise && (
+                            <p className="history-page-card-exercise">
+                              {exercise.name}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
 
-                    <p className="history-page-card-performance">
-                      <strong>Sets:</strong> {formatSetPerformanceInline(log)}
-                    </p>
+                      <p className="history-page-card-performance">
+                        <strong>Sets:</strong> {formatSetPerformanceInline(log)}
+                      </p>
 
-                    <div className="history-page-card-actions">
-                      <Link
-                        to={`/history/log/${log.id}/edit`}
-                        state={{ returnTo: "/history" }}
-                        className="history-page-btn history-page-btn-secondary history-page-btn-link"
-                      >
-                        Edit
-                      </Link>
-
-                      {variant && (
+                      <div className="history-page-card-actions">
                         <Link
-                          to={`/history/variant/${variant.id}`}
+                          to={`/history/log/${log.id}/edit`}
                           state={{ returnTo: "/history" }}
                           className="history-page-btn history-page-btn-secondary history-page-btn-link"
                         >
-                          View variant
+                          Edit
                         </Link>
-                      )}
 
-                      <button
-                        type="button"
-                        className="history-page-btn history-page-btn-danger"
-                        onClick={() => handleRequestDelete(log.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-
-                    {pendingDeleteLogId === log.id && (
-                      <div className="history-page-delete-confirm">
-                        <p className="history-page-delete-text">Delete log?</p>
-
-                        <div className="history-page-delete-actions">
-                          <button
-                            type="button"
-                            className="history-page-btn history-page-btn-danger"
-                            onClick={() => handleConfirmDelete(log.id)}
+                        {variant && (
+                          <Link
+                            to={`/history/variant/${variant.id}`}
+                            state={{ returnTo: "/history" }}
+                            className="history-page-btn history-page-btn-secondary history-page-btn-link"
                           >
-                            Confirm
-                          </button>
+                            View variant
+                          </Link>
+                        )}
 
-                          <button
-                            type="button"
-                            className="history-page-btn history-page-btn-secondary"
-                            onClick={handleCancelDelete}
-                          >
-                            Cancel
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          className="history-page-btn history-page-btn-danger"
+                          onClick={() => handleRequestDelete(log.id)}
+                        >
+                          Delete
+                        </button>
                       </div>
-                    )}
-                  </div>
-                ))}
+
+                      {pendingDeleteLogId === log.id && (
+                        <div className="history-page-delete-confirm">
+                          <p className="history-page-delete-text">Delete log?</p>
+                          <p className="history-page-delete-subtext">
+                            This workout entry will be permanently removed.
+                          </p>
+
+                          <div className="history-page-delete-actions">
+                            <button
+                              type="button"
+                              className="history-page-btn history-page-btn-danger"
+                              onClick={() => handleConfirmDelete(log.id)}
+                            >
+                              Confirm
+                            </button>
+
+                            <button
+                              type="button"
+                              className="history-page-btn history-page-btn-secondary"
+                              onClick={handleCancelDelete}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </section>
             ))}
           </div>

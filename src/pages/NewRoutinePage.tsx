@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppStore } from "../store/useAppStore";
 import { generateId } from "../utils/ids";
+import { EXERCISE_CATEGORY_OPTIONS } from "../utils/exerciseCategories";
 import type { Routine } from "../types/routine";
 import PageBackButton from "../components/navigation/PageBackButton";
 import "../styles/routine-form.css";
@@ -13,6 +14,7 @@ export default function NewRoutinePage() {
   const [name, setName] = useState("");
   const [dayType, setDayType] = useState("");
   const [description, setDescription] = useState("");
+  const [routineError, setRoutineError] = useState("");
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -20,7 +22,7 @@ export default function NewRoutinePage() {
     const trimmedName = name.trim();
 
     if (!trimmedName) {
-      alert("Routine name is required.");
+      setRoutineError("Routine name is required.");
       return;
     }
 
@@ -47,9 +49,11 @@ export default function NewRoutinePage() {
           <div className="routine-form-back-row">
             <PageBackButton fallbackTo="/routines" />
           </div>
+
           <h1 className="routine-form-title">New routine</h1>
           <p className="routine-form-subtitle">
-            Create a routine with basic info first. You can add exercises next.
+            Create a routine with the basic info first. You can add exercises
+            next.
           </p>
         </div>
 
@@ -66,7 +70,10 @@ export default function NewRoutinePage() {
                 className="routine-form-input"
                 type="text"
                 value={name}
-                onChange={(event) => setName(event.target.value)}
+                onChange={(event) => {
+                  setName(event.target.value);
+                  setRoutineError("");
+                }}
                 placeholder="Push C"
               />
             </div>
@@ -75,17 +82,22 @@ export default function NewRoutinePage() {
               <label className="routine-form-label" htmlFor="routine-day-type">
                 Day type
               </label>
-              <input
+              <select
                 id="routine-day-type"
-                className="routine-form-input"
-                type="text"
+                className="routine-form-select"
                 value={dayType}
                 onChange={(event) => setDayType(event.target.value)}
-                placeholder="Push"
-              />
+              >
+                <option value="">Select a category</option>
+                {EXERCISE_CATEGORY_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            <div className="routine-form-field">
+            <div className="routine-form-field routine-form-field-compact">
               <label
                 className="routine-form-label"
                 htmlFor="routine-description"
@@ -100,6 +112,10 @@ export default function NewRoutinePage() {
                 placeholder="Optional description..."
               />
             </div>
+
+            {routineError && (
+              <p className="routine-form-routine-error">{routineError}</p>
+            )}
 
             <div className="routine-form-actions">
               <button

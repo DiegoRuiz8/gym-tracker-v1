@@ -39,11 +39,29 @@ export default function VariantHistoryPage() {
   );
 
   if (!variantId || !variant || !exercise) {
-    return <p>Variant not found.</p>;
+    return (
+      <div className="variant-history-page">
+        <div className="variant-history-container">
+          <div className="variant-history-card">
+            <div className="variant-history-back-row">
+              <PageBackButton fallbackTo="/history" />
+            </div>
+
+            <h2 className="variant-history-card-title">Variant not found</h2>
+            <p className="variant-history-card-text">
+              The variant you are trying to open does not exist or is no longer
+              available.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   function getRoutineName(routineId?: string): string {
-    if (!routineId) return "Unknown routine";
+    if (!routineId) {
+      return "Unknown routine";
+    }
 
     const routine = routines.find((item) => item.id === routineId);
     return routine?.name ?? "Unknown routine";
@@ -69,7 +87,6 @@ export default function VariantHistoryPage() {
           <div className="variant-history-back-row">
             <PageBackButton fallbackTo="/history" />
           </div>
-          
 
           <h1 className="variant-history-title">{variant.name}</h1>
           <p className="variant-history-subtitle">{exercise.name}</p>
@@ -124,6 +141,9 @@ export default function VariantHistoryPage() {
                   {pendingDeleteLogId === log.id && (
                     <div className="variant-history-delete-confirm-inline">
                       <p className="variant-history-delete-text">Delete log?</p>
+                      <p className="variant-history-delete-subtext">
+                        This workout entry will be permanently removed.
+                      </p>
 
                       <div className="variant-history-delete-actions">
                         <button

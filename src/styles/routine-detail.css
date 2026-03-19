@@ -3,44 +3,79 @@
 }
 
 .routine-detail-container {
-  max-width: 980px;
+  max-width: var(--page-max-width);
   margin: 0 auto;
-  padding: 24px 16px 48px;
+  padding: var(--page-padding-y) var(--page-padding-x) 32px;
 }
 
 .routine-detail-header {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
+}
+
+.routine-detail-back-row {
+  margin-bottom: 10px;
 }
 
 .routine-detail-header-top {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
+}
+
+.routine-detail-title-wrap {
+  min-width: 0;
+  flex: 1;
 }
 
 .routine-detail-title {
   margin: 0 0 8px;
-  font-size: 2rem;
+  font-size: 1.75rem;
   line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
 }
 
 .routine-detail-description {
   margin: 0;
-  color: #666;
-  font-size: 1rem;
+  color: var(--color-text-soft);
+  font-size: 0.98rem;
+  line-height: 1.5;
 }
 
 .routine-detail-list {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
+.routine-detail-empty-state {
+  padding: 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.routine-detail-empty-title {
+  margin: 0 0 6px;
+  color: var(--color-text);
+  font-size: 1.05rem;
+  font-weight: var(--font-weight-semibold);
+}
+
+.routine-detail-empty-text {
+  margin: 0;
+  color: var(--color-text-soft);
+  line-height: 1.5;
+}
+
+/* RoutineExerciseCard styles */
 .routine-exercise-card {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 16px;
-  padding: 18px 18px 16px;
+  padding: 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .routine-exercise-card-top {
@@ -54,35 +89,38 @@
 
 .routine-exercise-title {
   margin: 0;
-  font-size: 1.35rem;
-  line-height: 1.2;
   min-width: 0;
   flex: 1;
   word-break: break-word;
+  font-size: 1.12rem;
+  line-height: 1.25;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
 }
 
 .routine-exercise-history-link {
-  color: #666;
+  color: var(--color-accent);
   text-decoration: none;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   white-space: nowrap;
   flex-shrink: 0;
+  transition: color 140ms ease;
 }
 
 .routine-exercise-history-link:hover {
-  color: #111;
+  color: #60a5fa;
 }
 
 .routine-exercise-target {
   margin: 0 0 10px;
-  color: #333;
-  line-height: 1.45;
+  color: var(--color-text);
+  line-height: 1.5;
 }
 
 .routine-exercise-note {
   margin: 0 0 10px;
-  color: #666;
-  line-height: 1.45;
+  color: var(--color-text-soft);
+  line-height: 1.5;
 }
 
 .routine-exercise-latest-row {
@@ -96,19 +134,20 @@
 
 .routine-exercise-latest {
   margin: 0;
-  color: #111;
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
 }
 
 .routine-exercise-latest-date {
   margin: 0;
-  color: #666;
-  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  font-size: 0.92rem;
   white-space: nowrap;
 }
 
 .routine-exercise-actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
@@ -120,40 +159,45 @@
   padding: 0 14px;
   border-radius: 10px;
   text-decoration: none;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   white-space: nowrap;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    transform 120ms ease;
 }
 
 .routine-exercise-action-primary {
-  background: #111;
-  color: #fff;
-  border: 1px solid #111;
+  background: var(--color-accent);
+  color: #f8fbff;
+  border: 1px solid transparent;
 }
 
 .routine-exercise-action-primary:hover {
-  background: #1c1c1c;
+  background: var(--color-accent-hover);
 }
 
-.routine-detail-back-row {
-  margin-bottom: 10px;
+.routine-exercise-action-primary:active {
+  transform: translateY(1px);
 }
 
 @media (max-width: 640px) {
   .routine-detail-container {
-    padding: 18px 12px 36px;
+    padding-top: 18px;
+    padding-bottom: 28px;
   }
 
   .routine-detail-title {
-    font-size: 1.7rem;
+    font-size: 1.55rem;
   }
 
   .routine-exercise-card {
-    padding: 16px;
+    padding: 14px;
   }
 
   .routine-exercise-title {
-    font-size: 1.2rem;
-    line-height: 1.25;
+    font-size: 1.05rem;
   }
 
   .routine-exercise-card-top {
@@ -161,7 +205,7 @@
   }
 
   .routine-exercise-history-link {
-    font-size: 0.95rem;
+    font-size: 0.94rem;
   }
 
   .routine-exercise-latest-row {

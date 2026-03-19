@@ -68,8 +68,23 @@ export default function NewWorkoutLogPage() {
   const [error, setError] = useState("");
 
   if (!routine || !variant || !exercise || !variantId) {
-    return <p>Missing routine or variant data.</p>;
+    return (
+      <div className="new-workout-log-page">
+        <div className="new-workout-log-container">
+          <div className="new-workout-log-card">
+            <div className="new-workout-log-back-row">
+              <PageBackButton fallbackTo="/routines" />
+            </div>
+
+            <p className="new-workout-log-error">
+              Missing routine or variant data.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
+
   const safeRoutine = routine;
   const safeVariant = variant;
   const safeExercise = exercise;
@@ -102,13 +117,17 @@ export default function NewWorkoutLogPage() {
   }
 
   function getPreviousSetText(index: number): string {
-    if (!lastLog) return "—";
+    if (!lastLog) {
+      return "—";
+    }
 
     const previousSet = lastLog.performedSets[index];
 
-    if (!previousSet) return "—";
+    if (!previousSet) {
+      return "—";
+    }
 
-    return ` ${previousSet.weight} kg × ${previousSet.reps}`;
+    return `${previousSet.weight} kg × ${previousSet.reps}`;
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -133,7 +152,7 @@ export default function NewWorkoutLogPage() {
       date,
       routineId: safeRoutine.id,
       exerciseId: safeExercise.id,
-      variantId: safeVariant.id,
+      variantId: safeVariantId,
       performedSets,
       notes: notes.trim() || undefined,
       createdAt: new Date().toISOString(),
@@ -146,16 +165,20 @@ export default function NewWorkoutLogPage() {
   return (
     <div className="new-workout-log-page">
       <div className="new-workout-log-container">
-        <div className="new-workout-log-card">
+        <div className="new-workout-log-card new-workout-log-card-header">
           <div className="new-workout-log-back-row">
             <PageBackButton fallbackTo={`/routines/${safeRoutine.id}`} />
           </div>
 
           <div className="new-workout-log-header-top">
-            <h1 className="new-workout-log-header-title">{safeVariant.name}</h1>
-            <p className="new-workout-log-header-subtitle">
-              {safeRoutine.name}
-            </p>
+            <div className="new-workout-log-title-wrap">
+              <h1 className="new-workout-log-header-title">
+                {safeVariant.name}
+              </h1>
+              <p className="new-workout-log-header-subtitle">
+                {safeRoutine.name}
+              </p>
+            </div>
           </div>
 
           {routineExerciseRef && (
@@ -178,7 +201,7 @@ export default function NewWorkoutLogPage() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="new-workout-log-form">
           <div className="new-workout-log-card">
             <div className="new-workout-log-section-top">
               <h2 className="new-workout-log-section-title">Workout log</h2>
@@ -197,7 +220,7 @@ export default function NewWorkoutLogPage() {
               </div>
             </div>
 
-            <div className="new-workout-log-table-head">
+            <div className="new-workout-log-table-head" aria-hidden="true">
               <div>Set</div>
               <div>Prev</div>
               <div>Kg</div>
@@ -217,7 +240,9 @@ export default function NewWorkoutLogPage() {
 
                   <div className="new-workout-log-row-prev">
                     <span className="new-workout-log-mobile-label">Prev</span>
-                    {getPreviousSetText(index)}
+                    <span className="new-workout-log-row-prev-value">
+                      {getPreviousSetText(index)}
+                    </span>
                   </div>
 
                   <div className="new-workout-log-row-input-wrap">
@@ -297,21 +322,23 @@ export default function NewWorkoutLogPage() {
 
           {error && <p className="new-workout-log-error">{error}</p>}
 
-          <div className="new-workout-log-footer-actions">
-            <button
-              className="new-workout-log-btn new-workout-log-btn-primary"
-              type="submit"
-            >
-              Log sets
-            </button>
+          <div className="new-workout-log-footer-card">
+            <div className="new-workout-log-footer-actions">
+              <button
+                className="new-workout-log-btn new-workout-log-btn-primary"
+                type="submit"
+              >
+                Log sets
+              </button>
 
-            <button
-              className="new-workout-log-btn new-workout-log-btn-secondary"
-              type="button"
-              onClick={() => navigate(`/routines/${safeRoutine.id}`)}
-            >
-              Cancel
-            </button>
+              <button
+                className="new-workout-log-btn new-workout-log-btn-secondary"
+                type="button"
+                onClick={() => navigate(`/routines/${safeRoutine.id}`)}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </form>
       </div>

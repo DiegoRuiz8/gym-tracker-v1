@@ -1,4 +1,4 @@
-import { Routes, Route, Link } from "react-router-dom";
+import { Routes, Route, NavLink } from "react-router-dom";
 import HomePage from "../pages/HomePage";
 import RoutinesPage from "../pages/RoutinesPage";
 import RoutineDetailPage from "../pages/RoutineDetailPage";
@@ -15,26 +15,13 @@ import EditVariantPage from "../pages/EditVariantPage";
 import EditExercisePage from "../pages/EditExercisePage";
 import "../styles/app-shell.css";
 
+function getNavLinkClassName({ isActive }: { isActive: boolean }) {
+  return isActive ? "app-shell-nav-link active" : "app-shell-nav-link";
+}
+
 export function AppRouter() {
   return (
-    <div>
-      <nav className="app-shell-nav">
-        <div className="app-shell-nav-inner">
-          <Link className="app-shell-nav-link" to="/">
-            Home
-          </Link>
-          <Link className="app-shell-nav-link" to="/routines">
-            Routines
-          </Link>
-          <Link className="app-shell-nav-link" to="/exercises">
-            Exercises
-          </Link>
-          <Link className="app-shell-nav-link" to="/history">
-            History
-          </Link>
-        </div>
-      </nav>
-
+    <div className="app-shell">
       <main className="app-shell-main">
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -55,7 +42,10 @@ export function AppRouter() {
             path="/exercises/:exerciseId/variants/new"
             element={<NewVariantPage />}
           />
-          <Route path="/variants/:variantId/edit" element={<EditVariantPage />} />
+          <Route
+            path="/variants/:variantId/edit"
+            element={<EditVariantPage />}
+          />
           <Route path="/history" element={<HistoryPage />} />
           <Route
             path="/history/variant/:variantId"
@@ -65,9 +55,32 @@ export function AppRouter() {
             path="/history/log/:logId/edit"
             element={<EditWorkoutLogPage />}
           />
-          <Route path="/exercises/:exerciseId/edit" element={<EditExercisePage />} />
+          <Route
+            path="/exercises/:exerciseId/edit"
+            element={<EditExercisePage />}
+          />
         </Routes>
       </main>
+
+      <nav className="app-shell-nav" aria-label="Primary">
+        <div className="app-shell-nav-inner">
+          <NavLink className={getNavLinkClassName} to="/" end>
+            Home
+          </NavLink>
+
+          <NavLink className={getNavLinkClassName} to="/routines">
+            Routines
+          </NavLink>
+
+          <NavLink className={getNavLinkClassName} to="/exercises">
+            Exercises
+          </NavLink>
+
+          <NavLink className={getNavLinkClassName} to="/history">
+            History
+          </NavLink>
+        </div>
+      </nav>
     </div>
   );
 }
