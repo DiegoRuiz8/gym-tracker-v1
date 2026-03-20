@@ -4,6 +4,8 @@ import type { Routine } from "../types/routine";
 
 const STORAGE_KEY = "gym-tracker-v1";
 
+export type WeightUnit = "kg" | "lb";
+
 export type PersistedAppData = {
   version: number;
   data: {
@@ -11,6 +13,7 @@ export type PersistedAppData = {
     exerciseVariants: ExerciseVariant[];
     routines: Routine[];
     workoutLogs: WorkoutLog[];
+    preferredWeightUnit: WeightUnit;
   };
 };
 
@@ -20,13 +23,31 @@ export function loadPersistedAppData(): PersistedAppData | null {
 
     if (!raw) return null;
 
-    const parsed = JSON.parse(raw) as PersistedAppData;
+    const parsed = JSON.parse(raw) as {
+      version?: number;
+      data?: {
+        exercises?: Exercise[];
+        exerciseVariants?: ExerciseVariant[];
+        routines?: Routine[];
+        workoutLogs?: WorkoutLog[];
+        preferredWeightUnit?: WeightUnit;
+      };
+    };
 
     if (!parsed.version || !parsed.data) {
       return null;
     }
 
-    return parsed;
+    return {
+      version: parsed.version,
+      data: {
+        exercises: parsed.data.exercises ?? [],
+        exerciseVariants: parsed.data.exerciseVariants ?? [],
+        routines: parsed.data.routines ?? [],
+        workoutLogs: parsed.data.workoutLogs ?? [],
+        preferredWeightUnit: parsed.data.preferredWeightUnit ?? "kg",
+      },
+    };
   } catch (error) {
     console.error("Failed to load app data from localStorage", error);
     return null;

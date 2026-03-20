@@ -9,6 +9,7 @@ export default function ExercisesPage() {
   const exercises = useAppStore((state) => state.exercises);
   const exerciseVariants = useAppStore((state) => state.exerciseVariants);
   const workoutLogs = useAppStore((state) => state.workoutLogs);
+  const preferredWeightUnit = useAppStore((state) => state.preferredWeightUnit);
 
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All categories");
@@ -118,7 +119,10 @@ export default function ExercisesPage() {
           </p>
         </header>
 
-        <section className="exercises-page-filters" aria-label="Exercise filters">
+        <section
+          className="exercises-page-filters"
+          aria-label="Exercise filters"
+        >
           <div className="exercises-page-filter-field exercises-page-filter-field-search">
             <label
               className="exercises-page-filter-label"
@@ -194,14 +198,14 @@ export default function ExercisesPage() {
                       to={`/exercises/${exercise.id}/edit`}
                       className="exercises-page-group-btn"
                     >
-                      Edit exercise
+                      Edit
                     </Link>
 
                     <Link
                       to={`/exercises/${exercise.id}/variants/new`}
                       className="exercises-page-group-btn exercises-page-group-btn-primary"
                     >
-                      Add variant
+                      + Variant
                     </Link>
                   </div>
                 </div>
@@ -231,6 +235,15 @@ export default function ExercisesPage() {
                     )}
                   </div>
                 )}
+
+                <div className="exercises-page-variants-header">
+                  <span className="exercises-page-variants-label">
+                    Variants
+                    <span className="exercises-page-variants-count">
+                      {variants.length}
+                    </span>
+                  </span>
+                </div>
 
                 {variants.length === 0 ? (
                   <div className="exercises-page-empty-variants">
@@ -309,7 +322,10 @@ export default function ExercisesPage() {
 
                           <p className="exercises-page-variant-latest">
                             <strong>Latest:</strong>{" "}
-                            {formatSetPerformanceInline(lastLog)}
+                            {formatSetPerformanceInline(
+                              lastLog,
+                              preferredWeightUnit,
+                            )}
                           </p>
 
                           <p className="exercises-page-variant-meta">

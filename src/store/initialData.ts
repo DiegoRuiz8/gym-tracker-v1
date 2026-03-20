@@ -12,5 +12,6 @@ export function getInitialAppData() {
     exerciseVariants: [],
     routines: [],
     workoutLogs: [],
+    preferredWeightUnit: "kg" as const,
   };
 }

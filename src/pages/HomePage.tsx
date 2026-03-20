@@ -1,12 +1,44 @@
+import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppStore } from "../store/useAppStore";
 import "../styles/simple-page.css";
 
+type RoutineFilter = "All" | "Push" | "Pull" | "Legs" | "Upper" | "Lower";
+
+const ROUTINE_FILTERS: RoutineFilter[] = [
+  "All",
+  "Push",
+  "Pull",
+  "Legs",
+  "Upper",
+  "Lower",
+];
+
 export default function HomePage() {
   const routines = useAppStore((state) => state.routines);
+  const preferredWeightUnit = useAppStore(
+    (state) => state.preferredWeightUnit,
+  );
+  const setPreferredWeightUnit = useAppStore(
+    (state) => state.setPreferredWeightUnit,
+  );
   const navigate = useNavigate();
 
-  const recentRoutines = routines.slice(0, 4);
+  const [activeFilter, setActiveFilter] = useState<RoutineFilter>("All");
+
+  const visibleRoutines = useMemo(() => {
+    if (activeFilter === "All") {
+      return routines.slice(0, 5);
+    }
+
+    return routines.filter((routine) => {
+      const dayType = (routine.dayType ?? "").toLowerCase();
+      const name = routine.name.toLowerCase();
+      const filter = activeFilter.toLowerCase();
+
+      return dayType.includes(filter) || name.includes(filter);
+    });
+  }, [routines, activeFilter]);
 
   return (
     <div className="simple-page">
@@ -27,8 +59,8 @@ export default function HomePage() {
               Welcome back
             </h2>
             <p className="simple-page-card-text">
-              Start from a routine, log your sets, and keep your history clean by
-              variant.
+              Start from a routine, log your sets, and track your progress over
+              time.
             </p>
           </div>
         </section>
@@ -56,7 +88,30 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {recentRoutines.length === 0 ? (
+            {routines.length > 0 && (
+              <div
+                className="simple-page-routine-filters"
+                role="tablist"
+                aria-label="Routine filters"
+              >
+                {ROUTINE_FILTERS.map((filter) => (
+                  <button
+                    key={filter}
+                    type="button"
+                    className={`simple-page-routine-filter-chip ${
+                      activeFilter === filter
+                        ? "simple-page-routine-filter-chip-active"
+                        : ""
+                    }`}
+                    onClick={() => setActiveFilter(filter)}
+                  >
+                    {filter}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {routines.length === 0 ? (
               <div className="simple-page-empty-block">
                 <p className="simple-page-card-text">
                   You don’t have any routines yet.
@@ -69,9 +124,15 @@ export default function HomePage() {
                   Create routine
                 </Link>
               </div>
+            ) : visibleRoutines.length === 0 ? (
+              <div className="simple-page-empty-block">
+                <p className="simple-page-card-text">
+                  No routines match the selected filter.
+                </p>
+              </div>
             ) : (
               <div className="simple-page-home-routines">
-                {recentRoutines.map((routine) => (
+                {visibleRoutines.map((routine) => (
                   <article
                     key={routine.id}
                     className="simple-page-home-routine-item"
@@ -112,25 +173,78 @@ export default function HomePage() {
 
         <section
           className="simple-page-card"
-          aria-labelledby="home-data-title"
+          aria-labelledby="home-settings-title"
         >
           <div className="simple-page-card-body">
             <div className="simple-page-section-top simple-page-section-top-stack-mobile">
               <div>
-                <h2 id="home-data-title" className="simple-page-card-title">
-                  Data
+                <h2 id="home-settings-title" className="simple-page-card-title">
+                  Settings
                 </h2>
                 <p className="simple-page-card-text">
-                  Import or export your routines, exercises, and workout history.
+                  Manage weight units and your local backup data.
                 </p>
               </div>
+            </div>
 
-              <Link
-                to="/data"
-                className="simple-page-btn simple-page-btn-secondary"
-              >
-                Import / Export data
-              </Link>
+            <div className="simple-page-settings-grid">
+              <div className="simple-page-settings-item">
+                <div className="simple-page-settings-item-text">
+                  <h3 className="simple-page-settings-item-title">
+                    Weight unit
+                  </h3>
+                  <p className="simple-page-settings-item-description">
+                    Choose how weights are shown across the app.
+                  </p>
+                </div>
+
+                <div
+                  className="simple-page-unit-toggle"
+                  role="group"
+                  aria-label="Weight unit"
+                >
+                  <button
+                    type="button"
+                    className={`simple-page-unit-toggle-btn ${
+                      preferredWeightUnit === "kg"
+                        ? "simple-page-unit-toggle-btn-active"
+                        : ""
+                    }`}
+                    onClick={() => setPreferredWeightUnit("kg")}
+                  >
+                    Kg
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`simple-page-unit-toggle-btn ${
+                      preferredWeightUnit === "lb"
+                        ? "simple-page-unit-toggle-btn-active"
+                        : ""
+                    }`}
+                    onClick={() => setPreferredWeightUnit("lb")}
+                  >
+                    Lb
+                  </button>
+                </div>
+              </div>
+
+              <div className="simple-page-settings-item">
+                <div className="simple-page-settings-item-text">
+                  <h3 className="simple-page-settings-item-title">Data</h3>
+                  <p className="simple-page-settings-item-description">
+                    Import or export your routines, exercises, and workout
+                    history.
+                  </p>
+                </div>
+
+                <Link
+                  to="/data"
+                  className="simple-page-btn simple-page-btn-secondary"
+                >
+                  Open data settings
+                </Link>
+              </div>
             </div>
           </div>
         </section>

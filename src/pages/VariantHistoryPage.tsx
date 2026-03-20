@@ -6,7 +6,10 @@ import {
   getLogsForVariant,
   getVariantById,
 } from "../store/selectors";
-import { formatLogDate, formatPerformedSetsDetailed } from "../utils/format";
+import {
+  formatLogDate,
+  formatPerformedSetsDetailed,
+} from "../utils/format";
 import PageBackButton from "../components/navigation/PageBackButton";
 import "../styles/variant-history.css";
 
@@ -20,6 +23,9 @@ export default function VariantHistoryPage() {
   const exerciseVariants = useAppStore((state) => state.exerciseVariants);
   const workoutLogs = useAppStore((state) => state.workoutLogs);
   const routines = useAppStore((state) => state.routines);
+  const preferredWeightUnit = useAppStore(
+    (state) => state.preferredWeightUnit,
+  );
   const deleteWorkoutLog = useAppStore((state) => state.deleteWorkoutLog);
 
   const variant = useMemo(
@@ -88,8 +94,11 @@ export default function VariantHistoryPage() {
             <PageBackButton fallbackTo="/history" />
           </div>
 
-          <h1 className="variant-history-title">{variant.name}</h1>
-          <p className="variant-history-subtitle">{exercise.name}</p>
+          <h1 className="variant-history-title">
+            {exercise.name}
+            <span className="variant-history-title-separator"> — </span>
+            <span className="variant-history-title-variant">{variant.name}</span>
+          </h1>
           <p className="variant-history-meta">
             {logs.length} log{logs.length === 1 ? "" : "s"}
           </p>
@@ -105,7 +114,10 @@ export default function VariantHistoryPage() {
         ) : (
           <div className="variant-history-list">
             {logs.map((log) => {
-              const setLines = formatPerformedSetsDetailed(log);
+              const setLines = formatPerformedSetsDetailed(
+                log,
+                preferredWeightUnit,
+              );
 
               return (
                 <div key={log.id} className="variant-history-card">

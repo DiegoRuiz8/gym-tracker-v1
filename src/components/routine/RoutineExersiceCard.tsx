@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import type { Exercise, ExerciseVariant } from "../../types/exercise";
 import type { WorkoutLog } from "../../types/log";
 import type { Routine, RoutineExerciseRef } from "../../types/routine";
+import { useAppStore } from "../../store/useAppStore";
 import {
   formatLogDate,
   formatPrescriptionInline,
@@ -23,6 +24,10 @@ export default function RoutineExerciseCard({
   variant,
   lastLog,
 }: Props) {
+  const preferredWeightUnit = useAppStore(
+    (state) => state.preferredWeightUnit,
+  );
+
   const exerciseName = exercise?.name ?? "Unknown exercise";
   const variantName = variant?.name ?? "Unknown variant";
 
@@ -33,7 +38,9 @@ export default function RoutineExerciseCard({
           <h2 className="routine-exercise-title">
             {exerciseName}
             <span className="routine-exercise-title-separator"> — </span>
-            <span className="routine-exercise-variant-inline">{variantName}</span>
+            <span className="routine-exercise-variant-inline">
+              {variantName}
+            </span>
           </h2>
         </div>
 
@@ -59,7 +66,8 @@ export default function RoutineExerciseCard({
 
       <div className="routine-exercise-latest-row">
         <p className="routine-exercise-latest">
-          <strong>Latest:</strong> {formatSetPerformanceInline(lastLog)}
+          <strong>Latest:</strong>{" "}
+          {formatSetPerformanceInline(lastLog, preferredWeightUnit)}
         </p>
 
         {lastLog?.date && (

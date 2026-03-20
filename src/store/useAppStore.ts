@@ -3,7 +3,10 @@ import type { Exercise, ExerciseVariant } from "../types/exercise";
 import type { Routine, RoutineExerciseRef } from "../types/routine";
 import type { WorkoutLog } from "../types/log";
 import { getInitialAppData } from "./initialData";
-import { savePersistedAppData } from "./persistence";
+import {
+  savePersistedAppData,
+  type WeightUnit,
+} from "./persistence";
 
 type AddWorkoutLogInput = WorkoutLog;
 
@@ -12,6 +15,7 @@ type AppData = {
   exerciseVariants: ExerciseVariant[];
   routines: Routine[];
   workoutLogs: WorkoutLog[];
+  preferredWeightUnit: WeightUnit;
 };
 
 function normalizeExerciseRefOrders(
@@ -42,9 +46,11 @@ type AppState = {
   exerciseVariants: ExerciseVariant[];
   routines: Routine[];
   workoutLogs: WorkoutLog[];
+  preferredWeightUnit: WeightUnit;
 
   replaceAppData: (data: AppData) => void;
   resetAppData: () => void;
+  setPreferredWeightUnit: (unit: WeightUnit) => void;
 
   addExercise: (exercise: Exercise) => void;
   updateExercise: (updatedExercise: Exercise) => void;
@@ -89,6 +95,7 @@ export const useAppStore = create<AppState>((set) => ({
   exerciseVariants: initialData.exerciseVariants,
   routines: initialData.routines,
   workoutLogs: initialData.workoutLogs,
+  preferredWeightUnit: initialData.preferredWeightUnit,
 
   replaceAppData: (data) =>
     set({
@@ -96,6 +103,7 @@ export const useAppStore = create<AppState>((set) => ({
       exerciseVariants: data.exerciseVariants,
       routines: data.routines,
       workoutLogs: data.workoutLogs,
+      preferredWeightUnit: data.preferredWeightUnit,
     }),
 
   resetAppData: () =>
@@ -104,6 +112,12 @@ export const useAppStore = create<AppState>((set) => ({
       exerciseVariants: [],
       routines: [],
       workoutLogs: [],
+      preferredWeightUnit: "kg",
+    }),
+
+  setPreferredWeightUnit: (unit) =>
+    set({
+      preferredWeightUnit: unit,
     }),
 
   addExercise: (exercise) =>
@@ -295,6 +309,7 @@ useAppStore.subscribe((state) => {
       exerciseVariants: state.exerciseVariants,
       routines: state.routines,
       workoutLogs: state.workoutLogs,
+      preferredWeightUnit: state.preferredWeightUnit,
     },
   });
 });

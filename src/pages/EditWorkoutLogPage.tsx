@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useAppStore } from "../store/useAppStore";
 import {
@@ -6,7 +6,13 @@ import {
   getVariantById,
   getWorkoutLogById,
 } from "../store/selectors";
-import { formatLatestPerformance, formatLogDate } from "../utils/format";
+import {
+  formatLatestPerformance,
+  formatLogDate,
+  formatSingleWeight,
+  kgToLb,
+  lbToKg,
+} from "../utils/format";
 import {
   mapLogToSetInputs,
   createEmptySetInput,
@@ -24,6 +30,9 @@ export default function EditWorkoutLogPage() {
   const exercises = useAppStore((state) => state.exercises);
   const exerciseVariants = useAppStore((state) => state.exerciseVariants);
   const workoutLogs = useAppStore((state) => state.workoutLogs);
+  const preferredWeightUnit = useAppStore(
+    (state) => state.preferredWeightUnit,
+  );
   const updateWorkoutLog = useAppStore((state) => state.updateWorkoutLog);
 
   const log = useMemo(
@@ -55,6 +64,7 @@ export default function EditWorkoutLogPage() {
   const [notes, setNotes] = useState(log?.notes ?? "");
   const [sets, setSets] = useState<SetInput[]>(() => mapLogToSetInputs(log));
   const [error, setError] = useState("");
+  const notesRef = useRef<HTMLTextAreaElement | null>(null);
 
   if (!log || !routine || !variant || !exercise) {
     return (
@@ -75,6 +85,31 @@ export default function EditWorkoutLogPage() {
   const safeLog = log;
   const safeRoutine = routine;
   const safeVariant = variant;
+  const safeExercise = exercise;
+
+  function displayWeightFromStoredKg(valueKgString: string): string {
+    const numericKg = Number(valueKgString);
+
+    if (Number.isNaN(numericKg)) {
+      return valueKgString;
+    }
+
+    return preferredWeightUnit === "lb"
+      ? String(kgToLb(numericKg))
+      : String(numericKg);
+  }
+
+  function storedKgFromDisplayWeight(valueString: string): string {
+    const numericDisplay = Number(valueString);
+
+    if (Number.isNaN(numericDisplay)) {
+      return valueString;
+    }
+
+    return preferredWeightUnit === "lb"
+      ? String(lbToKg(numericDisplay))
+      : String(numericDisplay);
+  }
 
   function handleSetChange(
     index: number,
@@ -82,9 +117,20 @@ export default function EditWorkoutLogPage() {
     value: string,
   ) {
     setSets((currentSets) =>
-      currentSets.map((set, i) =>
-        i === index ? { ...set, [field]: value } : set,
-      ),
+      currentSets.map((set, i) => {
+        if (i !== index) {
+          return set;
+        }
+
+        if (field === "weight") {
+          return {
+            ...set,
+            weight: storedKgFromDisplayWeight(value),
+          };
+        }
+
+        return { ...set, [field]: value };
+      }),
     );
   }
 
@@ -109,7 +155,23 @@ export default function EditWorkoutLogPage() {
       return "—";
     }
 
-    return `${currentSet.weight} kg × ${currentSet.reps}`;
+    return `${formatSingleWeight(
+      currentSet.weight,
+      preferredWeightUnit,
+    )} × ${currentSet.reps}`;
+  }
+
+  function autoResizeNotes(element: HTMLTextAreaElement) {
+    element.style.height = "0px";
+    element.style.height = `${element.scrollHeight}px`;
+  }
+
+  function handleNotesChange(value: string) {
+    setNotes(value);
+
+    if (notesRef.current) {
+      autoResizeNotes(notesRef.current);
+    }
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -149,10 +211,14 @@ export default function EditWorkoutLogPage() {
 
           <div className="new-workout-log-header-top">
             <div className="new-workout-log-title-wrap">
-              <h1 className="new-workout-log-header-title">Edit log</h1>
-              <p className="new-workout-log-header-subtitle">
-                {safeVariant.name}
-              </p>
+              <h1 className="new-workout-log-header-title">
+                {safeExercise.name}
+                <span className="new-workout-log-title-separator"> — </span>
+                <span className="new-workout-log-header-variant">
+                  {safeVariant.name}
+                </span>
+              </h1>
+              <p className="new-workout-log-header-subtitle">Edit log</p>
             </div>
           </div>
 
@@ -162,7 +228,8 @@ export default function EditWorkoutLogPage() {
 
           <div className="new-workout-log-header-previous-row">
             <p className="new-workout-log-header-line">
-              <strong>Current:</strong> {formatLatestPerformance(safeLog)}
+              <strong>Current:</strong>{" "}
+              {formatLatestPerformance(safeLog, preferredWeightUnit)}
             </p>
 
             <p className="new-workout-log-header-meta">
@@ -190,83 +257,85 @@ export default function EditWorkoutLogPage() {
               </div>
             </div>
 
-            <div className="new-workout-log-table-head" aria-hidden="true">
-              <div>Set</div>
-              <div>Current</div>
-              <div>Kg</div>
-              <div>Reps</div>
-              <div></div>
-            </div>
-
-            <div className="new-workout-log-rows">
-              {sets.map((set, index) => (
-                <div key={index} className="new-workout-log-row">
-                  <div className="new-workout-log-row-set">
-                    <span className="new-workout-log-row-set-label">Set</span>
-                    <span className="new-workout-log-row-set-value">
-                      {index + 1}
-                    </span>
-                  </div>
-
-                  <div className="new-workout-log-row-prev">
-                    <span className="new-workout-log-mobile-label">
-                      Current
-                    </span>
-                    <span className="new-workout-log-row-prev-value">
-                      {getCurrentSetText(index)}
-                    </span>
-                  </div>
-
-                  <div className="new-workout-log-row-input-wrap">
-                    <label
-                      className="new-workout-log-mobile-label"
-                      htmlFor={`set-weight-${index}`}
-                    >
-                      Kg
-                    </label>
-                    <input
-                      id={`set-weight-${index}`}
-                      className="new-workout-log-number-input"
-                      type="number"
-                      min="0"
-                      step="0.5"
-                      value={set.weight}
-                      onChange={(event) =>
-                        handleSetChange(index, "weight", event.target.value)
-                      }
-                    />
-                  </div>
-
-                  <div className="new-workout-log-row-input-wrap">
-                    <label
-                      className="new-workout-log-mobile-label"
-                      htmlFor={`set-reps-${index}`}
-                    >
-                      Reps
-                    </label>
-                    <input
-                      id={`set-reps-${index}`}
-                      className="new-workout-log-number-input"
-                      type="number"
-                      min="0"
-                      value={set.reps}
-                      onChange={(event) =>
-                        handleSetChange(index, "reps", event.target.value)
-                      }
-                    />
-                  </div>
-
-                  <button
-                    className="new-workout-log-btn new-workout-log-btn-remove"
-                    type="button"
-                    onClick={() => handleRemoveSet(index)}
-                    disabled={sets.length === 1}
-                    aria-label={`Remove set ${index + 1}`}
-                  >
-                    Remove
-                  </button>
+            <div className="new-workout-log-table">
+              <div className="new-workout-log-table-head">
+                <div className="new-workout-log-table-col new-workout-log-table-col-set">
+                  Set
                 </div>
-              ))}
+                <div className="new-workout-log-table-col new-workout-log-table-col-prev">
+                  Current
+                </div>
+                <div className="new-workout-log-table-col new-workout-log-table-col-weight">
+                  {preferredWeightUnit === "lb" ? "Lb" : "Kg"}
+                </div>
+                <div className="new-workout-log-table-col new-workout-log-table-col-reps">
+                  Reps
+                </div>
+                <div className="new-workout-log-table-col new-workout-log-table-col-remove" />
+              </div>
+
+              <div className="new-workout-log-rows new-workout-log-rows-table">
+                {sets.map((set, index) => (
+                  <div
+                    key={index}
+                    className="new-workout-log-row new-workout-log-row-table"
+                  >
+                    <div className="new-workout-log-cell new-workout-log-cell-set">
+                      <span className="new-workout-log-row-set-value">
+                        {index + 1}
+                      </span>
+                    </div>
+
+                    <div className="new-workout-log-cell new-workout-log-cell-prev">
+                      <span className="new-workout-log-row-prev-value">
+                        {getCurrentSetText(index)}
+                      </span>
+                    </div>
+
+                    <div className="new-workout-log-cell new-workout-log-cell-input">
+                      <input
+                        id={`set-weight-${index}`}
+                        className="new-workout-log-number-input"
+                        type="number"
+                        min="0"
+                        step="0.5"
+                        value={displayWeightFromStoredKg(set.weight)}
+                        onChange={(event) =>
+                          handleSetChange(index, "weight", event.target.value)
+                        }
+                        aria-label={`Weight for set ${index + 1}`}
+                      />
+                    </div>
+
+                    <div className="new-workout-log-cell new-workout-log-cell-input">
+                      <input
+                        id={`set-reps-${index}`}
+                        className="new-workout-log-number-input"
+                        type="number"
+                        min="0"
+                        value={set.reps}
+                        onChange={(event) =>
+                          handleSetChange(index, "reps", event.target.value)
+                        }
+                        aria-label={`Reps for set ${index + 1}`}
+                      />
+                    </div>
+
+                    <div className="new-workout-log-cell new-workout-log-cell-remove">
+                      <button
+                        className="new-workout-log-remove-icon"
+                        type="button"
+                        onClick={() => handleRemoveSet(index)}
+                        disabled={sets.length === 1}
+                        aria-label={`Remove set ${index + 1}`}
+                        title="Remove set"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="new-workout-log-actions-row">
@@ -284,10 +353,11 @@ export default function EditWorkoutLogPage() {
             <h2 className="new-workout-log-section-title">Notes</h2>
 
             <textarea
-              className="new-workout-log-textarea"
-              rows={4}
+              ref={notesRef}
+              className="new-workout-log-textarea new-workout-log-textarea-compact"
+              rows={1}
               value={notes}
-              onChange={(event) => setNotes(event.target.value)}
+              onChange={(event) => handleNotesChange(event.target.value)}
               placeholder="Optional notes..."
             />
           </div>

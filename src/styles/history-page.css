@@ -204,6 +204,15 @@
   flex-wrap: wrap;
 }
 
+.history-page-card-title-separator {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.history-page-card-title-variant {
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 500;
+}
+
 @media (max-width: 640px) {
   .history-page-container {
     padding: 18px var(--page-padding-x) 28px;

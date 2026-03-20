@@ -41,6 +41,9 @@ export default function HistoryPage() {
   const exerciseVariants = useAppStore((state) => state.exerciseVariants);
   const workoutLogs = useAppStore((state) => state.workoutLogs);
   const routines = useAppStore((state) => state.routines);
+  const preferredWeightUnit = useAppStore(
+    (state) => state.preferredWeightUnit,
+  );
   const deleteWorkoutLog = useAppStore((state) => state.deleteWorkoutLog);
 
   const logItems = useMemo(
@@ -112,23 +115,25 @@ export default function HistoryPage() {
                       <div className="history-page-card-top">
                         <div className="history-page-card-info">
                           <h3 className="history-page-card-title">
-                            {variant?.name ?? "Unknown variant"}
+                            {exercise?.name ?? "Unknown exercise"}
+                            <span className="history-page-card-title-separator">
+                              {" "}
+                              —{" "}
+                            </span>
+                            <span className="history-page-card-title-variant">
+                              {variant?.name ?? "Unknown variant"}
+                            </span>
                           </h3>
 
                           <p className="history-page-card-routine">
                             {routine?.name ?? "Unknown routine"}
                           </p>
-
-                          {exercise && (
-                            <p className="history-page-card-exercise">
-                              {exercise.name}
-                            </p>
-                          )}
                         </div>
                       </div>
 
                       <p className="history-page-card-performance">
-                        <strong>Sets:</strong> {formatSetPerformanceInline(log)}
+                        <strong>Sets:</strong>{" "}
+                        {formatSetPerformanceInline(log, preferredWeightUnit)}
                       </p>
 
                       <div className="history-page-card-actions">
