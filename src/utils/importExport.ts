@@ -1,6 +1,7 @@
 import type { Exercise, ExerciseVariant } from "../types/exercise";
 import type { WorkoutLog } from "../types/log";
 import type { Routine } from "../types/routine";
+import type { WeightUnit } from "../store/persistence";
 
 export type AppImportPayload = {
   version: 1;
@@ -9,6 +10,7 @@ export type AppImportPayload = {
     exerciseVariants: ExerciseVariant[];
     routines: Routine[];
     workoutLogs: WorkoutLog[];
+    preferredWeightUnit?: WeightUnit;
   };
 };
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import  PageBackButton  from "../components/navigation/PageBackButton";
+import PageBackButton from "../components/navigation/PageBackButton";
 import { useAppStore } from "../store/useAppStore";
 import {
   downloadAppDataAsJson,
@@ -35,7 +35,10 @@ export default function ImportExportPage() {
       const raw = await file.text();
       const payload = parseAppImportPayload(raw);
 
-      replaceAppData(payload.data);
+      replaceAppData({
+        ...payload.data,
+        preferredWeightUnit: payload.data.preferredWeightUnit ?? "kg",
+      });
 
       setMessage(
         `Import successful: ${payload.data.routines.length} routines, ${payload.data.exercises.length} exercises, ${payload.data.workoutLogs.length} logs.`,
@@ -110,7 +113,9 @@ export default function ImportExportPage() {
         </button>
       </section>
 
-      {message ? <p className="import-export-message success">{message}</p> : null}
+      {message ? (
+        <p className="import-export-message success">{message}</p>
+      ) : null}
       {error ? <p className="import-export-message error">{error}</p> : null}
     </div>
   );

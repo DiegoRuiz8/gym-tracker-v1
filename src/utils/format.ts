@@ -1,9 +1,29 @@
 import type { WorkoutLog } from "../types/log";
 import type { Prescription } from "../types/routine";
+import type { WeightUnit } from "../store/persistence";
 
 function parseDateOnly(dateString: string): Date {
   const [year, month, day] = dateString.split("-").map(Number);
   return new Date(year, month - 1, day);
+}
+
+
+
+export function kgToLb(valueKg: number): number {
+  return Number((valueKg * 2.2046226218).toFixed(1));
+}
+
+export function lbToKg(valueLb: number): number {
+  return Number((valueLb / 2.2046226218).toFixed(1));
+}
+
+function formatWeightValue(valueKg: number, unit: WeightUnit): string {
+  const convertedValue = unit === "lb" ? kgToLb(valueKg) : valueKg;
+
+  const rounded =
+    Number.isInteger(convertedValue) ? String(convertedValue) : convertedValue.toFixed(1);
+
+  return `${rounded}${unit}`;
 }
 
 export function getTodayDateInputValue(): string {
@@ -26,11 +46,14 @@ export function formatPerformedSets(log?: WorkoutLog): string {
   return log.performedSets.map((set) => set.reps).join(" / ");
 }
 
-export function formatTopWeight(log?: WorkoutLog): string {
+export function formatTopWeight(
+  log?: WorkoutLog,
+  unit: WeightUnit = "kg",
+): string {
   if (!log || log.performedSets.length === 0) return "—";
 
   const maxWeight = Math.max(...log.performedSets.map((set) => set.weight));
-  return `${maxWeight} kg`;
+  return formatWeightValue(maxWeight, unit);
 }
 
 export function formatLogDate(date?: string): string {
@@ -74,15 +97,21 @@ export function formatPrescriptionInline(prescription: Prescription): string {
   return parts.length > 0 ? parts.join(" • ") : "No prescription";
 }
 
-export function formatLatestPerformance(log?: WorkoutLog): string {
+export function formatLatestPerformance(
+  log?: WorkoutLog,
+  unit: WeightUnit = "kg",
+): string {
   if (!log || log.performedSets.length === 0) {
     return "No logs yet";
   }
 
-  return `${formatTopWeight(log)} • ${formatPerformedSets(log)}`;
+  return `${formatTopWeight(log, unit)} • ${formatPerformedSets(log)}`;
 }
 
-export function formatSetPerformanceInline(log?: WorkoutLog): string {
+export function formatSetPerformanceInline(
+  log?: WorkoutLog,
+  unit: WeightUnit = "kg",
+): string {
   if (!log || log.performedSets.length === 0) {
     return "No logs yet";
   }
@@ -92,20 +121,32 @@ export function formatSetPerformanceInline(log?: WorkoutLog): string {
 
   if (allSameWeight) {
     const reps = log.performedSets.map((set) => set.reps).join(" / ");
-    return `${allWeights[0]}kg × ${reps}`;
+    return `${formatWeightValue(allWeights[0], unit)} × ${reps}`;
   }
 
   return log.performedSets
-    .map((set) => `${set.weight}kg × ${set.reps}`)
+    .map((set) => `${formatWeightValue(set.weight, unit)} × ${set.reps}`)
     .join(" • ");
 }
 
-export function formatPerformedSetsDetailed(log?: WorkoutLog): string[] {
+export function formatPerformedSetsDetailed(
+  log?: WorkoutLog,
+  unit: WeightUnit = "kg",
+): string[] {
   if (!log || log.performedSets.length === 0) {
     return [];
   }
 
-  return log.performedSets.map((set) => `${set.weight}kg × ${set.reps}`);
+  return log.performedSets.map(
+    (set) => `${formatWeightValue(set.weight, unit)} × ${set.reps}`,
+  );
+}
+
+export function formatSingleWeight(
+  valueKg: number,
+  unit: WeightUnit = "kg",
+): string {
+  return formatWeightValue(valueKg, unit);
 }
 
 export function getDateKey(date: string): string {
