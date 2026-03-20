@@ -434,6 +434,89 @@
   margin-bottom: 10px;
 }
 
+.routine-form-helper-text {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.64);
+}
+
+.routine-form-search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.routine-form-search-result {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: white;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.routine-form-search-result:active {
+  transform: scale(0.995);
+}
+
+.routine-form-helper-text {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.64);
+}
+
+.routine-form-prescription-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.routine-form-notes-toggle-row {
+  margin-top: 12px;
+}
+
+.routine-form-notes-toggle {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #6ea8ff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.routine-form-prescription-notes-compact {
+  margin-top: 10px;
+}
+
+.routine-form-textarea-compact {
+  min-height: 84px;
+  resize: vertical;
+}
+
+.routine-form-prescription-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.routine-form-prescription-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 560px) {
+  .routine-form-prescription-grid-compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 920px) {
   .routine-form-prescription-grid {
     grid-template-columns: 1fr 1fr;

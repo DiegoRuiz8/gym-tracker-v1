@@ -23,12 +23,19 @@ export default function RoutineExerciseCard({
   variant,
   lastLog,
 }: Props) {
-  const displayName = variant?.name ?? exercise?.name ?? "Unknown exercise";
+  const exerciseName = exercise?.name ?? "Unknown exercise";
+  const variantName = variant?.name ?? "Unknown variant";
 
   return (
     <article className="routine-exercise-card">
       <div className="routine-exercise-card-top">
-        <h2 className="routine-exercise-title">{displayName}</h2>
+        <div className="routine-exercise-title-wrap">
+          <h2 className="routine-exercise-title">
+            {exerciseName}
+            <span className="routine-exercise-title-separator"> — </span>
+            <span className="routine-exercise-variant-inline">{variantName}</span>
+          </h2>
+        </div>
 
         <Link
           to={`/history/variant/${exerciseRef.variantId}`}
