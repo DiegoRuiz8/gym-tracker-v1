@@ -182,6 +182,27 @@
   transform: translateY(1px);
 }
 
+.routine-exercise-title-wrap {
+  min-width: 0;
+}
+
+.routine-exercise-title {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.2;
+}
+
+.routine-exercise-title-separator {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.routine-exercise-variant-inline {
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 500;
+}
+
+
+
 @media (max-width: 640px) {
   .routine-detail-container {
     padding-top: 18px;

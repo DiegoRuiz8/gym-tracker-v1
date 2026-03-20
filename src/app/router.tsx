@@ -13,6 +13,7 @@ import NewExercisePage from "../pages/NewExercisePage";
 import NewVariantPage from "../pages/NewVariantPage";
 import EditVariantPage from "../pages/EditVariantPage";
 import EditExercisePage from "../pages/EditExercisePage";
+import ImportExportPage from "../pages/ImportExportPage";
 import "../styles/app-shell.css";
 
 function getNavLinkClassName({ isActive }: { isActive: boolean }) {
@@ -59,6 +60,7 @@ export function AppRouter() {
             path="/exercises/:exerciseId/edit"
             element={<EditExercisePage />}
           />
+          <Route path="/data" element={<ImportExportPage />} />
         </Routes>
       </main>
 
@@ -79,6 +81,8 @@ export function AppRouter() {
           <NavLink className={getNavLinkClassName} to="/history">
             History
           </NavLink>
+
+          
         </div>
       </nav>
     </div>

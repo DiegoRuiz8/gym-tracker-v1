@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAppStore } from "../store/useAppStore";
 import {
@@ -66,6 +66,7 @@ export default function NewWorkoutLogPage() {
     buildInitialSetInputs(lastLog, initialSetCount),
   );
   const [error, setError] = useState("");
+  const notesRef = useRef<HTMLTextAreaElement | null>(null);
 
   if (!routine || !variant || !exercise || !variantId) {
     return (
@@ -130,6 +131,19 @@ export default function NewWorkoutLogPage() {
     return `${previousSet.weight} kg × ${previousSet.reps}`;
   }
 
+  function autoResizeNotes(element: HTMLTextAreaElement) {
+    element.style.height = "0px";
+    element.style.height = `${element.scrollHeight}px`;
+  }
+
+  function handleNotesChange(value: string) {
+    setNotes(value);
+
+    if (notesRef.current) {
+      autoResizeNotes(notesRef.current);
+    }
+  }
+
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -173,7 +187,11 @@ export default function NewWorkoutLogPage() {
           <div className="new-workout-log-header-top">
             <div className="new-workout-log-title-wrap">
               <h1 className="new-workout-log-header-title">
-                {safeVariant.name}
+                {safeExercise.name}
+                <span className="new-workout-log-title-separator"> — </span>
+                <span className="new-workout-log-header-variant">
+                  {safeVariant.name}
+                </span>
               </h1>
               <p className="new-workout-log-header-subtitle">
                 {safeRoutine.name}
@@ -220,82 +238,83 @@ export default function NewWorkoutLogPage() {
               </div>
             </div>
 
-            <div className="new-workout-log-table-head" aria-hidden="true">
-              <div>Set</div>
-              <div>Prev</div>
-              <div>Kg</div>
-              <div>Reps</div>
-              <div></div>
-            </div>
+            
+<div className="new-workout-log-table">
+  <div className="new-workout-log-table-head">
+    <div className="new-workout-log-table-col new-workout-log-table-col-set">
+      Set
+    </div>
+    <div className="new-workout-log-table-col new-workout-log-table-col-prev">
+      Previous
+    </div>
+    <div className="new-workout-log-table-col new-workout-log-table-col-weight">
+      Kg
+    </div>
+    <div className="new-workout-log-table-col new-workout-log-table-col-reps">
+      Reps
+    </div>
+    <div className="new-workout-log-table-col new-workout-log-table-col-remove" />
+  </div>
 
-            <div className="new-workout-log-rows">
-              {sets.map((set, index) => (
-                <div key={index} className="new-workout-log-row">
-                  <div className="new-workout-log-row-set">
-                    <span className="new-workout-log-row-set-label">Set</span>
-                    <span className="new-workout-log-row-set-value">
-                      {index + 1}
-                    </span>
-                  </div>
+  <div className="new-workout-log-rows new-workout-log-rows-table">
+    {sets.map((set, index) => (
+      <div key={index} className="new-workout-log-row new-workout-log-row-table">
+        <div className="new-workout-log-cell new-workout-log-cell-set">
+          <span className="new-workout-log-row-set-value">{index + 1}</span>
+        </div>
 
-                  <div className="new-workout-log-row-prev">
-                    <span className="new-workout-log-mobile-label">Prev</span>
-                    <span className="new-workout-log-row-prev-value">
-                      {getPreviousSetText(index)}
-                    </span>
-                  </div>
+        <div className="new-workout-log-cell new-workout-log-cell-prev">
+          <span className="new-workout-log-row-prev-value">
+            {getPreviousSetText(index)}
+          </span>
+        </div>
 
-                  <div className="new-workout-log-row-input-wrap">
-                    <label
-                      className="new-workout-log-mobile-label"
-                      htmlFor={`set-weight-${index}`}
-                    >
-                      Kg
-                    </label>
-                    <input
-                      id={`set-weight-${index}`}
-                      className="new-workout-log-number-input"
-                      type="number"
-                      min="0"
-                      step="0.5"
-                      value={set.weight}
-                      onChange={(event) =>
-                        handleSetChange(index, "weight", event.target.value)
-                      }
-                    />
-                  </div>
+        <div className="new-workout-log-cell new-workout-log-cell-input">
+          <input
+            id={`set-weight-${index}`}
+            className="new-workout-log-number-input"
+            type="number"
+            min="0"
+            step="0.5"
+            value={set.weight}
+            onChange={(event) =>
+              handleSetChange(index, "weight", event.target.value)
+            }
+            aria-label={`Weight for set ${index + 1}`}
+          />
+        </div>
 
-                  <div className="new-workout-log-row-input-wrap">
-                    <label
-                      className="new-workout-log-mobile-label"
-                      htmlFor={`set-reps-${index}`}
-                    >
-                      Reps
-                    </label>
-                    <input
-                      id={`set-reps-${index}`}
-                      className="new-workout-log-number-input"
-                      type="number"
-                      min="0"
-                      value={set.reps}
-                      onChange={(event) =>
-                        handleSetChange(index, "reps", event.target.value)
-                      }
-                    />
-                  </div>
+        <div className="new-workout-log-cell new-workout-log-cell-input">
+          <input
+            id={`set-reps-${index}`}
+            className="new-workout-log-number-input"
+            type="number"
+            min="0"
+            value={set.reps}
+            onChange={(event) =>
+              handleSetChange(index, "reps", event.target.value)
+            }
+            aria-label={`Reps for set ${index + 1}`}
+          />
+        </div>
 
-                  <button
-                    className="new-workout-log-btn new-workout-log-btn-remove"
-                    type="button"
-                    onClick={() => handleRemoveSet(index)}
-                    disabled={sets.length === 1}
-                    aria-label={`Remove set ${index + 1}`}
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
-            </div>
+        <div className="new-workout-log-cell new-workout-log-cell-remove">
+          <button
+            className="new-workout-log-remove-icon"
+            type="button"
+            onClick={() => handleRemoveSet(index)}
+            disabled={sets.length === 1}
+            aria-label={`Remove set ${index + 1}`}
+            title="Remove set"
+          >
+            ×
+          </button>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
 
             <div className="new-workout-log-actions-row">
               <button
@@ -312,10 +331,11 @@ export default function NewWorkoutLogPage() {
             <h2 className="new-workout-log-section-title">Notes</h2>
 
             <textarea
-              className="new-workout-log-textarea"
-              rows={4}
+              ref={notesRef}
+              className="new-workout-log-textarea new-workout-log-textarea-compact"
+              rows={1}
               value={notes}
-              onChange={(event) => setNotes(event.target.value)}
+              onChange={(event) => handleNotesChange(event.target.value)}
               placeholder="Optional notes..."
             />
           </div>

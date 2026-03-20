@@ -27,8 +27,8 @@ export default function HomePage() {
               Welcome back
             </h2>
             <p className="simple-page-card-text">
-              Start from a routine, log each exercise as you complete it, and
-              keep your progress organized by variant.
+              Start from a routine, log your sets, and keep your history clean by
+              variant.
             </p>
           </div>
         </section>
@@ -112,40 +112,25 @@ export default function HomePage() {
 
         <section
           className="simple-page-card"
-          aria-labelledby="home-preferences-title"
+          aria-labelledby="home-data-title"
         >
           <div className="simple-page-card-body">
-            <h2 id="home-preferences-title" className="simple-page-card-title">
-              Preferences
-            </h2>
-            <p className="simple-page-card-text">
-              Add weight unit and data backup here next.
-            </p>
+            <div className="simple-page-section-top simple-page-section-top-stack-mobile">
+              <div>
+                <h2 id="home-data-title" className="simple-page-card-title">
+                  Data
+                </h2>
+                <p className="simple-page-card-text">
+                  Import or export your routines, exercises, and workout history.
+                </p>
+              </div>
 
-            <div className="simple-page-preferences-grid">
-              <button
-                type="button"
+              <Link
+                to="/data"
                 className="simple-page-btn simple-page-btn-secondary"
-                disabled
               >
-                Weight unit
-              </button>
-
-              <button
-                type="button"
-                className="simple-page-btn simple-page-btn-secondary"
-                disabled
-              >
-                Export data
-              </button>
-
-              <button
-                type="button"
-                className="simple-page-btn simple-page-btn-secondary"
-                disabled
-              >
-                Import data
-              </button>
+                Import / Export data
+              </Link>
             </div>
           </div>
         </section>

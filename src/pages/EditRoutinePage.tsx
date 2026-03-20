@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import RoutineExerciseEditorCard from "../components/routine/RoutineExerciseEditorCard";
 import { useAppStore } from "../store/useAppStore";
-import { getVariantById } from "../store/selectors";
+import { getExerciseById, getVariantById } from "../store/selectors";
 import { generateId } from "../utils/ids";
 import { EXERCISE_CATEGORY_OPTIONS } from "../utils/exerciseCategories";
 import PageBackButton from "../components/navigation/PageBackButton";
@@ -50,6 +50,7 @@ export default function EditRoutinePage() {
   const navigate = useNavigate();
 
   const routines = useAppStore((state) => state.routines);
+  const exercises = useAppStore((state) => state.exercises);
   const exerciseVariants = useAppStore((state) => state.exerciseVariants);
   const updateRoutine = useAppStore((state) => state.updateRoutine);
   const deleteRoutine = useAppStore((state) => state.deleteRoutine);
@@ -75,7 +76,8 @@ export default function EditRoutinePage() {
   const [dayType, setDayType] = useState(routine?.dayType ?? "");
   const [description, setDescription] = useState(routine?.description ?? "");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [selectedVariantId, setSelectedVariantId] = useState("");
+
+  const [variantSearch, setVariantSearch] = useState("");
   const [routineError, setRoutineError] = useState("");
 
   const [prescriptionDrafts, setPrescriptionDrafts] = useState<
@@ -131,6 +133,40 @@ export default function EditRoutinePage() {
     return variant.isActive && !alreadyInRoutine;
   });
 
+  const filteredAvailableVariants = availableVariants.filter((variant) => {
+    const exercise = getExerciseById(exercises, variant.exerciseId);
+    const search = variantSearch.trim().toLowerCase();
+
+    if (!search) {
+      return true;
+    }
+
+    const exerciseName = exercise?.name.toLowerCase() ?? "";
+    const variantName = variant.name.toLowerCase();
+    const equipment = variant.equipment?.toLowerCase() ?? "";
+    const gymLabel = variant.gymLabel?.toLowerCase() ?? "";
+
+    return (
+      exerciseName.includes(search) ||
+      variantName.includes(search) ||
+      equipment.includes(search) ||
+      gymLabel.includes(search)
+    );
+  });
+
+  function getVariantDisplayLabel(variantId: string): string {
+    const variant = getVariantById(exerciseVariants, variantId);
+
+    if (!variant) {
+      return "Unknown exercise — Unknown variant";
+    }
+
+    const exercise = getExerciseById(exercises, variant.exerciseId);
+    const exerciseName = exercise?.name ?? "Unknown exercise";
+
+    return `${exerciseName} — ${variant.name}`;
+  }
+
   function handleSaveRoutine() {
     const trimmedName = name.trim();
 
@@ -165,12 +201,8 @@ export default function EditRoutinePage() {
     navigate("/routines");
   }
 
-  function handleAddExerciseRef() {
-    if (!selectedVariantId) {
-      return;
-    }
-
-    const selectedVariant = getVariantById(exerciseVariants, selectedVariantId);
+  function handleAddExerciseRef(variantId: string) {
+    const selectedVariant = getVariantById(exerciseVariants, variantId);
 
     if (!selectedVariant) {
       return;
@@ -212,7 +244,7 @@ export default function EditRoutinePage() {
       [newExerciseRef.id]: undefined,
     }));
 
-    setSelectedVariantId("");
+    setVariantSearch("");
   }
 
   function handleRemoveExerciseRef(exerciseRefId: string) {
@@ -528,11 +560,6 @@ export default function EditRoutinePage() {
           ) : (
             <div className="routine-form-list">
               {sortedExerciseRefs.map((exerciseRef, index) => {
-                const variant = getVariantById(
-                  exerciseVariants,
-                  exerciseRef.variantId,
-                );
-
                 const draft =
                   prescriptionDrafts[exerciseRef.id] ??
                   buildPrescriptionDraft(exerciseRef);
@@ -544,7 +571,7 @@ export default function EditRoutinePage() {
                   <RoutineExerciseEditorCard
                     key={exerciseRef.id}
                     exerciseRef={exerciseRef}
-                    variantName={variant?.name ?? "Unknown variant"}
+                    variantName={getVariantDisplayLabel(exerciseRef.variantId)}
                     draft={draft}
                     error={error}
                     success={success}
@@ -565,38 +592,47 @@ export default function EditRoutinePage() {
         <div className="routine-form-card">
           <h2 className="routine-form-section-title">Add exercise</h2>
 
-          <div className="routine-form-inline-row">
-            <div className="routine-form-field">
-              <label
-                className="routine-form-label"
-                htmlFor="routine-variant-select"
-              >
-                Variant
-              </label>
-              <select
-                id="routine-variant-select"
-                className="routine-form-select"
-                value={selectedVariantId}
-                onChange={(event) => setSelectedVariantId(event.target.value)}
-              >
-                <option value="">Select a variant</option>
-
-                {availableVariants.map((variant) => (
-                  <option key={variant.id} value={variant.id}>
-                    {variant.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <button
-              type="button"
-              className="routine-form-btn routine-form-btn-primary"
-              onClick={handleAddExerciseRef}
+          <div className="routine-form-field">
+            <label
+              className="routine-form-label"
+              htmlFor="routine-variant-search"
             >
-              Add to routine
-            </button>
+              Search
+            </label>
+            <input
+              id="routine-variant-search"
+              className="routine-form-input"
+              type="text"
+              placeholder="Search exercise or variant"
+              value={variantSearch}
+              onChange={(event) => setVariantSearch(event.target.value)}
+            />
           </div>
+
+          {variantSearch.trim() ? (
+            filteredAvailableVariants.length > 0 ? (
+              <div className="routine-form-search-results">
+                {filteredAvailableVariants.slice(0, 8).map((variant) => (
+                  <button
+                    key={variant.id}
+                    type="button"
+                    className="routine-form-search-result"
+                    onClick={() => handleAddExerciseRef(variant.id)}
+                  >
+                    {getVariantDisplayLabel(variant.id)}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="routine-form-helper-text">
+                No available variants match your search.
+              </p>
+            )
+          ) : (
+            <p className="routine-form-helper-text">
+              Start typing to search available variants.
+            </p>
+          )}
         </div>
 
         <div className="routine-form-card routine-form-bottom-save">

@@ -7,6 +7,13 @@ import { savePersistedAppData } from "./persistence";
 
 type AddWorkoutLogInput = WorkoutLog;
 
+type AppData = {
+  exercises: Exercise[];
+  exerciseVariants: ExerciseVariant[];
+  routines: Routine[];
+  workoutLogs: WorkoutLog[];
+};
+
 function normalizeExerciseRefOrders(
   exerciseRefs: RoutineExerciseRef[],
 ): RoutineExerciseRef[] {
@@ -35,6 +42,9 @@ type AppState = {
   exerciseVariants: ExerciseVariant[];
   routines: Routine[];
   workoutLogs: WorkoutLog[];
+
+  replaceAppData: (data: AppData) => void;
+  resetAppData: () => void;
 
   addExercise: (exercise: Exercise) => void;
   updateExercise: (updatedExercise: Exercise) => void;
@@ -79,6 +89,22 @@ export const useAppStore = create<AppState>((set) => ({
   exerciseVariants: initialData.exerciseVariants,
   routines: initialData.routines,
   workoutLogs: initialData.workoutLogs,
+
+  replaceAppData: (data) =>
+    set({
+      exercises: data.exercises,
+      exerciseVariants: data.exerciseVariants,
+      routines: data.routines,
+      workoutLogs: data.workoutLogs,
+    }),
+
+  resetAppData: () =>
+    set({
+      exercises: [],
+      exerciseVariants: [],
+      routines: [],
+      workoutLogs: [],
+    }),
 
   addExercise: (exercise) =>
     set((state) => ({
