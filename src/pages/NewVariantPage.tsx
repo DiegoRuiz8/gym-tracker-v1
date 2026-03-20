@@ -26,10 +26,12 @@ export default function NewVariantPage() {
       <div className="simple-page">
         <div className="simple-page-container">
           <div className="simple-page-card">
-            <h1 className="simple-page-title">Exercise not found</h1>
-            <p className="simple-page-subtitle">
-              The selected exercise does not exist.
-            </p>
+            <div className="simple-page-card-body">
+              <h1 className="simple-page-title">Exercise not found</h1>
+              <p className="simple-page-subtitle">
+                The selected exercise does not exist.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -81,81 +83,85 @@ export default function NewVariantPage() {
     <div className="simple-page">
       <div className="simple-page-container">
         <div className="simple-page-card">
-          <div className="simple-page-back-row">
-            <PageBackButton fallbackTo="/exercises" />
+          <div className="simple-page-card-body">
+            <div className="simple-page-back-row">
+              <PageBackButton fallbackTo="/exercises" />
+            </div>
+            <h1 className="simple-page-title">New variant</h1>
+            <p className="simple-page-subtitle">
+              Add a variant for <strong>{safeExercise.name}</strong>.
+            </p>
           </div>
-          <h1 className="simple-page-title">New variant</h1>
-          <p className="simple-page-subtitle">
-            Add a variant for <strong>{safeExercise.name}</strong>.
-          </p>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="simple-page-card">
-            <div className="simple-page-field">
-              <label className="simple-page-label" htmlFor="variant-name">
-                Variant name
-              </label>
-              <input
-                id="variant-name"
-                className="simple-page-input"
-                type="text"
-                value={name}
-                onChange={(event) => {
-                  setName(event.target.value);
-                  setError("");
-                }}
-                placeholder={`e.g. ${safeExercise.name} - Smith`}
-              />
-            </div>
+            <div className="simple-page-card-body">
+              <div className="simple-page-field">
+                <label className="simple-page-label" htmlFor="variant-name">
+                  Variant name
+                </label>
+                <input
+                  id="variant-name"
+                  className="simple-page-input"
+                  type="text"
+                  value={name}
+                  onChange={(event) => {
+                    setName(event.target.value);
+                    setError("");
+                  }}
+                  placeholder={`e.g. ${safeExercise.name} - Smith`}
+                />
+              </div>
 
-            <div className="simple-page-field">
-              <label className="simple-page-label" htmlFor="variant-setup">
-                Setup
-              </label>
-              <input
-                id="variant-setup"
-                className="simple-page-input"
-                type="text"
-                value={setup}
-                onChange={(event) => setSetup(event.target.value)}
-                placeholder="e.g. Smith machine, flat bench, cable station"
-              />
-              <p className="simple-page-help">
-                Use this for whatever helps you recognize the setup in your gym.
-              </p>
-            </div>
+              <div className="simple-page-field">
+                <label className="simple-page-label" htmlFor="variant-setup">
+                  Setup
+                </label>
+                <input
+                  id="variant-setup"
+                  className="simple-page-input"
+                  type="text"
+                  value={setup}
+                  onChange={(event) => setSetup(event.target.value)}
+                  placeholder="e.g. Smith machine, flat bench, cable station"
+                />
+                <p className="simple-page-help">
+                  Use this for whatever helps you recognize the setup in your gym.
+                </p>
+              </div>
 
-            <div className="simple-page-field">
-              <label className="simple-page-label" htmlFor="variant-notes">
-                Notes
-              </label>
-              <textarea
-                id="variant-notes"
-                className="simple-page-textarea"
-                value={notes}
-                onChange={(event) => setNotes(event.target.value)}
-                placeholder="Optional notes..."
-              />
-            </div>
+              <div className="simple-page-field">
+                <label className="simple-page-label" htmlFor="variant-notes">
+                  Notes
+                </label>
+                <textarea
+                  id="variant-notes"
+                  className="simple-page-textarea"
+                  value={notes}
+                  onChange={(event) => setNotes(event.target.value)}
+                  placeholder="Optional notes..."
+                />
+              </div>
 
-            {error && <p className="simple-page-error">{error}</p>}
+              {error && <p className="simple-page-error">{error}</p>}
 
-            <div className="simple-page-actions">
-              <button
-                type="submit"
-                className="simple-page-btn simple-page-btn-primary"
-              >
-                Save variant
-              </button>
+              <div className="simple-page-actions">
+                <button
+                  type="submit"
+                  className="simple-page-btn simple-page-btn-primary"
+                >
+                  Save variant
+                </button>
 
-              <button
-                type="button"
-                className="simple-page-btn simple-page-btn-secondary"
-                onClick={() => navigate("/exercises")}
-              >
-                Cancel
-              </button>
+                <button
+                  type="button"
+                  className="simple-page-btn simple-page-btn-secondary"
+                  onClick={() => navigate("/exercises")}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         </form>

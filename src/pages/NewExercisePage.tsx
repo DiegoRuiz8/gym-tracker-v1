@@ -62,103 +62,107 @@ export default function NewExercisePage() {
     <div className="simple-page">
       <div className="simple-page-container">
         <div className="simple-page-card">
-          <div className="simple-page-back-row">
-            <PageBackButton fallbackTo="/exercises" />
+          <div className="simple-page-card-body">
+            <div className="simple-page-back-row">
+              <PageBackButton fallbackTo="/exercises" />
+            </div>
+            <h1 className="simple-page-title">New exercise</h1>
+            <p className="simple-page-subtitle">
+              Create a new base exercise for your library.
+            </p>
           </div>
-          <h1 className="simple-page-title">New exercise</h1>
-          <p className="simple-page-subtitle">
-            Create a new base exercise for your library.
-          </p>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="simple-page-card">
-            <div className="simple-page-field">
-              <label className="simple-page-label" htmlFor="exercise-name">
-                Name
-              </label>
-              <input
-                id="exercise-name"
-                className="simple-page-input"
-                type="text"
-                value={name}
-                onChange={(event) => {
-                  setName(event.target.value);
-                  setError("");
-                }}
-                placeholder="e.g. Chest Press"
-              />
-            </div>
+            <div className="simple-page-card-body">
+              <div className="simple-page-field">
+                <label className="simple-page-label" htmlFor="exercise-name">
+                  Name
+                </label>
+                <input
+                  id="exercise-name"
+                  className="simple-page-input"
+                  type="text"
+                  value={name}
+                  onChange={(event) => {
+                    setName(event.target.value);
+                    setError("");
+                  }}
+                  placeholder="e.g. Chest Press"
+                />
+              </div>
 
-            <div className="simple-page-field">
-              <label className="simple-page-label" htmlFor="exercise-category">
-                Category
-              </label>
-              <select
-                id="exercise-category"
-                className="simple-page-select"
-                value={category}
-                onChange={(event) => setCategory(event.target.value)}
-              >
-                <option value="">Select a category</option>
-                {EXERCISE_CATEGORY_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </div>
+              <div className="simple-page-field">
+                <label className="simple-page-label" htmlFor="exercise-category">
+                  Category
+                </label>
+                <select
+                  id="exercise-category"
+                  className="simple-page-select"
+                  value={category}
+                  onChange={(event) => setCategory(event.target.value)}
+                >
+                  <option value="">Select a category</option>
+                  {EXERCISE_CATEGORY_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div className="simple-page-field">
-              <label
-                className="simple-page-label"
-                htmlFor="exercise-muscle-groups"
-              >
-                Muscle groups
-              </label>
-              <input
-                id="exercise-muscle-groups"
-                className="simple-page-input"
-                type="text"
-                value={muscleGroups}
-                onChange={(event) => setMuscleGroups(event.target.value)}
-                placeholder="e.g. chest, triceps, front-delts"
-              />
-              <p className="simple-page-help">
-                Separate multiple muscle groups with commas.
-              </p>
-            </div>
+              <div className="simple-page-field">
+                <label
+                  className="simple-page-label"
+                  htmlFor="exercise-muscle-groups"
+                >
+                  Muscle groups
+                </label>
+                <input
+                  id="exercise-muscle-groups"
+                  className="simple-page-input"
+                  type="text"
+                  value={muscleGroups}
+                  onChange={(event) => setMuscleGroups(event.target.value)}
+                  placeholder="e.g. chest, triceps, front-delts"
+                />
+                <p className="simple-page-help">
+                  Separate multiple muscle groups with commas.
+                </p>
+              </div>
 
-            <div className="simple-page-field">
-              <label className="simple-page-label" htmlFor="exercise-notes">
-                Notes
-              </label>
-              <textarea
-                id="exercise-notes"
-                className="simple-page-textarea"
-                value={notes}
-                onChange={(event) => setNotes(event.target.value)}
-                placeholder="Optional notes..."
-              />
-            </div>
+              <div className="simple-page-field">
+                <label className="simple-page-label" htmlFor="exercise-notes">
+                  Notes
+                </label>
+                <textarea
+                  id="exercise-notes"
+                  className="simple-page-textarea"
+                  value={notes}
+                  onChange={(event) => setNotes(event.target.value)}
+                  placeholder="Optional notes..."
+                />
+              </div>
 
-            {error && <p className="simple-page-error">{error}</p>}
+              {error && <p className="simple-page-error">{error}</p>}
 
-            <div className="simple-page-actions">
-              <button
-                type="submit"
-                className="simple-page-btn simple-page-btn-primary"
-              >
-                Save exercise
-              </button>
+              <div className="simple-page-actions">
+                <button
+                  type="submit"
+                  className="simple-page-btn simple-page-btn-primary"
+                >
+                  Save exercise
+                </button>
 
-              <button
-                type="button"
-                className="simple-page-btn simple-page-btn-secondary"
-                onClick={() => navigate("/exercises")}
-              >
-                Cancel
-              </button>
+                <button
+                  type="button"
+                  className="simple-page-btn simple-page-btn-secondary"
+                  onClick={() => navigate("/exercises")}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         </form>

@@ -1,9 +1,3 @@
-import {
-  seedExercises,
-  seedExerciseVariants,
-  seedRoutines,
-  seedWorkoutLogs,
-} from "./seedData";
 import { loadPersistedAppData } from "./persistence";
 
 export function getInitialAppData() {
@@ -14,9 +8,9 @@ export function getInitialAppData() {
   }
 
   return {
-    exercises: seedExercises,
-    exerciseVariants: seedExerciseVariants,
-    routines: seedRoutines,
-    workoutLogs: seedWorkoutLogs,
+    exercises: [],
+    exerciseVariants: [],
+    routines: [],
+    workoutLogs: [],
   };
 }

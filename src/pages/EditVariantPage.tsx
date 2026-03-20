@@ -27,10 +27,12 @@ export default function EditVariantPage() {
       <div className="simple-page">
         <div className="simple-page-container">
           <div className="simple-page-card">
-            <h1 className="simple-page-title">Variant not found</h1>
-            <p className="simple-page-subtitle">
-              The selected variant does not exist.
-            </p>
+            <div className="simple-page-card-body">
+              <h1 className="simple-page-title">Variant not found</h1>
+              <p className="simple-page-subtitle">
+                The selected variant does not exist.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -115,144 +117,148 @@ export default function EditVariantPage() {
     <div className="simple-page">
       <div className="simple-page-container">
         <div className="simple-page-card">
-          <div className="simple-page-back-row">
-            <PageBackButton fallbackTo="/exercises" />
+          <div className="simple-page-card-body">
+            <div className="simple-page-back-row">
+              <PageBackButton fallbackTo="/exercises" />
+            </div>
+            <h1 className="simple-page-title">Edit variant</h1>
+            <p className="simple-page-subtitle">
+              Update the variant for{" "}
+              <strong>{parentExercise?.name ?? "Unknown exercise"}</strong>.
+            </p>
           </div>
-          <h1 className="simple-page-title">Edit variant</h1>
-          <p className="simple-page-subtitle">
-            Update the variant for{" "}
-            <strong>{parentExercise?.name ?? "Unknown exercise"}</strong>.
-          </p>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="simple-page-card">
-            <div className="simple-page-field">
-              <label className="simple-page-label" htmlFor="variant-name">
-                Variant name
-              </label>
-              <input
-                id="variant-name"
-                className="simple-page-input"
-                type="text"
-                value={name}
-                onChange={(event) => {
-                  setName(event.target.value);
-                  setError("");
-                }}
-              />
-            </div>
+            <div className="simple-page-card-body">
+              <div className="simple-page-field">
+                <label className="simple-page-label" htmlFor="variant-name">
+                  Variant name
+                </label>
+                <input
+                  id="variant-name"
+                  className="simple-page-input"
+                  type="text"
+                  value={name}
+                  onChange={(event) => {
+                    setName(event.target.value);
+                    setError("");
+                  }}
+                />
+              </div>
 
-            <div className="simple-page-field">
-              <label className="simple-page-label" htmlFor="variant-setup">
-                Setup
-              </label>
-              <input
-                id="variant-setup"
-                className="simple-page-input"
-                type="text"
-                value={setup}
-                onChange={(event) => setSetup(event.target.value)}
-                placeholder="e.g. Smith machine, flat bench, cable station"
-              />
-              <p className="simple-page-help">
-                Use this for whatever helps you recognize the setup in your gym.
-              </p>
-            </div>
+              <div className="simple-page-field">
+                <label className="simple-page-label" htmlFor="variant-setup">
+                  Setup
+                </label>
+                <input
+                  id="variant-setup"
+                  className="simple-page-input"
+                  type="text"
+                  value={setup}
+                  onChange={(event) => setSetup(event.target.value)}
+                  placeholder="e.g. Smith machine, flat bench, cable station"
+                />
+                <p className="simple-page-help">
+                  Use this for whatever helps you recognize the setup in your gym.
+                </p>
+              </div>
 
-            <div className="simple-page-field">
-              <label className="simple-page-label" htmlFor="variant-notes">
-                Notes
-              </label>
-              <textarea
-                id="variant-notes"
-                className="simple-page-textarea"
-                value={notes}
-                onChange={(event) => setNotes(event.target.value)}
-                placeholder="Optional notes..."
-              />
-            </div>
+              <div className="simple-page-field">
+                <label className="simple-page-label" htmlFor="variant-notes">
+                  Notes
+                </label>
+                <textarea
+                  id="variant-notes"
+                  className="simple-page-textarea"
+                  value={notes}
+                  onChange={(event) => setNotes(event.target.value)}
+                  placeholder="Optional notes..."
+                />
+              </div>
 
-            <div className="simple-page-field">
-              <label className="simple-page-label">Status</label>
+              <div className="simple-page-field">
+                <label className="simple-page-label">Status</label>
 
-              <div className="simple-page-status-row">
-                <span
-                  className={
-                    isActive
-                      ? "simple-page-status-badge simple-page-status-badge-active"
-                      : "simple-page-status-badge simple-page-status-badge-inactive"
-                  }
+                <div className="simple-page-status-row">
+                  <span
+                    className={
+                      isActive
+                        ? "simple-page-status-badge simple-page-status-badge-active"
+                        : "simple-page-status-badge simple-page-status-badge-inactive"
+                    }
+                  >
+                    {isActive ? "Active" : "Inactive"}
+                  </span>
+
+                  <button
+                    type="button"
+                    className="simple-page-btn simple-page-btn-secondary"
+                    onClick={handleRequestToggleActive}
+                  >
+                    {isActive ? "Deactivate" : "Reactivate"}
+                  </button>
+                </div>
+
+                <p className="simple-page-help">
+                  {variantLogCount > 0
+                    ? `This variant has ${variantLogCount} log${
+                        variantLogCount === 1 ? "" : "s"
+                      }. Deactivating it will keep existing history but hide it from new selections.`
+                    : "Inactive variants stay in history but should not be used for new selections."}
+                </p>
+              </div>
+
+              {showStatusConfirm && (
+                <div className="simple-page-inline-confirm">
+                  <p className="simple-page-inline-confirm-title">
+                    {isActive ? "Deactivate variant?" : "Reactivate variant?"}
+                  </p>
+                  <p className="simple-page-inline-confirm-text">
+                    {isActive
+                      ? "The variant will stay in your history, but it should no longer appear for new routine selections."
+                      : "The variant will become available again for new routine selections."}
+                  </p>
+
+                  <div className="simple-page-inline-confirm-actions">
+                    <button
+                      type="button"
+                      className="simple-page-btn simple-page-btn-secondary"
+                      onClick={handleConfirmToggleActive}
+                    >
+                      {isActive ? "Confirm deactivate" : "Confirm reactivate"}
+                    </button>
+
+                    <button
+                      type="button"
+                      className="simple-page-btn simple-page-btn-secondary"
+                      onClick={handleCancelToggleActive}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {error && <p className="simple-page-error">{error}</p>}
+
+              <div className="simple-page-actions">
+                <button
+                  type="submit"
+                  className="simple-page-btn simple-page-btn-primary"
                 >
-                  {isActive ? "Active" : "Inactive"}
-                </span>
+                  Save changes
+                </button>
 
                 <button
                   type="button"
                   className="simple-page-btn simple-page-btn-secondary"
-                  onClick={handleRequestToggleActive}
+                  onClick={() => navigate(returnTo)}
                 >
-                  {isActive ? "Deactivate" : "Reactivate"}
+                  Cancel
                 </button>
               </div>
-
-              <p className="simple-page-help">
-                {variantLogCount > 0
-                  ? `This variant has ${variantLogCount} log${
-                      variantLogCount === 1 ? "" : "s"
-                    }. Deactivating it will keep existing history but hide it from new selections.`
-                  : "Inactive variants stay in history but should not be used for new selections."}
-              </p>
-            </div>
-
-            {showStatusConfirm && (
-              <div className="simple-page-inline-confirm">
-                <p className="simple-page-inline-confirm-title">
-                  {isActive ? "Deactivate variant?" : "Reactivate variant?"}
-                </p>
-                <p className="simple-page-inline-confirm-text">
-                  {isActive
-                    ? "The variant will stay in your history, but it should no longer appear for new routine selections."
-                    : "The variant will become available again for new routine selections."}
-                </p>
-
-                <div className="simple-page-inline-confirm-actions">
-                  <button
-                    type="button"
-                    className="simple-page-btn simple-page-btn-secondary"
-                    onClick={handleConfirmToggleActive}
-                  >
-                    {isActive ? "Confirm deactivate" : "Confirm reactivate"}
-                  </button>
-
-                  <button
-                    type="button"
-                    className="simple-page-btn simple-page-btn-secondary"
-                    onClick={handleCancelToggleActive}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {error && <p className="simple-page-error">{error}</p>}
-
-            <div className="simple-page-actions">
-              <button
-                type="submit"
-                className="simple-page-btn simple-page-btn-primary"
-              >
-                Save changes
-              </button>
-
-              <button
-                type="button"
-                className="simple-page-btn simple-page-btn-secondary"
-                onClick={() => navigate(returnTo)}
-              >
-                Cancel
-              </button>
             </div>
           </div>
         </form>
