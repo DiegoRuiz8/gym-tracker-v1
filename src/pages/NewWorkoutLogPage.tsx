@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useAppStore } from "../store/useAppStore";
 import {
   getExerciseById,
@@ -27,14 +27,13 @@ import "../styles/new-workout-log.css";
 export default function NewWorkoutLogPage() {
   const { routineId, variantId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const routines = useAppStore((state) => state.routines);
   const exercises = useAppStore((state) => state.exercises);
   const exerciseVariants = useAppStore((state) => state.exerciseVariants);
   const workoutLogs = useAppStore((state) => state.workoutLogs);
-  const preferredWeightUnit = useAppStore(
-    (state) => state.preferredWeightUnit,
-  );
+  const preferredWeightUnit = useAppStore((state) => state.preferredWeightUnit);
   const addWorkoutLog = useAppStore((state) => state.addWorkoutLog);
 
   const routine = useMemo(
@@ -54,14 +53,27 @@ export default function NewWorkoutLogPage() {
   );
 
   const routineExerciseRef = useMemo(
-    () => routine?.exerciseRefs.find((ref) => ref.variantId === variantId),
-    [routine, variantId],
+    () =>
+      routine && exercise
+        ? routine.exerciseRefs.find((ref) => ref.exerciseId === exercise.id)
+        : undefined,
+    [routine, exercise],
   );
 
   const logsForVariant = useMemo(
     () => (variantId ? getLogsForVariant(workoutLogs, variantId) : []),
     [workoutLogs, variantId],
   );
+
+  const availableSwapVariants = useMemo(() => {
+    if (!exercise) {
+      return [];
+    }
+
+    return exerciseVariants.filter(
+      (item) => item.exerciseId === exercise.id && item.isActive,
+    );
+  }, [exerciseVariants, exercise]);
 
   const lastLog = logsForVariant[0];
   const initialSetCount = routineExerciseRef?.prescription.sets ?? 3;
@@ -72,7 +84,15 @@ export default function NewWorkoutLogPage() {
     buildInitialSetInputs(lastLog, initialSetCount),
   );
   const [error, setError] = useState("");
+  const [showSwapOptions, setShowSwapOptions] = useState(false);
   const notesRef = useRef<HTMLTextAreaElement | null>(null);
+
+  useEffect(() => {
+    setSets(buildInitialSetInputs(lastLog, initialSetCount));
+    setNotes("");
+    setError("");
+    setShowSwapOptions(false);
+  }, [variantId, lastLog?.id, initialSetCount]);
 
   if (!routine || !variant || !exercise || !variantId) {
     return (
@@ -96,6 +116,15 @@ export default function NewWorkoutLogPage() {
   const safeVariant = variant;
   const safeExercise = exercise;
   const safeVariantId = variantId;
+
+  const pageState =
+    (location.state as {
+      returnTo?: string;
+      restoreDetailScroll?: boolean;
+    } | null) ?? null;
+
+  const returnTo = pageState?.returnTo ?? `/routines/${safeRoutine.id}`;
+  const restoreDetailScroll = pageState?.restoreDetailScroll ?? false;
 
   function displayWeightFromStoredKg(valueKgString: string): string {
     const numericKg = Number(valueKgString);
@@ -188,6 +217,20 @@ export default function NewWorkoutLogPage() {
     }
   }
 
+  function handleSwapVariant(nextVariantId: string) {
+    if (nextVariantId === safeVariantId) {
+      setShowSwapOptions(false);
+      return;
+    }
+
+    navigate(`/routines/${safeRoutine.id}/log/${nextVariantId}`, {
+      state: {
+        returnTo,
+        restoreDetailScroll,
+      },
+    });
+  }
+
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -217,15 +260,21 @@ export default function NewWorkoutLogPage() {
     };
 
     addWorkoutLog(newLog);
-    navigate(`/routines/${safeRoutine.id}`);
+    navigate(returnTo, {
+      state: restoreDetailScroll ? { restoreDetailScroll: true } : undefined,
+    });
   }
 
   return (
     <div className="new-workout-log-page">
       <div className="new-workout-log-container">
         <div className="new-workout-log-card new-workout-log-card-header">
-          <div className="new-workout-log-back-row">
-            <PageBackButton fallbackTo={`/routines/${safeRoutine.id}`} />
+          <div className="new-workout-log-header-meta-row">
+            <div className="new-workout-log-back-row">
+              <PageBackButton fallbackTo={returnTo} />
+            </div>
+
+            <p className="new-workout-log-routine-tag">{safeRoutine.name}</p>
           </div>
 
           <div className="new-workout-log-header-top">
@@ -237,11 +286,42 @@ export default function NewWorkoutLogPage() {
                   {safeVariant.name}
                 </span>
               </h1>
-              <p className="new-workout-log-header-subtitle">
-                {safeRoutine.name}
-              </p>
+
+              <div className="new-workout-log-header-actions">
+                <button
+                  type="button"
+                  className="new-workout-log-swap-btn"
+                  onClick={() => setShowSwapOptions((current) => !current)}
+                  aria-expanded={showSwapOptions}
+                >
+                  ⇄ Swap
+                </button>
+              </div>
             </div>
           </div>
+
+          {showSwapOptions && (
+            <div className="new-workout-log-swap-panel">
+              <p className="new-workout-log-swap-label">Swap for today</p>
+
+              <div className="new-workout-log-swap-options">
+                {availableSwapVariants.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`new-workout-log-swap-option ${
+                      item.id === safeVariantId
+                        ? "new-workout-log-swap-option-active"
+                        : ""
+                    }`}
+                    onClick={() => handleSwapVariant(item.id)}
+                  >
+                    {item.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {routineExerciseRef && (
             <p className="new-workout-log-header-line">
@@ -324,7 +404,7 @@ export default function NewWorkoutLogPage() {
                         className="new-workout-log-number-input"
                         type="number"
                         min="0"
-                        step="0.5"
+                        step="0.1"
                         value={displayWeightFromStoredKg(set.weight)}
                         onChange={(event) =>
                           handleSetChange(index, "weight", event.target.value)
@@ -402,7 +482,13 @@ export default function NewWorkoutLogPage() {
               <button
                 className="new-workout-log-btn new-workout-log-btn-secondary"
                 type="button"
-                onClick={() => navigate(`/routines/${safeRoutine.id}`)}
+                onClick={() =>
+                  navigate(returnTo, {
+                    state: restoreDetailScroll
+                      ? { restoreDetailScroll: true }
+                      : undefined,
+                  })
+                }
               >
                 Cancel
               </button>

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useRef, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useAppStore } from "../store/useAppStore";
 import { generateId } from "../utils/ids";
 import type { ExerciseVariant } from "../types/exercise";
@@ -9,6 +9,7 @@ import "../styles/simple-page.css";
 export default function NewVariantPage() {
   const { exerciseId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const exercises = useAppStore((state) => state.exercises);
   const exerciseVariants = useAppStore((state) => state.exerciseVariants);
@@ -16,10 +17,16 @@ export default function NewVariantPage() {
 
   const exercise = exercises.find((item) => item.id === exerciseId);
 
+  const returnTo =
+    typeof location.state?.returnTo === "string"
+      ? location.state.returnTo
+      : "/exercises";
+
   const [name, setName] = useState("");
   const [setup, setSetup] = useState("");
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
+  const notesRef = useRef<HTMLTextAreaElement | null>(null);
 
   if (!exercise) {
     return (
@@ -39,6 +46,19 @@ export default function NewVariantPage() {
   }
 
   const safeExercise = exercise;
+
+  function autoResizeNotes(element: HTMLTextAreaElement) {
+    element.style.height = "0px";
+    element.style.height = `${element.scrollHeight}px`;
+  }
+
+  function handleNotesChange(value: string) {
+    setNotes(value);
+
+    if (notesRef.current) {
+      autoResizeNotes(notesRef.current);
+    }
+  }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -76,23 +96,30 @@ export default function NewVariantPage() {
     };
 
     addExerciseVariant(newVariant);
-    navigate("/exercises");
+    navigate(returnTo);
   }
 
   return (
     <div className="simple-page">
       <div className="simple-page-container">
-        <div className="simple-page-card">
-          <div className="simple-page-card-body">
+        <header className="simple-page-card simple-page-card-compact simple-page-hero-card-compact">
+          <div className="simple-page-card-body simple-page-card-body-compact">
             <div className="simple-page-back-row">
               <PageBackButton fallbackTo="/exercises" />
             </div>
-            <h1 className="simple-page-title">New variant</h1>
-            <p className="simple-page-subtitle">
-              Add a variant for <strong>{safeExercise.name}</strong>.
-            </p>
+
+            <h1 className="simple-page-title simple-page-title-compact">
+              New variant
+            </h1>
+
+            <div className="simple-page-context-chip-row">
+              <span className="simple-page-context-chip-label">Exercise</span>
+              <span className="simple-page-context-chip-value">
+                {safeExercise.name}
+              </span>
+            </div>
           </div>
-        </div>
+        </header>
 
         <form onSubmit={handleSubmit}>
           <div className="simple-page-card">
@@ -110,7 +137,7 @@ export default function NewVariantPage() {
                     setName(event.target.value);
                     setError("");
                   }}
-                  placeholder={`e.g. ${safeExercise.name} - Smith`}
+                  placeholder="e.g. Dumbbell, Cable, Smith"
                 />
               </div>
 
@@ -127,7 +154,8 @@ export default function NewVariantPage() {
                   placeholder="e.g. Smith machine, flat bench, cable station"
                 />
                 <p className="simple-page-help">
-                  Use this for whatever helps you recognize the setup in your gym.
+                  Use this for whatever helps you recognize the setup in your
+                  gym.
                 </p>
               </div>
 
@@ -136,10 +164,12 @@ export default function NewVariantPage() {
                   Notes
                 </label>
                 <textarea
+                  ref={notesRef}
                   id="variant-notes"
-                  className="simple-page-textarea"
+                  className="simple-page-textarea simple-page-textarea-compact"
+                  rows={1}
                   value={notes}
-                  onChange={(event) => setNotes(event.target.value)}
+                  onChange={(event) => handleNotesChange(event.target.value)}
                   placeholder="Optional notes..."
                 />
               </div>
@@ -157,7 +187,7 @@ export default function NewVariantPage() {
                 <button
                   type="button"
                   className="simple-page-btn simple-page-btn-secondary"
-                  onClick={() => navigate("/exercises")}
+                  onClick={() => navigate(returnTo)}
                 >
                   Cancel
                 </button>

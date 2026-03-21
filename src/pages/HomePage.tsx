@@ -16,9 +16,7 @@ const ROUTINE_FILTERS: RoutineFilter[] = [
 
 export default function HomePage() {
   const routines = useAppStore((state) => state.routines);
-  const preferredWeightUnit = useAppStore(
-    (state) => state.preferredWeightUnit,
-  );
+  const preferredWeightUnit = useAppStore((state) => state.preferredWeightUnit);
   const setPreferredWeightUnit = useAppStore(
     (state) => state.setPreferredWeightUnit,
   );
@@ -70,22 +68,24 @@ export default function HomePage() {
           aria-labelledby="home-routines-title"
         >
           <div className="simple-page-card-body">
-            <div className="simple-page-section-top">
-              <div>
-                <h2 id="home-routines-title" className="simple-page-card-title">
-                  Your routines
-                </h2>
-                <p className="simple-page-card-text">
-                  Quick access to start your next workout.
-                </p>
-              </div>
+            <div className="simple-page-routines-top">
+              <h2
+                id="home-routines-title"
+                className="simple-page-card-title simple-page-routines-title"
+              >
+                Your routines
+              </h2>
 
               <Link
                 to="/routines"
-                className="simple-page-btn simple-page-btn-secondary"
+                className="simple-page-btn simple-page-btn-secondary simple-page-routines-view-all-btn"
               >
                 View all
               </Link>
+
+              <p className="simple-page-card-text simple-page-routines-subtext">
+                Quick access to start your next workout.
+              </p>
             </div>
 
             {routines.length > 0 && (

@@ -15,6 +15,7 @@ type Props = {
   exercise?: Exercise;
   variant?: ExerciseVariant;
   lastLog?: WorkoutLog;
+  onBeforeNavigate?: () => void;
 };
 
 export default function RoutineExerciseCard({
@@ -23,6 +24,7 @@ export default function RoutineExerciseCard({
   exercise,
   variant,
   lastLog,
+  onBeforeNavigate,
 }: Props) {
   const preferredWeightUnit = useAppStore(
     (state) => state.preferredWeightUnit,
@@ -30,6 +32,10 @@ export default function RoutineExerciseCard({
 
   const exerciseName = exercise?.name ?? "Unknown exercise";
   const variantName = variant?.name ?? "Unknown variant";
+
+  function handleBeforeNavigate() {
+    onBeforeNavigate?.();
+  }
 
   return (
     <article className="routine-exercise-card">
@@ -46,8 +52,12 @@ export default function RoutineExerciseCard({
 
         <Link
           to={`/history/variant/${exerciseRef.variantId}`}
-          state={{ returnTo: `/routines/${routine.id}` }}
+          state={{
+            returnTo: `/routines/${routine.id}`,
+            restoreDetailScroll: true,
+          }}
           className="routine-exercise-history-link"
+          onClick={handleBeforeNavigate}
         >
           History
         </Link>
@@ -80,7 +90,12 @@ export default function RoutineExerciseCard({
       <div className="routine-exercise-actions">
         <Link
           to={`/routines/${routine.id}/log/${exerciseRef.variantId}`}
+          state={{
+            returnTo: `/routines/${routine.id}`,
+            restoreDetailScroll: true,
+          }}
           className="routine-exercise-action routine-exercise-action-primary"
+          onClick={handleBeforeNavigate}
         >
           Log sets
         </Link>

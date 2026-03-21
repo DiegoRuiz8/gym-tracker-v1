@@ -511,6 +511,13 @@
   gap: 12px;
 }
 
+.routine-form-card-highlight {
+  border-color: rgba(59, 130, 246, 0.38);
+  box-shadow:
+    0 0 0 2px rgba(59, 130, 246, 0.14),
+    var(--shadow-sm);
+}
+
 @media (max-width: 560px) {
   .routine-form-prescription-grid-compact {
     grid-template-columns: repeat(2, minmax(0, 1fr));
