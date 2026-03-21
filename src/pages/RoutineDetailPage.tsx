@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useMemo } from "react";
+import { useLocation, useParams, Link } from "react-router-dom";
 import { useAppStore } from "../store/useAppStore";
 import {
   getExerciseById,
@@ -10,8 +10,17 @@ import RoutineExerciseCard from "../components/routine/RoutineExersiceCard";
 import PageBackButton from "../components/navigation/PageBackButton";
 import "../styles/routine-detail.css";
 
+type RoutineDetailLocationState = {
+  fromRoutinesList?: boolean;
+  restoreDetailScroll?: boolean;
+};
+
+const getRoutineDetailScrollKey = (routineId: string) =>
+  `routine-detail-scroll-y:${routineId}`;
+
 export default function RoutineDetailPage() {
   const { routineId } = useParams();
+  const location = useLocation();
 
   const routines = useAppStore((state) => state.routines);
   const exercises = useAppStore((state) => state.exercises);
@@ -22,6 +31,28 @@ export default function RoutineDetailPage() {
     () => routines.find((item) => item.id === routineId),
     [routines, routineId],
   );
+
+  useEffect(() => {
+    if (!routineId) {
+      return;
+    }
+
+    const state = (location.state as RoutineDetailLocationState | null) ?? null;
+
+    if (state?.restoreDetailScroll) {
+      const savedScroll = sessionStorage.getItem(
+        getRoutineDetailScrollKey(routineId),
+      );
+      const parsed = Number(savedScroll);
+
+      if (!Number.isNaN(parsed)) {
+        window.scrollTo(0, parsed);
+        return;
+      }
+    }
+
+    window.scrollTo(0, 0);
+  }, [routineId, location.state]);
 
   if (!routine) {
     return (
@@ -42,7 +73,16 @@ export default function RoutineDetailPage() {
     );
   }
 
-  const sortedExerciseRefs = [...routine.exerciseRefs].sort(
+  const safeRoutine = routine;
+
+  function saveCurrentDetailScroll() {
+    sessionStorage.setItem(
+      getRoutineDetailScrollKey(safeRoutine.id),
+      String(window.scrollY),
+    );
+  }
+
+  const sortedExerciseRefs = [...safeRoutine.exerciseRefs].sort(
     (a, b) => a.order - b.order,
   );
 
@@ -56,14 +96,27 @@ export default function RoutineDetailPage() {
 
           <div className="routine-detail-header-top">
             <div className="routine-detail-title-wrap">
-              <h1 className="routine-detail-title">{routine.name}</h1>
+              <h1 className="routine-detail-title">{safeRoutine.name}</h1>
 
-              {routine.description && (
+              {safeRoutine.description && (
                 <p className="routine-detail-description">
-                  {routine.description}
+                  {safeRoutine.description}
                 </p>
               )}
             </div>
+
+            <Link
+              to={`/routines/${safeRoutine.id}/edit`}
+              state={{
+                returnTo: `/routines/${safeRoutine.id}`,
+                restoreDetailScroll: true,
+                scrollToAddExercise: true,
+              }}
+              className="routine-detail-add-exercise-btn"
+              onClick={saveCurrentDetailScroll}
+            >
+              + Add exercise
+            </Link>
           </div>
         </header>
 
@@ -79,17 +132,21 @@ export default function RoutineDetailPage() {
             {sortedExerciseRefs.map((ref) => {
               const exercise = getExerciseById(exercises, ref.exerciseId);
               const variant = getVariantById(exerciseVariants, ref.variantId);
-              const logsForVariant = getLogsForVariant(workoutLogs, ref.variantId);
+              const logsForVariant = getLogsForVariant(
+                workoutLogs,
+                ref.variantId,
+              );
               const lastLog = logsForVariant[0];
 
               return (
                 <RoutineExerciseCard
                   key={ref.id}
-                  routine={routine}
+                  routine={safeRoutine}
                   exerciseRef={ref}
                   exercise={exercise}
                   variant={variant}
                   lastLog={lastLog}
+                  onBeforeNavigate={saveCurrentDetailScroll}
                 />
               );
             })}

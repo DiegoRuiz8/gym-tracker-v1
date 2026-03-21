@@ -15,7 +15,7 @@
 .exercises-page-header-top {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
   margin-bottom: 10px;
 }
@@ -75,7 +75,7 @@
 
 .exercises-page-filter-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1.35fr) minmax(140px, 0.65fr);
   gap: 12px;
   align-items: end;
 }
@@ -150,10 +150,13 @@
   align-items: center;
   gap: 10px;
   min-height: 44px;
+  width: 100%;
   color: var(--color-text);
   font-weight: var(--font-weight-semibold);
   white-space: nowrap;
   align-self: end;
+  justify-content: flex-start;
+  padding: 0 2px 0 2px;
 }
 
 .exercises-page-filter-checkbox input {
@@ -450,14 +453,71 @@
   font-size: 0.92rem;
 }
 
+.exercises-page-group-kicker {
+  margin: 0 0 6px;
+  font-size: 0.78rem;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+}
+
+.exercises-page-group-title {
+  margin: 0;
+  font-size: 1.28rem;
+  line-height: 1.15;
+  color: var(--color-text);
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.exercises-page-variants-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  margin: 14px 0 10px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.exercises-page-variant-card {
+  padding: 13px 15px;
+  background: rgba(8, 14, 24, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+}
+
+.exercises-page-variant-title {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.25;
+  color: var(--color-text);
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.exercises-page-variant-detail,
+.exercises-page-variant-latest {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.exercises-page-variant-meta {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 0.9rem;
+}
+
 @media (max-width: 640px) {
   .exercises-page-container {
     padding: 18px var(--page-padding-x) 28px;
   }
 
   .exercises-page-header-top {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
     gap: 12px;
   }
 
@@ -466,18 +526,26 @@
   }
 
   .exercises-page-create-btn {
-    width: 100%;
+    width: auto;
+    min-height: 40px;
+    padding: 0 14px;
+    align-self: flex-start;
+    flex-shrink: 0;
   }
 
   .exercises-page-filter-row {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
 
   .exercises-page-filter-checkbox {
-    min-height: 44px;
-    padding-bottom: 2px;
-  }
+  min-height: 44px;
+  width: auto;
+  padding-bottom: 2px;
+  align-self: end;
+  justify-content: flex-start;
+}
 
   .exercises-page-group {
     padding: 16px;

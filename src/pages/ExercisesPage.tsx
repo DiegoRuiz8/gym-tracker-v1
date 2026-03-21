@@ -1,19 +1,40 @@
-import { Link } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
 import { useAppStore } from "../store/useAppStore";
 import { getLogsForVariant } from "../store/selectors";
 import { formatLogDate, formatSetPerformanceInline } from "../utils/format";
 import "../styles/exercises-page.css";
+
+const EXERCISES_SCROLL_KEY = "exercises-page-scroll-y";
 
 export default function ExercisesPage() {
   const exercises = useAppStore((state) => state.exercises);
   const exerciseVariants = useAppStore((state) => state.exerciseVariants);
   const workoutLogs = useAppStore((state) => state.workoutLogs);
   const preferredWeightUnit = useAppStore((state) => state.preferredWeightUnit);
+  const navigate = useNavigate();
 
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All categories");
   const [showInactive, setShowInactive] = useState(false);
+
+  useEffect(() => {
+    const savedScroll = sessionStorage.getItem(EXERCISES_SCROLL_KEY);
+
+    if (!savedScroll) {
+      return;
+    }
+
+    const parsed = Number(savedScroll);
+
+    if (!Number.isNaN(parsed)) {
+      window.scrollTo(0, parsed);
+    }
+  }, []);
+
+  function saveCurrentScroll() {
+    sessionStorage.setItem(EXERCISES_SCROLL_KEY, String(window.scrollY));
+  }
 
   const categoryOptions = useMemo(() => {
     const categories = exercises
@@ -109,7 +130,11 @@ export default function ExercisesPage() {
           <div className="exercises-page-header-top">
             <h1 className="exercises-page-title">Exercises</h1>
 
-            <Link to="/exercises/new" className="exercises-page-create-btn">
+            <Link
+              to="/exercises/new"
+              className="exercises-page-create-btn"
+              onClick={saveCurrentScroll}
+            >
               + New exercise
             </Link>
           </div>
@@ -188,6 +213,7 @@ export default function ExercisesPage() {
               <section key={exercise.id} className="exercises-page-group">
                 <div className="exercises-page-group-top">
                   <div className="exercises-page-group-title-wrap">
+                    <p className="exercises-page-group-kicker">Exercise</p>
                     <h2 className="exercises-page-group-title">
                       {exercise.name}
                     </h2>
@@ -197,6 +223,8 @@ export default function ExercisesPage() {
                     <Link
                       to={`/exercises/${exercise.id}/edit`}
                       className="exercises-page-group-btn"
+                      state={{ returnTo: "/exercises" }}
+                      onClick={saveCurrentScroll}
                     >
                       Edit
                     </Link>
@@ -204,6 +232,8 @@ export default function ExercisesPage() {
                     <Link
                       to={`/exercises/${exercise.id}/variants/new`}
                       className="exercises-page-group-btn exercises-page-group-btn-primary"
+                      state={{ returnTo: "/exercises" }}
+                      onClick={saveCurrentScroll}
                     >
                       + Variant
                     </Link>
@@ -254,6 +284,8 @@ export default function ExercisesPage() {
                     <Link
                       to={`/exercises/${exercise.id}/variants/new`}
                       className="exercises-page-empty-variants-link"
+                      state={{ returnTo: "/exercises" }}
+                      onClick={saveCurrentScroll}
                     >
                       Create the first variant
                     </Link>
@@ -290,6 +322,7 @@ export default function ExercisesPage() {
                                 className="exercises-page-variant-link"
                                 to={`/history/variant/${variant.id}`}
                                 state={{ returnTo: "/exercises" }}
+                                onClick={saveCurrentScroll}
                               >
                                 History
                               </Link>
@@ -298,6 +331,7 @@ export default function ExercisesPage() {
                                 className="exercises-page-variant-link"
                                 to={`/variants/${variant.id}/edit`}
                                 state={{ returnTo: "/exercises" }}
+                                onClick={saveCurrentScroll}
                               >
                                 Edit
                               </Link>

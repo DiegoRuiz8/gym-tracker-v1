@@ -3,6 +3,7 @@ import PageBackButton from "../components/navigation/PageBackButton";
 import { useAppStore } from "../store/useAppStore";
 import {
   downloadAppDataAsJson,
+  downloadImportTemplateJson,
   parseAppImportPayload,
 } from "../utils/importExport";
 import "../styles/import-export.css";
@@ -12,6 +13,9 @@ export default function ImportExportPage() {
   const exerciseVariants = useAppStore((state) => state.exerciseVariants);
   const routines = useAppStore((state) => state.routines);
   const workoutLogs = useAppStore((state) => state.workoutLogs);
+  const preferredWeightUnit = useAppStore(
+    (state) => state.preferredWeightUnit,
+  );
   const replaceAppData = useAppStore((state) => state.replaceAppData);
 
   const [message, setMessage] = useState<string>("");
@@ -67,10 +71,18 @@ export default function ImportExportPage() {
         exerciseVariants,
         routines,
         workoutLogs,
+        preferredWeightUnit,
       },
     });
 
     setMessage("Export created successfully.");
+  }
+
+  function handleDownloadTemplate(): void {
+    setMessage("");
+    setError("");
+    downloadImportTemplateJson();
+    setMessage("Import template downloaded.");
   }
 
   return (
@@ -111,6 +123,32 @@ export default function ImportExportPage() {
         >
           Export JSON
         </button>
+      </section>
+
+      <section className="import-export-card">
+        <h2>JSON template</h2>
+        <p>
+          Download the exact JSON shape this app expects. You can give this
+          template to ChatGPT and ask it to fill it with your routines,
+          exercises, variants, and logs.
+        </p>
+
+        <button
+          type="button"
+          className="import-export-button import-export-button-secondary"
+          onClick={handleDownloadTemplate}
+        >
+          Download template
+        </button>
+
+        <div className="import-export-help">
+          <p className="import-export-help-title">What the import expects</p>
+<ul className="import-export-help-list">
+  <li>Store all weights in kg.</li>
+  <li>Linked ids must match existing exercises, variants, and routines.</li>
+  <li>`preferredWeightUnit` is optional. If omitted, the app uses kg.</li>
+</ul>
+        </div>
       </section>
 
       {message ? (

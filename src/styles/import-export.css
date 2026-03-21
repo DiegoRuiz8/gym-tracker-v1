@@ -85,3 +85,37 @@
   border: 1px solid rgba(255, 90, 90, 0.28);
   color: #ffb3b3;
 }
+
+.import-export-button-secondary {
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.22);
+  color: #cfe3ff;
+}
+
+.import-export-button-secondary:hover {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.import-export-help {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.import-export-help-title {
+  margin: 0 0 10px;
+  font-weight: 700;
+  color: white;
+}
+
+.import-export-help-list {
+  margin: 0;
+  padding-left: 18px;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.55;
+}
+
+.import-export-help-list li + li {
+  margin-top: 6px;
+}

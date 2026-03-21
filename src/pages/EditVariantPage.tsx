@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useAppStore } from "../store/useAppStore";
 import type { ExerciseVariant } from "../types/exercise";
@@ -62,6 +62,20 @@ export default function EditVariantPage() {
   const [isActive, setIsActive] = useState(safeVariant.isActive);
   const [error, setError] = useState("");
   const [showStatusConfirm, setShowStatusConfirm] = useState(false);
+  const notesRef = useRef<HTMLTextAreaElement | null>(null);
+
+  function autoResizeNotes(element: HTMLTextAreaElement) {
+    element.style.height = "0px";
+    element.style.height = `${element.scrollHeight}px`;
+  }
+
+  function handleNotesChange(value: string) {
+    setNotes(value);
+
+    if (notesRef.current) {
+      autoResizeNotes(notesRef.current);
+    }
+  }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -170,10 +184,12 @@ export default function EditVariantPage() {
                   Notes
                 </label>
                 <textarea
+                  ref={notesRef}
                   id="variant-notes"
-                  className="simple-page-textarea"
+                  className="simple-page-textarea simple-page-textarea-compact"
+                  rows={1}
                   value={notes}
-                  onChange={(event) => setNotes(event.target.value)}
+                  onChange={(event) => handleNotesChange(event.target.value)}
                   placeholder="Optional notes..."
                 />
               </div>

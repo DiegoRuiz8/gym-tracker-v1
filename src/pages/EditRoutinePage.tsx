@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import RoutineExerciseEditorCard from "../components/routine/RoutineExerciseEditorCard";
 import { useAppStore } from "../store/useAppStore";
 import { getExerciseById, getVariantById } from "../store/selectors";
@@ -48,6 +48,7 @@ function buildPrescriptionDraft(exerciseRef: {
 export default function EditRoutinePage() {
   const { routineId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const routines = useAppStore((state) => state.routines);
   const exercises = useAppStore((state) => state.exercises);
@@ -76,9 +77,43 @@ export default function EditRoutinePage() {
   const [dayType, setDayType] = useState(routine?.dayType ?? "");
   const [description, setDescription] = useState(routine?.description ?? "");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const addExerciseSectionRef = useRef<HTMLDivElement | null>(null);
+  const [highlightAddExercise, setHighlightAddExercise] = useState(false);
 
   const [variantSearch, setVariantSearch] = useState("");
   const [routineError, setRoutineError] = useState("");
+  const pageState =
+    (location.state as {
+      returnTo?: string;
+      restoreDetailScroll?: boolean;
+      scrollToAddExercise?: boolean;
+    } | null) ?? null;
+
+  const returnTo = pageState?.returnTo ?? "/routines";
+  const restoreDetailScroll = pageState?.restoreDetailScroll ?? false;
+
+  useEffect(() => {
+    if (!pageState?.scrollToAddExercise) {
+      return;
+    }
+
+    const scrollTimer = window.setTimeout(() => {
+      addExerciseSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+
+      setHighlightAddExercise(true);
+
+      const highlightTimer = window.setTimeout(() => {
+        setHighlightAddExercise(false);
+      }, 1400);
+
+      return () => window.clearTimeout(highlightTimer);
+    }, 80);
+
+    return () => window.clearTimeout(scrollTimer);
+  }, [pageState?.scrollToAddExercise]);
 
   const [prescriptionDrafts, setPrescriptionDrafts] = useState<
     Record<string, PrescriptionDraft>
@@ -109,7 +144,7 @@ export default function EditRoutinePage() {
         <div className="routine-form-container">
           <div className="routine-form-card">
             <div className="routine-form-back-row">
-              <PageBackButton fallbackTo="/routines" />
+              <PageBackButton fallbackTo={returnTo} />
             </div>
 
             <p className="routine-form-routine-error">Routine not found.</p>
@@ -185,7 +220,9 @@ export default function EditRoutinePage() {
       updatedAt: new Date().toISOString(),
     });
 
-    navigate("/routines");
+    navigate(returnTo, {
+      state: restoreDetailScroll ? { restoreDetailScroll: true } : undefined,
+    });
   }
 
   function handleRequestDelete() {
@@ -455,7 +492,13 @@ export default function EditRoutinePage() {
               <button
                 type="button"
                 className="routine-form-btn routine-form-btn-secondary"
-                onClick={() => navigate("/routines")}
+                onClick={() =>
+                  navigate(returnTo, {
+                    state: restoreDetailScroll
+                      ? { restoreDetailScroll: true }
+                      : undefined,
+                  })
+                }
               >
                 Cancel
               </button>
@@ -589,7 +632,12 @@ export default function EditRoutinePage() {
           )}
         </div>
 
-        <div className="routine-form-card">
+        <div
+          ref={addExerciseSectionRef}
+          className={`routine-form-card ${
+            highlightAddExercise ? "routine-form-card-highlight" : ""
+          }`}
+        >
           <h2 className="routine-form-section-title">Add exercise</h2>
 
           <div className="routine-form-field">
@@ -648,7 +696,13 @@ export default function EditRoutinePage() {
             <button
               type="button"
               className="routine-form-btn routine-form-btn-secondary"
-              onClick={() => navigate("/routines")}
+              onClick={() =>
+                navigate(returnTo, {
+                  state: restoreDetailScroll
+                    ? { restoreDetailScroll: true }
+                    : undefined,
+                })
+              }
             >
               Cancel
             </button>

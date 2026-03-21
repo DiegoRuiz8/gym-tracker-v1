@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { useAppStore } from "../store/useAppStore";
 import {
   getExerciseById,
@@ -13,8 +13,14 @@ import {
 import PageBackButton from "../components/navigation/PageBackButton";
 import "../styles/variant-history.css";
 
+type VariantHistoryLocationState = {
+  returnTo?: string;
+  restoreDetailScroll?: boolean;
+};
+
 export default function VariantHistoryPage() {
   const { variantId } = useParams();
+  const location = useLocation();
   const [pendingDeleteLogId, setPendingDeleteLogId] = useState<string | null>(
     null,
   );
@@ -27,6 +33,12 @@ export default function VariantHistoryPage() {
     (state) => state.preferredWeightUnit,
   );
   const deleteWorkoutLog = useAppStore((state) => state.deleteWorkoutLog);
+
+  const pageState =
+    (location.state as VariantHistoryLocationState | null) ?? null;
+
+  const returnTo = pageState?.returnTo ?? "/history";
+  const restoreDetailScroll = pageState?.restoreDetailScroll ?? false;
 
   const variant = useMemo(
     () => (variantId ? getVariantById(exerciseVariants, variantId) : undefined),
@@ -134,7 +146,10 @@ export default function VariantHistoryPage() {
                     <div className="variant-history-actions">
                       <Link
                         to={`/history/log/${log.id}/edit`}
-                        state={{ returnTo: `/history/variant/${variantId}` }}
+                        state={{
+                          returnTo,
+                          restoreDetailScroll,
+                        }}
                         className="variant-history-btn variant-history-btn-secondary variant-history-btn-link"
                       >
                         Edit

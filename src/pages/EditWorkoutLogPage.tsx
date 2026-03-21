@@ -40,9 +40,16 @@ export default function EditWorkoutLogPage() {
     [workoutLogs, logId],
   );
 
+  const locationState =
+    (location.state as
+      | { returnTo?: string; restoreDetailScroll?: boolean }
+      | null) ?? null;
+
   const returnTo =
-    (location.state as { returnTo?: string } | null)?.returnTo ??
+    locationState?.returnTo ??
     (log ? `/history/variant/${log.variantId}` : "/history");
+
+  const restoreDetailScroll = locationState?.restoreDetailScroll ?? false;
 
   const routine = useMemo(
     () => routines.find((item) => item.id === log?.routineId),
@@ -198,7 +205,9 @@ export default function EditWorkoutLogPage() {
       notes: notes.trim() || undefined,
     });
 
-    navigate(returnTo);
+    navigate(returnTo, {
+      state: restoreDetailScroll ? { restoreDetailScroll: true } : undefined,
+    });
   }
 
   return (
@@ -298,7 +307,7 @@ export default function EditWorkoutLogPage() {
                         className="new-workout-log-number-input"
                         type="number"
                         min="0"
-                        step="0.5"
+                        step="0.1"
                         value={displayWeightFromStoredKg(set.weight)}
                         onChange={(event) =>
                           handleSetChange(index, "weight", event.target.value)
@@ -376,7 +385,13 @@ export default function EditWorkoutLogPage() {
               <button
                 className="new-workout-log-btn new-workout-log-btn-secondary"
                 type="button"
-                onClick={() => navigate(returnTo)}
+                onClick={() =>
+                  navigate(returnTo, {
+                    state: restoreDetailScroll
+                      ? { restoreDetailScroll: true }
+                      : undefined,
+                  })
+                }
               >
                 Cancel
               </button>

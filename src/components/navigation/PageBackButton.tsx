@@ -5,6 +5,11 @@ type Props = {
   label?: string;
 };
 
+type BackLocationState = {
+  returnTo?: string;
+  restoreDetailScroll?: boolean;
+};
+
 export default function PageBackButton({
   fallbackTo,
   label = "Back",
@@ -12,11 +17,15 @@ export default function PageBackButton({
   const navigate = useNavigate();
   const location = useLocation();
 
-  const returnTo =
-    (location.state as { returnTo?: string } | null)?.returnTo ?? fallbackTo;
+  const state = (location.state as BackLocationState | null) ?? null;
+
+  const returnTo = state?.returnTo ?? fallbackTo;
+  const restoreDetailScroll = state?.restoreDetailScroll ?? false;
 
   function handleBack() {
-    navigate(returnTo);
+    navigate(returnTo, {
+      state: restoreDetailScroll ? { restoreDetailScroll: true } : undefined,
+    });
   }
 
   return (

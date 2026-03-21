@@ -1,11 +1,42 @@
 import { Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { useAppStore } from "../store/useAppStore";
 import "../styles/routines-page.css";
+
+const ROUTINES_SCROLL_KEY = "routines-page-scroll-y";
 
 export default function RoutinesPage() {
   const routines = useAppStore((state) => state.routines);
   const moveRoutine = useAppStore((state) => state.moveRoutine);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const savedScroll = sessionStorage.getItem(ROUTINES_SCROLL_KEY);
+
+    if (!savedScroll) {
+      return;
+    }
+
+    const parsed = Number(savedScroll);
+
+    if (!Number.isNaN(parsed)) {
+      window.scrollTo(0, parsed);
+    }
+  }, []);
+
+  function saveCurrentScroll() {
+    sessionStorage.setItem(ROUTINES_SCROLL_KEY, String(window.scrollY));
+  }
+
+  function handleOpenRoutine(routineId: string) {
+    saveCurrentScroll();
+
+    navigate(`/routines/${routineId}`, {
+      state: {
+        fromRoutinesList: true,
+      },
+    });
+  }
 
   function handleMoveUp(
     event: React.MouseEvent<HTMLButtonElement>,
@@ -66,11 +97,11 @@ export default function RoutinesPage() {
               <div
                 key={routine.id}
                 className="routines-page-card routines-page-card-clickable"
-                onClick={() => navigate(`/routines/${routine.id}`)}
+                onClick={() => handleOpenRoutine(routine.id)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();
-                    navigate(`/routines/${routine.id}`);
+                    handleOpenRoutine(routine.id);
                   }
                 }}
                 role="button"
@@ -110,7 +141,10 @@ export default function RoutinesPage() {
                     <Link
                       to={`/routines/${routine.id}/edit`}
                       className="routines-page-card-edit"
-                      onClick={(event) => event.stopPropagation()}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        saveCurrentScroll();
+                      }}
                     >
                       Edit
                     </Link>

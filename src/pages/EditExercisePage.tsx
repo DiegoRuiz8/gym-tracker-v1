@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useMemo, useRef, useState } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useAppStore } from "../store/useAppStore";
 import { EXERCISE_CATEGORY_OPTIONS } from "../utils/exerciseCategories";
 import type { Exercise } from "../types/exercise";
@@ -9,6 +9,7 @@ import "../styles/simple-page.css";
 export default function EditExercisePage() {
   const { exerciseId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const exercises = useAppStore((state) => state.exercises);
   const exerciseVariants = useAppStore((state) => state.exerciseVariants);
@@ -18,6 +19,11 @@ export default function EditExercisePage() {
     () => exercises.find((item) => item.id === exerciseId),
     [exercises, exerciseId],
   );
+
+  const returnTo =
+    typeof location.state?.returnTo === "string"
+      ? location.state.returnTo
+      : "/exercises";
 
   if (!exercise) {
     return (
@@ -49,6 +55,20 @@ export default function EditExercisePage() {
   );
   const [notes, setNotes] = useState(safeExercise.notes ?? "");
   const [error, setError] = useState("");
+  const notesRef = useRef<HTMLTextAreaElement | null>(null);
+
+  function autoResizeNotes(element: HTMLTextAreaElement) {
+    element.style.height = "0px";
+    element.style.height = `${element.scrollHeight}px`;
+  }
+
+  function handleNotesChange(value: string) {
+    setNotes(value);
+
+    if (notesRef.current) {
+      autoResizeNotes(notesRef.current);
+    }
+  }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -87,18 +107,20 @@ export default function EditExercisePage() {
     };
 
     updateExercise(updatedExercise);
-    navigate("/exercises");
+    navigate(returnTo);
   }
 
   return (
     <div className="simple-page">
       <div className="simple-page-container">
-        <div className="simple-page-card">
-          <div className="simple-page-card-body">
+        <div className="simple-page-card simple-page-card-compact simple-page-hero-card-compact">
+          <div className="simple-page-card-body simple-page-card-body-compact">
             <div className="simple-page-back-row">
               <PageBackButton fallbackTo="/exercises" />
             </div>
-            <h1 className="simple-page-title">Edit exercise</h1>
+            <h1 className="simple-page-title simple-page-title-compact">
+              Edit exercise
+            </h1>
             <p className="simple-page-subtitle">
               Update the base exercise details and review linked variants.
             </p>
@@ -168,16 +190,26 @@ export default function EditExercisePage() {
                   Notes
                 </label>
                 <textarea
+                  ref={notesRef}
                   id="exercise-notes"
-                  className="simple-page-textarea"
+                  className="simple-page-textarea simple-page-textarea-compact"
+                  rows={1}
                   value={notes}
-                  onChange={(event) => setNotes(event.target.value)}
+                  onChange={(event) => handleNotesChange(event.target.value)}
                   placeholder="Optional notes..."
                 />
               </div>
 
               <div className="simple-page-field">
-                <label className="simple-page-label">Variants</label>
+                <div className="simple-page-variants-section-top">
+                  <label className="simple-page-label">Variants</label>
+
+                  {linkedVariants.length > 0 && (
+                    <span className="simple-page-variants-count">
+                      {linkedVariants.length}
+                    </span>
+                  )}
+                </div>
 
                 {linkedVariants.length === 0 ? (
                   <div className="simple-page-inline-confirm">
@@ -192,36 +224,39 @@ export default function EditExercisePage() {
                       <Link
                         to={`/exercises/${safeExercise.id}/variants/new`}
                         className="simple-page-btn simple-page-btn-secondary"
+                        state={{ returnTo }}
                       >
                         Add variant
                       </Link>
                     </div>
                   </div>
                 ) : (
-                  <div className="simple-page-linked-list">
+                  <div className="simple-page-variant-list">
                     {linkedVariants.map((variant) => (
                       <div
                         key={variant.id}
-                        className="simple-page-linked-list-item"
+                        className="simple-page-variant-list-item"
                       >
-                        <div className="simple-page-linked-list-item-main">
-                          <p className="simple-page-linked-list-item-title">
-                            {variant.name}
-                          </p>
-                          <p className="simple-page-linked-list-item-meta">
-                            {variant.isActive ? "Active" : "Inactive"}
-                          </p>
-                        </div>
+                        <div className="simple-page-variant-list-item-top">
+                          <div className="simple-page-variant-list-item-main">
+                            <p className="simple-page-variant-list-item-title">
+                              {variant.name}
+                            </p>
+                            <p className="simple-page-variant-list-item-meta">
+                              {variant.isActive ? "Active" : "Inactive"}
+                            </p>
+                          </div>
 
-                        <Link
-                          to={`/variants/${variant.id}/edit`}
-                          state={{
-                            returnTo: `/exercises/${safeExercise.id}/edit`,
-                          }}
-                          className="simple-page-btn simple-page-btn-secondary"
-                        >
-                          Edit variant
-                        </Link>
+                          <Link
+                            to={`/variants/${variant.id}/edit`}
+                            state={{
+                              returnTo: `/exercises/${safeExercise.id}/edit`,
+                            }}
+                            className="simple-page-btn simple-page-btn-secondary simple-page-variant-edit-btn"
+                          >
+                            Edit
+                          </Link>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -241,7 +276,7 @@ export default function EditExercisePage() {
                 <button
                   type="button"
                   className="simple-page-btn simple-page-btn-secondary"
-                  onClick={() => navigate("/exercises")}
+                  onClick={() => navigate(returnTo)}
                 >
                   Cancel
                 </button>
