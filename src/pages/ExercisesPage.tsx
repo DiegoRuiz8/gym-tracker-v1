@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link} from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { useAppStore } from "../store/useAppStore";
 import { getLogsForVariant } from "../store/selectors";
@@ -12,7 +12,7 @@ export default function ExercisesPage() {
   const exerciseVariants = useAppStore((state) => state.exerciseVariants);
   const workoutLogs = useAppStore((state) => state.workoutLogs);
   const preferredWeightUnit = useAppStore((state) => state.preferredWeightUnit);
-  const navigate = useNavigate();
+  
 
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All categories");
