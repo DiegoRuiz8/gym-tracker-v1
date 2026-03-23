@@ -32,8 +32,48 @@
   margin: 0 0 18px;
 }
 
+
 .history-page-search-wrap {
   width: 100%;
+  position: relative;
+}
+
+.history-page-search-input-with-clear {
+  padding-right: 44px;
+}
+
+.history-page-search-clear-btn {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-soft);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.history-page-search-clear-btn:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.history-page-search-clear-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
 }
 
 .history-page-search-input {

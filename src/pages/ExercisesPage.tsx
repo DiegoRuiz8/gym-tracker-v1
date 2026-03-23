@@ -1,4 +1,4 @@
-import { Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { useAppStore } from "../store/useAppStore";
 import { getLogsForVariant } from "../store/selectors";
@@ -12,7 +12,6 @@ export default function ExercisesPage() {
   const exerciseVariants = useAppStore((state) => state.exerciseVariants);
   const workoutLogs = useAppStore((state) => state.workoutLogs);
   const preferredWeightUnit = useAppStore((state) => state.preferredWeightUnit);
-  
 
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All categories");
@@ -155,14 +154,28 @@ export default function ExercisesPage() {
             >
               Search
             </label>
-            <input
-              id="exercise-search"
-              className="exercises-page-filter-input"
-              type="text"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search exercises or variants..."
-            />
+
+            <div className="exercises-page-filter-input-wrap">
+              <input
+                id="exercise-search"
+                className="exercises-page-filter-input exercises-page-filter-input-search"
+                type="text"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search exercises or variants..."
+              />
+
+              {search.trim() && (
+                <button
+                  type="button"
+                  className="exercises-page-filter-clear-btn"
+                  onClick={() => setSearch("")}
+                  aria-label="Clear search"
+                >
+                  ×
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="exercises-page-filter-row">

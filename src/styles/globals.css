@@ -371,8 +371,11 @@ select:focus-visible {
 }
 
 .page-back-button-arrow {
+  position: relative;
+  top: -1px;
   font-size: 1rem;
   line-height: 1;
+  top: -2px;
 }
 
 /* Utility-ish small helpers */
