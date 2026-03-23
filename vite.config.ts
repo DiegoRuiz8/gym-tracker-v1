@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: "autoUpdate",
       injectRegister: "auto",
       manifest: {
-        name: "Gym Tracker",
-        short_name: "GymTracker",
+        name: "Lift Log",
+        short_name: "LiftLog",
         description: "Track routines, sets, reps, and progress in one place.",
         theme_color: "#0b0f14",
         background_color: "#0b0f14",
