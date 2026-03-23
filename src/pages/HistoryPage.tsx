@@ -167,15 +167,27 @@ export default function HistoryPage() {
 
         <div className="history-page-controls">
           <div className="history-page-search-wrap">
-            <input
-              type="text"
-              className="history-page-search-input"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search exercise, variant, or routine..."
-              aria-label="Search history"
-            />
-          </div>
+  <input
+    type="text"
+    className="history-page-search-input history-page-search-input-with-clear"
+    value={search}
+    onChange={(event) => setSearch(event.target.value)}
+    placeholder="Search exercise, variant, or routine..."
+    aria-label="Search history"
+  />
+
+  {search.trim() && (
+    <button
+      type="button"
+      className="history-page-search-clear-btn"
+      onClick={() => setSearch("")}
+      aria-label="Clear search"
+      title="Clear search"
+    >
+      ×
+    </button>
+  )}
+</div>
 
           <div className="history-page-filters">
             <button

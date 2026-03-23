@@ -8,7 +8,7 @@
 .app-shell-main {
   width: 100%;
   min-height: 100vh;
-  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(66px + env(safe-area-inset-bottom, 0px));
 }
 
 .app-shell-nav {
@@ -29,25 +29,28 @@
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  gap: 6px;
   padding:
-    10px
+    8px
     max(var(--page-padding-x), env(safe-area-inset-right, 0px))
-    calc(10px + env(safe-area-inset-bottom, 0px))
+    calc(8px + env(safe-area-inset-bottom, 0px))
     max(var(--page-padding-x), env(safe-area-inset-left, 0px));
 }
 
 .app-shell-nav-link {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 44px;
-  padding: 0 10px;
-  border-radius: var(--radius-pill);
+  gap: 2px;
+  min-height: 48px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
   color: var(--color-text-soft);
   text-decoration: none;
-  font-size: 0.92rem;
-  font-weight: var(--font-weight-semibold);
+  font-size: 0.82rem;
+  font-weight: 600;
   white-space: nowrap;
   transition:
     background-color 140ms ease,
@@ -61,21 +64,38 @@
 }
 
 .app-shell-nav-link.active {
-  background: var(--color-accent-soft);
-  color: #dbeafe;
+  background: rgba(59, 130, 246, 0.06);
+  color: #f3f7ff;
+  border: 1px solid rgba(96, 165, 250, 0.14);
+}
+
+.app-shell-nav-link.active .app-shell-nav-icon {
+  transform: translateY(-0.5px);
+}
+
+.app-shell-nav-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 @media (min-width: 768px) {
   .app-shell-main {
-    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
   }
 
   .app-shell-nav-inner {
-    padding-top: 12px;
-    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    padding-top: 10px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   }
 
   .app-shell-nav-link {
-    min-height: 48px;
+    min-height: 52px;
+    font-size: 0.88rem;
+  }
+
+  .app-shell-nav-icon {
+    width: 19px;
+    height: 19px;
   }
 }

@@ -90,6 +90,47 @@
   min-width: 0;
 }
 
+.exercises-page-filter-input-wrap {
+  position: relative;
+}
+
+.exercises-page-filter-input-search {
+  padding-right: 44px;
+}
+
+.exercises-page-filter-clear-btn {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.exercises-page-filter-clear-btn:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.exercises-page-filter-clear-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
 .exercises-page-filter-label {
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-soft);
