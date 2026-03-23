@@ -13,12 +13,11 @@ export default function ImportExportPage() {
   const exerciseVariants = useAppStore((state) => state.exerciseVariants);
   const routines = useAppStore((state) => state.routines);
   const workoutLogs = useAppStore((state) => state.workoutLogs);
-  const preferredWeightUnit = useAppStore(
-    (state) => state.preferredWeightUnit,
-  );
+  const preferredWeightUnit = useAppStore((state) => state.preferredWeightUnit);
   const replaceAppData = useAppStore((state) => state.replaceAppData);
 
-  const [message, setMessage] = useState<string>("");
+  const [importMessage, setImportMessage] = useState<string>("");
+  const [generalMessage, setGeneralMessage] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [isImporting, setIsImporting] = useState(false);
 
@@ -31,7 +30,8 @@ export default function ImportExportPage() {
       return;
     }
 
-    setMessage("");
+    setImportMessage("");
+    setGeneralMessage("");
     setError("");
     setIsImporting(true);
 
@@ -44,7 +44,7 @@ export default function ImportExportPage() {
         preferredWeightUnit: payload.data.preferredWeightUnit ?? "kg",
       });
 
-      setMessage(
+      setImportMessage(
         `Import successful: ${payload.data.routines.length} routines, ${payload.data.exercises.length} exercises, ${payload.data.workoutLogs.length} logs.`,
       );
     } catch (importError) {
@@ -61,7 +61,8 @@ export default function ImportExportPage() {
   }
 
   function handleExport(): void {
-    setMessage("");
+    setImportMessage("");
+    setGeneralMessage("");
     setError("");
 
     downloadAppDataAsJson({
@@ -75,14 +76,16 @@ export default function ImportExportPage() {
       },
     });
 
-    setMessage("Export created successfully.");
+    setGeneralMessage("Export created successfully.");
   }
 
   function handleDownloadTemplate(): void {
-    setMessage("");
+    setImportMessage("");
+    setGeneralMessage("");
     setError("");
+
     downloadImportTemplateJson();
-    setMessage("Import template downloaded.");
+    setGeneralMessage("Import template downloaded.");
   }
 
   return (
@@ -110,6 +113,18 @@ export default function ImportExportPage() {
             disabled={isImporting}
           />
         </label>
+
+        {importMessage ? (
+          <p className="import-export-message success import-export-message-inline">
+            {importMessage}
+          </p>
+        ) : null}
+
+        {error ? (
+          <p className="import-export-message error import-export-message-inline">
+            {error}
+          </p>
+        ) : null}
       </section>
 
       <section className="import-export-card">
@@ -143,18 +158,21 @@ export default function ImportExportPage() {
 
         <div className="import-export-help">
           <p className="import-export-help-title">What the import expects</p>
-<ul className="import-export-help-list">
-  <li>Store all weights in kg.</li>
-  <li>Linked ids must match existing exercises, variants, and routines.</li>
-  <li>`preferredWeightUnit` is optional. If omitted, the app uses kg.</li>
-</ul>
+          <ul className="import-export-help-list">
+            <li>Store all weights in kg.</li>
+            <li>
+              Linked ids must match existing exercises, variants, and routines.
+            </li>
+            <li>
+              `preferredWeightUnit` is optional. If omitted, the app uses kg.
+            </li>
+          </ul>
         </div>
       </section>
 
-      {message ? (
-        <p className="import-export-message success">{message}</p>
+      {generalMessage ? (
+        <p className="import-export-message success">{generalMessage}</p>
       ) : null}
-      {error ? <p className="import-export-message error">{error}</p> : null}
     </div>
   );
 }

@@ -119,3 +119,7 @@
 .import-export-help-list li + li {
   margin-top: 6px;
 }
+
+.import-export-card .import-export-message-inline {
+  margin: 14px 0 0;
+}

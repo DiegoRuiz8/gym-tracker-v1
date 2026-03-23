@@ -42,7 +42,7 @@ export default function HomePage() {
     <div className="simple-page">
       <div className="simple-page-container">
         <header className="simple-page-header">
-          <h1 className="simple-page-title">Gym Tracker</h1>
+          <h1 className="simple-page-title">Lift Log</h1>
           <p className="simple-page-description">
             Track routines, sets, reps, and progress in one place.
           </p>
