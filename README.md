@@ -22,6 +22,20 @@ Lift Log helps you manage exercises, exercise variants, routines, workout histor
 - PWA support
 - Installable on supported desktop and mobile devices
 
+## Screenshots
+
+### Home
+![Lift Log Home](docs/screenshots/home.png)
+
+### Routines
+![Lift Log Routines](docs/screenshots/routines.png)
+
+### Workout Log
+![Lift Log Workout Log](docs/screenshots/workout-log.png)
+
+### History
+![Lift Log History](docs/screenshots/history.png)
+
 ## Tech Stack
 
 - React
@@ -60,6 +74,8 @@ Lift Log helps you manage exercises, exercise variants, routines, workout histor
       styles/
       utils/
     public/
+    docs/
+      screenshots/
 
 ## Data Storage
 
