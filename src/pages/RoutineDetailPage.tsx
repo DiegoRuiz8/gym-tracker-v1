@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { useLocation, useParams, Link } from "react-router-dom";
+import { useLocation, useParams, Link, useNavigate } from "react-router-dom";
 import { useAppStore } from "../store/useAppStore";
 import {
   getExerciseById,
@@ -21,11 +21,19 @@ const getRoutineDetailScrollKey = (routineId: string) =>
 export default function RoutineDetailPage() {
   const { routineId } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const routines = useAppStore((state) => state.routines);
   const exercises = useAppStore((state) => state.exercises);
   const exerciseVariants = useAppStore((state) => state.exerciseVariants);
   const workoutLogs = useAppStore((state) => state.workoutLogs);
+
+  const activeWorkoutSession = useAppStore(
+    (state) => state.activeWorkoutSession,
+  );
+  const startWorkoutSessionFromRoutine = useAppStore(
+    (state) => state.startWorkoutSessionFromRoutine,
+  );
 
   const routine = useMemo(
     () => routines.find((item) => item.id === routineId),
@@ -86,6 +94,27 @@ export default function RoutineDetailPage() {
     (a, b) => a.order - b.order,
   );
 
+  const hasActiveWorkout = activeWorkoutSession !== null;
+  const isSameRoutineActive =
+    activeWorkoutSession?.routineId === safeRoutine.id;
+  const hasOtherRoutineActive =
+    hasActiveWorkout && activeWorkoutSession?.routineId !== safeRoutine.id;
+
+  function handlePrimaryWorkoutAction() {
+    if (isSameRoutineActive) {
+      navigate("/active-workout");
+      return;
+    }
+
+    if (hasOtherRoutineActive) {
+      navigate("/active-workout");
+      return;
+    }
+
+    startWorkoutSessionFromRoutine(safeRoutine.id);
+    navigate("/active-workout");
+  }
+
   return (
     <div className="routine-detail-page">
       <div className="routine-detail-container">
@@ -119,6 +148,26 @@ export default function RoutineDetailPage() {
             </Link>
           </div>
         </header>
+
+        <section className="routine-detail-workout-cta">
+          <button
+            type="button"
+            className="routine-detail-start-btn"
+            onClick={handlePrimaryWorkoutAction}
+          >
+            {isSameRoutineActive
+              ? "Resume workout"
+              : hasOtherRoutineActive
+                ? "Resume current workout"
+                : "Start workout"}
+          </button>
+
+          {hasOtherRoutineActive && (
+            <p className="routine-detail-workout-note">
+              You already have an active workout in progress.
+            </p>
+          )}
+        </section>
 
         {sortedExerciseRefs.length === 0 ? (
           <section className="routine-detail-empty-state" aria-live="polite">

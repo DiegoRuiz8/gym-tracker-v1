@@ -15,6 +15,7 @@ export type Exercise = {
   muscleGroups?: string[];
   notes?: string;
   createdAt: string;
+  updatedAt: string;
 };
 
 export type ExerciseVariant = {
@@ -27,4 +28,5 @@ export type ExerciseVariant = {
   isActive: boolean;
   trackingType: TrackingType;
   createdAt: string;
+  updatedAt: string;
 };

@@ -86,20 +86,6 @@ export default function RoutineExerciseCard({
           </p>
         )}
       </div>
-
-      <div className="routine-exercise-actions">
-        <Link
-          to={`/routines/${routine.id}/log/${exerciseRef.variantId}`}
-          state={{
-            returnTo: `/routines/${routine.id}`,
-            restoreDetailScroll: true,
-          }}
-          className="routine-exercise-action routine-exercise-action-primary"
-          onClick={handleBeforeNavigate}
-        >
-          Log sets
-        </Link>
-      </div>
     </article>
   );
 }
