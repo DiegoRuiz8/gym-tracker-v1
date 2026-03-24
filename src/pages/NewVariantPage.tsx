@@ -93,6 +93,7 @@ export default function NewVariantPage() {
       isActive: true,
       trackingType: "weight_reps",
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     addExerciseVariant(newVariant);

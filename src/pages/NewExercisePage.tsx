@@ -44,15 +44,18 @@ export default function NewExercisePage() {
       .map((item) => item.trim())
       .filter((item) => item.length > 0);
 
-    const newExercise: Exercise = {
-      id: generateId(),
-      name: trimmedName,
-      category: category || undefined,
-      muscleGroups:
-        parsedMuscleGroups.length > 0 ? parsedMuscleGroups : undefined,
-      notes: trimmedNotes || undefined,
-      createdAt: new Date().toISOString(),
-    };
+    const now = new Date().toISOString();
+
+const newExercise: Exercise = {
+  id: generateId(),
+  name: trimmedName,
+  category: category || undefined,
+  muscleGroups:
+    parsedMuscleGroups.length > 0 ? parsedMuscleGroups : undefined,
+  notes: trimmedNotes || undefined,
+  createdAt: now,
+  updatedAt: now,
+};
 
     addExercise(newExercise);
     navigate("/exercises");

@@ -11,6 +11,7 @@ export const seedExercises: Exercise[] = [
     category: "Push",
     muscleGroups: ["chest", "triceps", "front-delts"],
     createdAt: now,
+    updatedAt: now,
   },
   {
     id: "ex-incline-press",
@@ -18,6 +19,7 @@ export const seedExercises: Exercise[] = [
     category: "Push",
     muscleGroups: ["upper-chest", "triceps", "front-delts"],
     createdAt: now,
+    updatedAt: now,
   },
   {
     id: "ex-lateral-raise",
@@ -25,6 +27,7 @@ export const seedExercises: Exercise[] = [
     category: "Push",
     muscleGroups: ["side-delts"],
     createdAt: now,
+    updatedAt: now,
   },
   {
     id: "ex-triceps-pushdown",
@@ -32,6 +35,7 @@ export const seedExercises: Exercise[] = [
     category: "Push",
     muscleGroups: ["triceps"],
     createdAt: now,
+    updatedAt: now,
   },
   {
     id: "ex-lat-pulldown",
@@ -39,6 +43,7 @@ export const seedExercises: Exercise[] = [
     category: "Pull",
     muscleGroups: ["lats", "upper-back", "biceps"],
     createdAt: now,
+    updatedAt: now,
   },
   {
     id: "ex-row",
@@ -46,6 +51,7 @@ export const seedExercises: Exercise[] = [
     category: "Pull",
     muscleGroups: ["mid-back", "lats", "biceps"],
     createdAt: now,
+    updatedAt: now,
   },
 ];
 
@@ -59,6 +65,7 @@ export const seedExerciseVariants: ExerciseVariant[] = [
     isActive: true,
     trackingType: "weight_reps",
     createdAt: now,
+    updatedAt: now,
   },
   {
     id: "var-bench-smith",
@@ -69,6 +76,7 @@ export const seedExerciseVariants: ExerciseVariant[] = [
     isActive: true,
     trackingType: "weight_reps",
     createdAt: now,
+    updatedAt: now,
   },
   {
     id: "var-incline-smith",
@@ -79,6 +87,7 @@ export const seedExerciseVariants: ExerciseVariant[] = [
     isActive: true,
     trackingType: "weight_reps",
     createdAt: now,
+    updatedAt: now,
   },
   {
     id: "var-lateral-cable",
@@ -89,6 +98,7 @@ export const seedExerciseVariants: ExerciseVariant[] = [
     isActive: true,
     trackingType: "weight_reps",
     createdAt: now,
+    updatedAt: now,
   },
   {
     id: "var-pushdown-rope",
@@ -99,6 +109,7 @@ export const seedExerciseVariants: ExerciseVariant[] = [
     isActive: true,
     trackingType: "weight_reps",
     createdAt: now,
+    updatedAt: now,
   },
   {
     id: "var-lat-pulldown-wide",
@@ -109,6 +120,7 @@ export const seedExerciseVariants: ExerciseVariant[] = [
     isActive: true,
     trackingType: "weight_reps",
     createdAt: now,
+    updatedAt: now,
   },
   {
     id: "var-row-chest-supported",
@@ -119,6 +131,7 @@ export const seedExerciseVariants: ExerciseVariant[] = [
     isActive: true,
     trackingType: "weight_reps",
     createdAt: now,
+    updatedAt: now,
   },
 ];
 
