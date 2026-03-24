@@ -1,40 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useMemo, useState } from "react";
 import { useAppStore } from "../store/useAppStore";
-import { getExerciseById, getVariantById } from "../store/selectors";
-import {
-  formatLogDate,
-  formatSetPerformanceInline,
-  getDateKey,
-} from "../utils/format";
+import { buildResolvedWorkoutSessions } from "../store/selectors";
+import { formatLogDate, formatSingleWeight } from "../utils/format";
+import type { CompletedSet, WorkoutSessionExercise } from "../types/session";
 import "../styles/history-page.css";
 
-const HISTORY_SCROLL_KEY = "history-page-scroll-y";
-
 type HistoryRange = "all" | "week" | "month";
-
-function buildLogItems(
-  workoutLogs: ReturnType<typeof useAppStore.getState>["workoutLogs"],
-  routines: ReturnType<typeof useAppStore.getState>["routines"],
-  exerciseVariants: ReturnType<typeof useAppStore.getState>["exerciseVariants"],
-  exercises: ReturnType<typeof useAppStore.getState>["exercises"],
-) {
-  return workoutLogs.map((log) => {
-    const routine = routines.find((item) => item.id === log.routineId);
-    const variant = getVariantById(exerciseVariants, log.variantId);
-    const exercise = variant
-      ? getExerciseById(exercises, variant.exerciseId)
-      : undefined;
-
-    return {
-      log,
-      routine,
-      variant,
-      exercise,
-      dateKey: getDateKey(log.date),
-    };
-  });
-}
 
 function getDaysDiffFromToday(dateString: string): number {
   const today = new Date();
@@ -49,111 +20,167 @@ function getDaysDiffFromToday(dateString: string): number {
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 }
 
+function formatTime(dateString?: string | null): string | null {
+  if (!dateString) return null;
+
+  return new Date(dateString).toLocaleTimeString("es-MX", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatDuration(
+  startedAt?: string | null,
+  endedAt?: string | null,
+): string | null {
+  if (!startedAt || !endedAt) return null;
+
+  const diffMs = new Date(endedAt).getTime() - new Date(startedAt).getTime();
+
+  if (Number.isNaN(diffMs) || diffMs <= 0) return null;
+
+  const totalMinutes = Math.round(diffMs / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  }
+
+  return `${minutes}m`;
+}
+
+function getRelevantSets(exercise: WorkoutSessionExercise): CompletedSet[] {
+  return exercise.performedSets.filter((set) => {
+    const hasPerformanceData =
+      set.reps != null || set.weight != null || set.durationSeconds != null;
+
+    return set.isCompleted && hasPerformanceData;
+  });
+}
+
+function formatSessionExercisePerformance(
+  exercise: WorkoutSessionExercise,
+  preferredWeightUnit: "kg" | "lb",
+): string {
+  const relevantSets = getRelevantSets(exercise);
+
+  if (relevantSets.length === 0) {
+    return "No completed sets";
+  }
+
+  const parts = relevantSets
+    .map((set) => {
+      if (set.durationSeconds != null && set.weight != null) {
+        return `${formatSingleWeight(set.weight, preferredWeightUnit)} × ${set.durationSeconds}s`;
+      }
+
+      if (set.durationSeconds != null) {
+        return `${set.durationSeconds}s`;
+      }
+
+      if (set.weight != null && set.reps != null) {
+        return `${formatSingleWeight(set.weight, preferredWeightUnit)} × ${set.reps}`;
+      }
+
+      if (set.reps != null) {
+        return `${set.reps} reps`;
+      }
+
+      if (set.weight != null) {
+        return formatSingleWeight(set.weight, preferredWeightUnit);
+      }
+
+      return null;
+    })
+    .filter((value): value is string => value !== null);
+
+  return parts.length > 0 ? parts.join(" • ") : "No completed sets";
+}
+
 export default function HistoryPage() {
-  const [pendingDeleteLogId, setPendingDeleteLogId] = useState<string | null>(
-    null,
-  );
   const [activeRange, setActiveRange] = useState<HistoryRange>("all");
   const [search, setSearch] = useState("");
 
   const exercises = useAppStore((state) => state.exercises);
   const exerciseVariants = useAppStore((state) => state.exerciseVariants);
-  const workoutLogs = useAppStore((state) => state.workoutLogs);
+  const workoutSessions = useAppStore((state) => state.workoutSessions);
   const routines = useAppStore((state) => state.routines);
   const preferredWeightUnit = useAppStore(
     (state) => state.preferredWeightUnit,
   );
-  const deleteWorkoutLog = useAppStore((state) => state.deleteWorkoutLog);
 
-  useEffect(() => {
-    const savedScroll = sessionStorage.getItem(HISTORY_SCROLL_KEY);
-
-    if (!savedScroll) {
-      return;
-    }
-
-    const parsed = Number(savedScroll);
-
-    if (!Number.isNaN(parsed)) {
-      window.scrollTo(0, parsed);
-    }
-  }, []);
-
-  function saveCurrentScroll() {
-    sessionStorage.setItem(HISTORY_SCROLL_KEY, String(window.scrollY));
-  }
-
-  const logItems = useMemo(
-    () => buildLogItems(workoutLogs, routines, exerciseVariants, exercises),
-    [workoutLogs, routines, exerciseVariants, exercises],
+  const sessionItems = useMemo(
+    () =>
+      buildResolvedWorkoutSessions(
+        workoutSessions,
+        routines,
+        exerciseVariants,
+        exercises,
+      ),
+    [workoutSessions, routines, exerciseVariants, exercises],
   );
 
-  const rangeFilteredLogItems = useMemo(() => {
+  const rangeFilteredSessionItems = useMemo(() => {
     if (activeRange === "all") {
-      return logItems;
+      return sessionItems;
     }
 
     const maxDays = activeRange === "week" ? 7 : 30;
 
-    return logItems.filter((item) => {
-      const daysDiff = getDaysDiffFromToday(item.log.date);
+    return sessionItems.filter((item) => {
+      const daysDiff = getDaysDiffFromToday(item.session.date);
       return daysDiff >= 0 && daysDiff < maxDays;
     });
-  }, [logItems, activeRange]);
+  }, [sessionItems, activeRange]);
 
   const normalizedSearch = search.trim().toLowerCase();
 
-  const filteredLogItems = useMemo(() => {
+  const filteredSessionItems = useMemo(() => {
     if (!normalizedSearch) {
-      return rangeFilteredLogItems;
+      return rangeFilteredSessionItems;
     }
 
-    return rangeFilteredLogItems.filter((item) => {
-      const exerciseName = item.exercise?.name ?? "";
-      const variantName = item.variant?.name ?? "";
+    return rangeFilteredSessionItems.filter((item) => {
       const routineName = item.routine?.name ?? "";
-      const notes = item.log.notes ?? "";
+      const sessionNotes = item.session.notes ?? "";
 
-      return (
-        exerciseName.toLowerCase().includes(normalizedSearch) ||
-        variantName.toLowerCase().includes(normalizedSearch) ||
-        routineName.toLowerCase().includes(normalizedSearch) ||
-        notes.toLowerCase().includes(normalizedSearch)
-      );
+      const exerciseText = item.exercises
+        .map(({ exercise, variant, sessionExercise }) =>
+          [
+            exercise?.name ?? "",
+            variant?.name ?? "",
+            sessionExercise.notes ?? "",
+          ].join(" "),
+        )
+        .join(" ");
+
+      const haystack = `${routineName} ${sessionNotes} ${exerciseText}`.toLowerCase();
+
+      return haystack.includes(normalizedSearch);
     });
-  }, [rangeFilteredLogItems, normalizedSearch]);
+  }, [rangeFilteredSessionItems, normalizedSearch]);
 
   const groupedHistory = useMemo(() => {
-    const groupsMap = new Map<string, typeof filteredLogItems>();
+    const groupsMap = new Map<string, typeof filteredSessionItems>();
 
-    filteredLogItems.forEach((item) => {
+    filteredSessionItems.forEach((item) => {
       const existing = groupsMap.get(item.dateKey) ?? [];
       existing.push(item);
       groupsMap.set(item.dateKey, existing);
     });
 
     return Array.from(groupsMap.entries())
-      .map(([dateKey, logs]) => ({
+      .map(([dateKey, sessions]) => ({
         dateKey,
-        logs: [...logs].sort((a, b) =>
-          b.log.createdAt.localeCompare(a.log.createdAt),
+        sessions: [...sessions].sort((a, b) =>
+          (b.session.endedAt ?? b.session.startedAt).localeCompare(
+            a.session.endedAt ?? a.session.startedAt,
+          ),
         ),
       }))
       .sort((a, b) => b.dateKey.localeCompare(a.dateKey));
-  }, [filteredLogItems]);
-
-  function handleRequestDelete(logId: string) {
-    setPendingDeleteLogId(logId);
-  }
-
-  function handleCancelDelete() {
-    setPendingDeleteLogId(null);
-  }
-
-  function handleConfirmDelete(logId: string) {
-    deleteWorkoutLog(logId);
-    setPendingDeleteLogId(null);
-  }
+  }, [filteredSessionItems]);
 
   return (
     <div className="history-page">
@@ -161,33 +188,33 @@ export default function HistoryPage() {
         <header className="history-page-header">
           <h1 className="history-page-title">History</h1>
           <p className="history-page-description">
-            Review all recorded logs grouped by date.
+            Review completed workout sessions grouped by date.
           </p>
         </header>
 
         <div className="history-page-controls">
           <div className="history-page-search-wrap">
-  <input
-    type="text"
-    className="history-page-search-input history-page-search-input-with-clear"
-    value={search}
-    onChange={(event) => setSearch(event.target.value)}
-    placeholder="Search exercise, variant, or routine..."
-    aria-label="Search history"
-  />
+            <input
+              type="text"
+              className="history-page-search-input history-page-search-input-with-clear"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search routine or exercise..."
+              aria-label="Search history"
+            />
 
-  {search.trim() && (
-    <button
-      type="button"
-      className="history-page-search-clear-btn"
-      onClick={() => setSearch("")}
-      aria-label="Clear search"
-      title="Clear search"
-    >
-      ×
-    </button>
-  )}
-</div>
+            {search.trim() && (
+              <button
+                type="button"
+                className="history-page-search-clear-btn"
+                onClick={() => setSearch("")}
+                aria-label="Clear search"
+                title="Clear search"
+              >
+                ×
+              </button>
+            )}
+          </div>
 
           <div className="history-page-filters">
             <button
@@ -224,9 +251,9 @@ export default function HistoryPage() {
 
         {groupedHistory.length === 0 ? (
           <div className="history-page-empty-state">
-            <h2 className="history-page-empty-title">No logs found</h2>
+            <h2 className="history-page-empty-title">No sessions found</h2>
             <p className="history-page-empty-text">
-              There are no workout logs for the selected filters.
+              There are no workout sessions for the selected filters.
             </p>
           </div>
         ) : (
@@ -238,104 +265,88 @@ export default function HistoryPage() {
                 </h2>
 
                 <div className="history-page-group-list">
-                  {group.logs.map(({ log, routine, variant, exercise }) => (
-                    <div key={log.id} className="history-page-card">
-                      <div className="history-page-card-header">
-                        <div className="history-page-card-title-row">
+                  {group.sessions.map(({ session, routine, exercises }) => {
+                    const startTime = formatTime(session.startedAt);
+                    const endTime = formatTime(session.endedAt);
+                    const duration = formatDuration(
+                      session.startedAt,
+                      session.endedAt,
+                    );
+
+                    return (
+                      <article key={session.id} className="history-page-card">
+                        <div className="history-page-card-header">
                           <div className="history-page-card-info">
                             <h3 className="history-page-card-title">
-                              {exercise?.name ?? "Unknown exercise"}
-                              <span className="history-page-card-title-separator">
-                                {" "}
-                                –{" "}
-                              </span>
-                              <span className="history-page-card-title-variant">
-                                {variant?.name ?? "Unknown variant"}
-                              </span>
+                              {routine?.name ?? "Workout session"}
                             </h3>
+
+                            <p className="history-page-card-routine">
+                              {exercises.length} exercise
+                              {exercises.length === 1 ? "" : "s"}
+                            </p>
                           </div>
 
-                          <button
-                            type="button"
-                            className="history-page-delete-icon"
-                            onClick={() => handleRequestDelete(log.id)}
-                            aria-label="Delete log"
-                            title="Delete log"
-                          >
-                            ×
-                          </button>
-                        </div>
+                          <div className="history-page-card-meta">
+                            {startTime && (
+                              <span className="history-page-card-meta-chip">
+                                {endTime
+                                  ? `${startTime} - ${endTime}`
+                                  : startTime}
+                              </span>
+                            )}
 
-                        {pendingDeleteLogId === log.id && (
-                          <div className="history-page-delete-confirm">
-                            <p className="history-page-delete-text">
-                              Delete log?
-                            </p>
-                            <p className="history-page-delete-subtext">
-                              This workout entry will be permanently removed.
-                            </p>
-
-                            <div className="history-page-delete-actions">
-                              <button
-                                type="button"
-                                className="history-page-btn history-page-btn-danger"
-                                onClick={() => handleConfirmDelete(log.id)}
-                              >
-                                Confirm
-                              </button>
-
-                              <button
-                                type="button"
-                                className="history-page-btn history-page-btn-secondary"
-                                onClick={handleCancelDelete}
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="history-page-card-meta-row">
-                          <p className="history-page-card-routine">
-                            {routine?.name ?? "Unknown routine"}
-                          </p>
-
-                          <div className="history-page-card-secondary-actions">
-                            <Link
-                              to={`/history/log/${log.id}/edit`}
-                              state={{ returnTo: "/history" }}
-                              className="history-page-card-action-chip"
-                              onClick={saveCurrentScroll}
-                            >
-                              Edit
-                            </Link>
-
-                            {variant && (
-                              <Link
-                                to={`/history/variant/${variant.id}`}
-                                state={{ returnTo: "/history" }}
-                                className="history-page-card-action-chip"
-                                onClick={saveCurrentScroll}
-                              >
-                                View variant
-                              </Link>
+                            {duration && (
+                              <span className="history-page-card-meta-chip">
+                                {duration}
+                              </span>
                             )}
                           </div>
                         </div>
-                      </div>
 
-                      <p className="history-page-card-performance">
-                        <strong>Sets:</strong>{" "}
-                        {formatSetPerformanceInline(log, preferredWeightUnit)}
-                      </p>
+                        <div className="history-page-session-exercises">
+                          {exercises.map(({ sessionExercise, exercise, variant }) => (
+                            <div
+                              key={sessionExercise.id}
+                              className="history-page-session-exercise"
+                            >
+                              <div className="history-page-session-exercise-top">
+                                <h4 className="history-page-session-exercise-title">
+                                  {exercise?.name ?? "Unknown exercise"}
+                                  {variant?.name ? (
+                                    <span className="history-page-card-title-variant">
+                                      {" "}
+                                      — {variant.name}
+                                    </span>
+                                  ) : null}
+                                </h4>
+                              </div>
 
-                      {log.notes && (
-                        <p className="history-page-card-notes">
-                          <strong>Notes:</strong> {log.notes}
-                        </p>
-                      )}
-                    </div>
-                  ))}
+                              <p className="history-page-card-performance">
+                                <strong>Sets:</strong>{" "}
+                                {formatSessionExercisePerformance(
+                                  sessionExercise,
+                                  preferredWeightUnit,
+                                )}
+                              </p>
+
+                              {sessionExercise.notes?.trim() && (
+                                <p className="history-page-card-notes">
+                                  <strong>Notes:</strong> {sessionExercise.notes}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+
+                        {session.notes?.trim() && (
+                          <p className="history-page-card-notes">
+                            <strong>Session notes:</strong> {session.notes}
+                          </p>
+                        )}
+                      </article>
+                    );
+                  })}
                 </div>
               </section>
             ))}

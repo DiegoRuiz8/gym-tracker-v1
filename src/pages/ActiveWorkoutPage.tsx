@@ -91,6 +91,8 @@ export default function ActiveWorkoutPage() {
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [showAddExercisePicker, setShowAddExercisePicker] = useState(false);
   const [exerciseSearch, setExerciseSearch] = useState("");
+  const [showFinishConfirm, setShowFinishConfirm] = useState(false);
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
 
   const addExerciseToActiveWorkoutSession = useAppStore(
     (state) => state.addExerciseToActiveWorkoutSession,
@@ -159,6 +161,23 @@ export default function ActiveWorkoutPage() {
     [activeWorkoutSession.startedAt, nowMs],
   );
 
+  const completedExercisesCount = activeWorkoutSession.exercises.filter(
+    (exercise) => exercise.isCompleted,
+  ).length;
+
+  const totalExercisesCount = activeWorkoutSession.exercises.length;
+  const incompleteExercisesCount =
+    totalExercisesCount - completedExercisesCount;
+
+  const exercisesWithIncompleteSetsCount =
+    activeWorkoutSession.exercises.filter((exercise) => {
+      const hasAnyIncompleteSet = exercise.performedSets.some(
+        (set) => !set.isCompleted,
+      );
+
+      return hasAnyIncompleteSet;
+    }).length;
+
   return (
     <div className="active-workout-page">
       <header className="active-workout-header">
@@ -166,8 +185,15 @@ export default function ActiveWorkoutPage() {
           <button
             type="button"
             className="active-workout-back-btn"
-            aria-label="Back to routines"
-            onClick={() => navigate("/routines")}
+            aria-label="Go back"
+            onClick={() => {
+              if (window.history.length > 1) {
+                navigate(-1);
+                return;
+              }
+
+              navigate("/routines", { replace: true });
+            }}
           >
             ←
           </button>
@@ -182,10 +208,7 @@ export default function ActiveWorkoutPage() {
           <button
             type="button"
             className="button-primary active-workout-finish-btn"
-            onClick={() => {
-              completeActiveWorkoutSession();
-              navigate("/routines");
-            }}
+            onClick={() => setShowFinishConfirm(true)}
           >
             Finish
           </button>
@@ -508,75 +531,233 @@ export default function ActiveWorkoutPage() {
             + Add exercise
           </button>
           {showAddExercisePicker ? (
-  <div className="active-workout-add-exercise-panel">
-    <label
-      className="active-workout-add-exercise-label"
-      htmlFor="active-workout-exercise-search"
-    >
-      Search exercise
-    </label>
+            <div className="active-workout-add-exercise-panel">
+              <label
+                className="active-workout-add-exercise-label"
+                htmlFor="active-workout-exercise-search"
+              >
+                Search exercise
+              </label>
 
-    <div className="active-workout-add-exercise-input-wrap">
-  <input
-    id="active-workout-exercise-search"
-    className="input active-workout-add-exercise-input"
-    type="text"
-    placeholder="Search exercise or variant"
-    value={exerciseSearch}
-    onChange={(event) => setExerciseSearch(event.target.value)}
-  />
+              <div className="active-workout-add-exercise-input-wrap">
+                <input
+                  id="active-workout-exercise-search"
+                  className="input active-workout-add-exercise-input"
+                  type="text"
+                  placeholder="Search exercise or variant"
+                  value={exerciseSearch}
+                  onChange={(event) => setExerciseSearch(event.target.value)}
+                />
 
-  {exerciseSearch.trim() ? (
-    <button
-      type="button"
-      className="active-workout-add-exercise-clear-btn"
-      aria-label="Clear search"
-      onClick={() => setExerciseSearch("")}
-    >
-      ×
-    </button>
-  ) : null}
-</div>
+                {exerciseSearch.trim() ? (
+                  <button
+                    type="button"
+                    className="active-workout-add-exercise-clear-btn"
+                    aria-label="Clear search"
+                    onClick={() => setExerciseSearch("")}
+                  >
+                    ×
+                  </button>
+                ) : null}
+              </div>
 
-    {filteredVariantsToAdd.length > 0 ? (
-      <div className="active-workout-add-exercise-results">
-        {filteredVariantsToAdd.slice(0, 8).map((variant) => (
+              {filteredVariantsToAdd.length > 0 ? (
+                <div className="active-workout-add-exercise-results">
+                  {filteredVariantsToAdd.slice(0, 8).map((variant) => (
+                    <button
+                      key={variant.id}
+                      type="button"
+                      className="active-workout-add-exercise-result"
+                      onClick={() => {
+                        addExerciseToActiveWorkoutSession(variant.id);
+                        setExerciseSearch("");
+                        setShowAddExercisePicker(false);
+                      }}
+                    >
+                      {getVariantDisplayLabel(variant.id)}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="active-workout-add-exercise-empty">
+                  {exerciseSearch.trim()
+                    ? "No available variants match your search."
+                    : "Start typing to search available variants."}
+                </p>
+              )}
+            </div>
+          ) : null}
+
           <button
-            key={variant.id}
-            type="button"
-            className="active-workout-add-exercise-result"
-            onClick={() => {
-              addExerciseToActiveWorkoutSession(variant.id);
-              setExerciseSearch("");
-              setShowAddExercisePicker(false);
-            }}
-          >
-            {getVariantDisplayLabel(variant.id)}
-          </button>
-        ))}
-      </div>
-    ) : (
-      <p className="active-workout-add-exercise-empty">
-        {exerciseSearch.trim()
-          ? "No available variants match your search."
-          : "Start typing to search available variants."}
-      </p>
-    )}
-  </div>
-) : null}
-
-          <button
-            type="button"
-            className="active-workout-discard-btn"
-            onClick={() => {
-              cancelActiveWorkoutSession();
-              navigate("/routines");
-            }}
-          >
-            Discard workout
-          </button>
+  type="button"
+ className="active-workout-discard-btn"
+  onClick={() => setShowDiscardConfirm(true)}
+>
+  Discard workout
+</button>
         </section>
       </main>
+      {showFinishConfirm ? (
+        <div
+          className="active-workout-finish-overlay"
+          onClick={() => setShowFinishConfirm(false)}
+        >
+          <div
+            className="active-workout-finish-sheet"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <p className="active-workout-finish-sheet-eyebrow">
+              Finish workout
+            </p>
+
+            <h2 className="active-workout-finish-sheet-title">
+              {routine?.name ?? "Active Workout"}
+            </h2>
+
+            <div className="active-workout-finish-sheet-stats">
+              <span className="active-workout-finish-stat-chip">
+                {elapsedLabel}
+              </span>
+              <span className="active-workout-finish-stat-chip">
+                {totalExercisesCount} exercise
+                {totalExercisesCount === 1 ? "" : "s"}
+              </span>
+              <span className="active-workout-finish-stat-chip">
+                {completedExercisesCount}/{totalExercisesCount} completed
+              </span>
+            </div>
+
+            <p className="active-workout-finish-sheet-text">
+              This will save the workout to your history and close the active
+              session.
+            </p>
+
+            {incompleteExercisesCount > 0 ||
+            exercisesWithIncompleteSetsCount > 0 ? (
+              <div className="active-workout-finish-warning">
+                <p className="active-workout-finish-warning-title">
+                  Before you finish
+                </p>
+
+                <div className="active-workout-finish-warning-list">
+                  {incompleteExercisesCount > 0 &&
+                  incompleteExercisesCount ===
+                    exercisesWithIncompleteSetsCount ? (
+                    <p className="active-workout-finish-warning-item">
+                      {incompleteExercisesCount} exercise
+                      {incompleteExercisesCount === 1 ? "" : "s"}{" "}
+                      {incompleteExercisesCount === 1 ? "is" : "are"} still
+                      incomplete.
+                    </p>
+                  ) : (
+                    <>
+                      {incompleteExercisesCount > 0 ? (
+                        <p className="active-workout-finish-warning-item">
+                          {incompleteExercisesCount} exercise
+                          {incompleteExercisesCount === 1 ? "" : "s"}{" "}
+                          {incompleteExercisesCount === 1 ? "is" : "are"} still
+                          incomplete.
+                        </p>
+                      ) : null}
+
+                      {exercisesWithIncompleteSetsCount > 0 ? (
+                        <p className="active-workout-finish-warning-item">
+                          {exercisesWithIncompleteSetsCount} exercise
+                          {exercisesWithIncompleteSetsCount === 1
+                            ? ""
+                            : "s"}{" "}
+                          {exercisesWithIncompleteSetsCount === 1
+                            ? "still has"
+                            : "still have"}{" "}
+                          unfinished sets.
+                        </p>
+                      ) : null}
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="active-workout-finish-ok">
+                Everything looks good to save this session.
+              </div>
+            )}
+
+            <div className="active-workout-finish-sheet-actions">
+              <button
+                type="button"
+                className="button-primary active-workout-finish-confirm-btn"
+                onClick={() => {
+                  completeActiveWorkoutSession();
+                  navigate("/history");
+                }}
+              >
+                Finish workout
+              </button>
+
+              <button
+                type="button"
+                className="button-secondary active-workout-finish-cancel-btn"
+                onClick={() => setShowFinishConfirm(false)}
+              >
+                Keep training
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      {showDiscardConfirm ? (
+  <div
+    className="active-workout-finish-overlay"
+    onClick={() => setShowDiscardConfirm(false)}
+  >
+    <div
+      className="active-workout-finish-sheet active-workout-discard-sheet"
+      onClick={(event) => event.stopPropagation()}
+    >
+      <p className="active-workout-discard-sheet-eyebrow">Discard workout</p>
+
+      <h2 className="active-workout-finish-sheet-title">
+        {routine?.name ?? "Active Workout"}
+      </h2>
+
+      <div className="active-workout-finish-sheet-stats">
+        <span className="active-workout-finish-stat-chip">{elapsedLabel}</span>
+        <span className="active-workout-finish-stat-chip">
+          {totalExercisesCount} exercise{totalExercisesCount === 1 ? "" : "s"}
+        </span>
+      </div>
+
+     <p className="active-workout-finish-sheet-text">
+  This will remove the active session and all current progress.
+</p>
+
+<p className="active-workout-discard-note">
+  This action can’t be undone.
+</p>
+
+      <div className="active-workout-finish-sheet-actions">
+        <button
+          type="button"
+          className="active-workout-discard-confirm-btn"
+          onClick={() => {
+            cancelActiveWorkoutSession();
+            navigate("/routines");
+          }}
+        >
+          Discard workout
+        </button>
+
+        <button
+          type="button"
+          className="button-secondary active-workout-finish-cancel-btn"
+          onClick={() => setShowDiscardConfirm(false)}
+        >
+          Keep training
+        </button>
+      </div>
+    </div>
+  </div>
+) : null}
     </div>
   );
 }

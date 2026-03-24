@@ -38,6 +38,38 @@ export default function HomePage() {
     });
   }, [routines, activeFilter]);
 
+  const activeWorkoutSession = useAppStore(
+    (state) => state.activeWorkoutSession,
+  );
+
+  const startWorkoutSessionFromRoutine = useAppStore(
+    (state) => state.startWorkoutSessionFromRoutine,
+  );
+
+  function handleRoutineWorkoutAction(routineId: string) {
+    const isSameRoutineActive = activeWorkoutSession?.routineId === routineId;
+    const hasOtherRoutineActive =
+      activeWorkoutSession !== null &&
+      activeWorkoutSession?.routineId !== routineId;
+
+    if (isSameRoutineActive) {
+      navigate("/active-workout");
+      return;
+    }
+
+    if (hasOtherRoutineActive) {
+      navigate("/active-workout");
+      return;
+    }
+
+    startWorkoutSessionFromRoutine(routineId);
+    navigate("/active-workout");
+  }
+
+  const activeRoutine = activeWorkoutSession
+    ? routines.find((routine) => routine.id === activeWorkoutSession.routineId)
+    : null;
+
   return (
     <div className="simple-page">
       <div className="simple-page-container">
@@ -62,6 +94,37 @@ export default function HomePage() {
             </p>
           </div>
         </section>
+
+        {activeWorkoutSession && activeRoutine ? (
+          <section
+            className="simple-page-card simple-page-card-compact simple-page-active-workout-card"
+            aria-labelledby="home-active-workout-title"
+          >
+            <div className="simple-page-card-body simple-page-card-body-compact">
+              <div className="simple-page-active-workout-top">
+                <div>
+                  <p className="simple-page-active-workout-kicker">
+                    Workout in progress
+                  </p>
+                  <h2
+                    id="home-active-workout-title"
+                    className="simple-page-card-title"
+                  >
+                    {activeRoutine.name}
+                  </h2>
+                </div>
+
+                <button
+                  type="button"
+                  className="home-routine-action-btn home-routine-action-btn-primary"
+                  onClick={() => navigate("/active-workout")}
+                >
+                  Resume workout
+                </button>
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         <section
           className="simple-page-card"
@@ -137,31 +200,41 @@ export default function HomePage() {
                     key={routine.id}
                     className="simple-page-home-routine-item"
                   >
-                    <div className="simple-page-home-routine-top">
+                    <div className="simple-page-home-routine-header-row">
                       <div className="simple-page-home-routine-main">
-                        <div className="simple-page-home-routine-header-row">
-                          <h3 className="simple-page-home-routine-title">
-                            {routine.name}
-                          </h3>
+                        <h3 className="simple-page-home-routine-title">
+                          {routine.name}
+                        </h3>
+                      </div>
 
-                          <div className="simple-page-home-routine-actions">
-                            <button
-                              type="button"
-                              className="simple-page-btn simple-page-btn-primary simple-page-home-routine-start-btn"
-                              onClick={() =>
-                                navigate(`/routines/${routine.id}`)
-                              }
-                            >
-                              Start workout
-                            </button>
-                          </div>
-                        </div>
+                      <div className="simple-page-home-routine-actions">
+                        <button
+                          type="button"
+                          className={`home-routine-action-btn ${
+                            activeWorkoutSession?.routineId === routine.id
+                              ? "home-routine-action-btn-primary"
+                              : activeWorkoutSession
+                                ? "home-routine-action-btn-neutral"
+                                : "home-routine-action-btn-secondary"
+                          }`}
+                          onClick={() => {
+                            if (
+                              activeWorkoutSession &&
+                              activeWorkoutSession.routineId !== routine.id
+                            ) {
+                              navigate(`/routines/${routine.id}`);
+                              return;
+                            }
 
-                        {routine.description && (
-                          <p className="simple-page-home-routine-description">
-                            {routine.description}
-                          </p>
-                        )}
+                            handleRoutineWorkoutAction(routine.id);
+                          }}
+                        >
+                          {activeWorkoutSession?.routineId === routine.id
+                            ? "Resume workout"
+                            : activeWorkoutSession
+                              ? "Open routine"
+                              : "Start workout"}
+                        </button>
                       </div>
                     </div>
                   </article>
