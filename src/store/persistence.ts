@@ -1,6 +1,7 @@
 import type { Exercise, ExerciseVariant } from "../types/exercise";
 import type { WorkoutLog } from "../types/log";
 import type { Routine } from "../types/routine";
+import type { WorkoutSession } from "../types/session";
 
 const STORAGE_KEY = "gym-tracker-v1";
 
@@ -13,6 +14,8 @@ export type PersistedAppData = {
     exerciseVariants: ExerciseVariant[];
     routines: Routine[];
     workoutLogs: WorkoutLog[];
+    workoutSessions: WorkoutSession[];
+    activeWorkoutSession: WorkoutSession | null;
     preferredWeightUnit: WeightUnit;
   };
 };
@@ -24,16 +27,17 @@ export function loadPersistedAppData(): PersistedAppData | null {
     if (!raw) return null;
 
     const parsed = JSON.parse(raw) as {
-      version?: number;
-      data?: {
-        exercises?: Exercise[];
-        exerciseVariants?: ExerciseVariant[];
-        routines?: Routine[];
-        workoutLogs?: WorkoutLog[];
-        preferredWeightUnit?: WeightUnit;
-      };
-    };
-
+  version?: number;
+  data?: {
+    exercises?: Exercise[];
+    exerciseVariants?: ExerciseVariant[];
+    routines?: Routine[];
+    workoutLogs?: WorkoutLog[];
+    workoutSessions?: WorkoutSession[];
+    activeWorkoutSession?: WorkoutSession | null;
+    preferredWeightUnit?: WeightUnit;
+  };
+};
     if (!parsed.version || !parsed.data) {
       return null;
     }
@@ -45,6 +49,8 @@ export function loadPersistedAppData(): PersistedAppData | null {
         exerciseVariants: parsed.data.exerciseVariants ?? [],
         routines: parsed.data.routines ?? [],
         workoutLogs: parsed.data.workoutLogs ?? [],
+        workoutSessions: parsed.data.workoutSessions ?? [],
+        activeWorkoutSession: parsed.data.activeWorkoutSession ?? null,
         preferredWeightUnit: parsed.data.preferredWeightUnit ?? "kg",
       },
     };

@@ -4,7 +4,7 @@ import type { Routine } from "../types/routine";
 import type { WeightUnit } from "../store/persistence";
 
 export type AppImportPayload = {
-  version: 1;
+  version: 2;
   data: {
     exercises: Exercise[];
     exerciseVariants: ExerciseVariant[];
@@ -66,6 +66,7 @@ function isExercise(value: unknown): value is Exercise {
     isString(value.id) &&
     isString(value.name) &&
     isString(value.createdAt) &&
+    isString(value.updatedAt) &&
     (value.category === undefined || isString(value.category)) &&
     (value.notes === undefined || isString(value.notes)) &&
     (value.muscleGroups === undefined || isStringArray(value.muscleGroups))
@@ -82,6 +83,7 @@ function isExerciseVariant(value: unknown): value is ExerciseVariant {
     typeof value.isActive === "boolean" &&
     isString(value.trackingType) &&
     isString(value.createdAt) &&
+    isString(value.updatedAt) &&
     (value.equipment === undefined || isString(value.equipment)) &&
     (value.gymLabel === undefined || isString(value.gymLabel)) &&
     (value.notes === undefined || isString(value.notes))
@@ -144,7 +146,7 @@ export function parseAppImportPayload(raw: string): AppImportPayload {
     throw new Error("Invalid JSON payload.");
   }
 
-  if (parsed.version !== 1) {
+  if (parsed.version !== 2) {
     throw new Error("Unsupported import version.");
   }
 
@@ -174,7 +176,7 @@ export function parseAppImportPayload(raw: string): AppImportPayload {
   }
 
   return {
-    version: 1,
+    version: 2,
     data: {
       exercises,
       exerciseVariants,
@@ -203,7 +205,7 @@ export function downloadAppDataAsJson(payload: AppImportPayload): void {
 
 export function downloadImportTemplateJson(): void {
   const template: AppImportPayload = {
-    version: 1,
+    version: 2,
     data: {
       preferredWeightUnit: "kg",
       exercises: [
@@ -214,6 +216,7 @@ export function downloadImportTemplateJson(): void {
           muscleGroups: ["chest", "triceps", "shoulders"],
           notes: "Optional exercise notes",
           createdAt: "2026-01-01T00:00:00.000Z",
+          updatedAt: "2026-01-01T00:00:00.000Z",
         },
       ],
       exerciseVariants: [
@@ -227,6 +230,7 @@ export function downloadImportTemplateJson(): void {
           isActive: true,
           trackingType: "weight_reps",
           createdAt: "2026-01-01T00:00:00.000Z",
+          updatedAt: "2026-01-01T00:00:00.000Z",
         },
       ],
       routines: [

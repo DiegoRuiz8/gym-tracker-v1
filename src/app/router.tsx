@@ -14,6 +14,8 @@ import NewVariantPage from "../pages/NewVariantPage";
 import EditVariantPage from "../pages/EditVariantPage";
 import EditExercisePage from "../pages/EditExercisePage";
 import ImportExportPage from "../pages/ImportExportPage";
+import DevSessionTestPage from "../pages/DevSessionTestPage";
+import ActiveWorkoutPage from "../pages/ActiveWorkoutPage";
 import "../styles/app-shell.css";
 
 function getNavLinkClassName({ isActive }: { isActive: boolean }) {
@@ -166,6 +168,8 @@ export function AppRouter() {
             element={<EditExercisePage />}
           />
           <Route path="/data" element={<ImportExportPage />} />
+          <Route path="/dev-session-test" element={<DevSessionTestPage />} />
+          <Route path="/active-workout" element={<ActiveWorkoutPage />} />
         </Routes>
       </main>
 

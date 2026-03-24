@@ -41,11 +41,13 @@ export default function ImportExportPage() {
 
       replaceAppData({
         ...payload.data,
+        workoutSessions: [],
+        activeWorkoutSession: null,
         preferredWeightUnit: payload.data.preferredWeightUnit ?? "kg",
       });
 
       setImportMessage(
-        `Import successful: ${payload.data.routines.length} routines, ${payload.data.exercises.length} exercises, ${payload.data.workoutLogs.length} logs.`,
+        `Import successful: ${payload.data.routines.length} routines, ${payload.data.exercises.length} exercises, ${payload.data.exerciseVariants.length} variants, ${payload.data.workoutLogs.length} logs.`,
       );
     } catch (importError) {
       const nextError =
@@ -66,7 +68,7 @@ export default function ImportExportPage() {
     setError("");
 
     downloadAppDataAsJson({
-      version: 1,
+      version: 2,
       data: {
         exercises,
         exerciseVariants,
