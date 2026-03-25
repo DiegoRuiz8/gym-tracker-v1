@@ -91,3 +91,38 @@ export function buildResolvedWorkoutSessions(
     };
   });
 }
+
+export type VariantSessionHistoryItem = {
+  sessionId: string;
+  date: string;
+  routineId?: string;
+  startedAt: string;
+  endedAt?: string | null;
+  sessionNotes?: string;
+  sessionExercise: WorkoutSessionExercise;
+};
+
+export function getSessionHistoryForVariant(
+  workoutSessions: WorkoutSession[],
+  variantId: string,
+): VariantSessionHistoryItem[] {
+  return [...workoutSessions]
+    .sort((a, b) => {
+      const aTime = a.endedAt ?? a.startedAt;
+      const bTime = b.endedAt ?? b.startedAt;
+      return new Date(bTime).getTime() - new Date(aTime).getTime();
+    })
+    .flatMap((session) =>
+      session.exercises
+        .filter((exercise) => exercise.variantId === variantId)
+        .map((sessionExercise) => ({
+          sessionId: session.id,
+          date: session.date,
+          routineId: session.routineId,
+          startedAt: session.startedAt,
+          endedAt: session.endedAt,
+          sessionNotes: session.notes,
+          sessionExercise,
+        })),
+    );
+}

@@ -204,6 +204,34 @@
   color: rgba(255, 255, 255, 0.72);
   font-weight: 500;
 }
+
+.variant-history-delete-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid rgba(239, 68, 68, 0.22);
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.08);
+  color: #ff9b9b;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.variant-history-delete-icon:hover {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.34);
+  color: #ffb4b4;
+}
 @media (max-width: 640px) {
   .variant-history-container {
     padding: 18px var(--page-padding-x) 28px;

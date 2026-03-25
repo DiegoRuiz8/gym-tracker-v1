@@ -11,6 +11,11 @@ export type CompletedSet = {
   weight?: number | null;
   rir?: number | null;
   durationSeconds?: number | null;
+
+  previousReps?: number | null;
+  previousWeight?: number | null;
+  previousDurationSeconds?: number | null;
+
   completedAt?: string | null;
   isCompleted: boolean;
 };
