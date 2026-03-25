@@ -1,6 +1,7 @@
 import type { WorkoutLog } from "../types/log";
 import type { Prescription } from "../types/routine";
 import type { WeightUnit } from "../store/persistence";
+import type { WorkoutSessionExercise } from "../types/session";
 
 function parseDateOnly(dateString: string): Date {
   const [year, month, day] = dateString.split("-").map(Number);
@@ -151,4 +152,40 @@ export function formatSingleWeight(
 
 export function getDateKey(date: string): string {
   return date;
+}
+
+export function formatSessionExerciseSetsDetailed(
+  exercise: WorkoutSessionExercise,
+  unit: WeightUnit = "kg",
+): string[] {
+  const relevantSets = exercise.performedSets.filter((set) => {
+    return (
+      set.isCompleted &&
+      (set.reps != null || set.weight != null || set.durationSeconds != null)
+    );
+  });
+
+  return relevantSets.map((set) => {
+    if (set.durationSeconds != null && set.weight != null) {
+      return `${formatSingleWeight(set.weight, unit)} × ${set.durationSeconds}s`;
+    }
+
+    if (set.durationSeconds != null) {
+      return `${set.durationSeconds}s`;
+    }
+
+    if (set.weight != null && set.reps != null) {
+      return `${formatSingleWeight(set.weight, unit)} × ${set.reps}`;
+    }
+
+    if (set.reps != null) {
+      return `${set.reps} reps`;
+    }
+
+    if (set.weight != null) {
+      return formatSingleWeight(set.weight, unit);
+    }
+
+    return "—";
+  });
 }

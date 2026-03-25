@@ -17,6 +17,14 @@ export default function NewVariantPage() {
 
   const exercise = exercises.find((item) => item.id === exerciseId);
 
+  const navigationState = location.state as
+  | {
+      returnTo?: string;
+      source?: string;
+      sessionExerciseId?: string;
+    }
+  | undefined;
+
   const returnTo =
     typeof location.state?.returnTo === "string"
       ? location.state.returnTo
@@ -97,7 +105,16 @@ export default function NewVariantPage() {
     };
 
     addExerciseVariant(newVariant);
-    navigate(returnTo);
+    navigate(navigationState?.returnTo ?? "/exercises", {
+  state:
+    navigationState?.source === "active-workout"
+      ? {
+          source: "active-workout",
+          createdVariantId: newVariant.id,
+          sessionExerciseId: navigationState.sessionExerciseId,
+        }
+      : undefined,
+});
   }
 
   return (

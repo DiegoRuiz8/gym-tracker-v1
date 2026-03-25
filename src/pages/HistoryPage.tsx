@@ -101,13 +101,17 @@ function formatSessionExercisePerformance(
 export default function HistoryPage() {
   const [activeRange, setActiveRange] = useState<HistoryRange>("all");
   const [search, setSearch] = useState("");
+  const [pendingDeleteSessionId, setPendingDeleteSessionId] = useState<
+    string | null
+  >(null);
 
   const exercises = useAppStore((state) => state.exercises);
   const exerciseVariants = useAppStore((state) => state.exerciseVariants);
   const workoutSessions = useAppStore((state) => state.workoutSessions);
   const routines = useAppStore((state) => state.routines);
-  const preferredWeightUnit = useAppStore(
-    (state) => state.preferredWeightUnit,
+  const preferredWeightUnit = useAppStore((state) => state.preferredWeightUnit);
+  const deleteWorkoutSession = useAppStore(
+    (state) => state.deleteWorkoutSession,
   );
 
   const sessionItems = useMemo(
@@ -155,7 +159,8 @@ export default function HistoryPage() {
         )
         .join(" ");
 
-      const haystack = `${routineName} ${sessionNotes} ${exerciseText}`.toLowerCase();
+      const haystack =
+        `${routineName} ${sessionNotes} ${exerciseText}`.toLowerCase();
 
       return haystack.includes(normalizedSearch);
     });
@@ -182,6 +187,18 @@ export default function HistoryPage() {
       .sort((a, b) => b.dateKey.localeCompare(a.dateKey));
   }, [filteredSessionItems]);
 
+  function handleRequestDelete(sessionId: string) {
+    setPendingDeleteSessionId(sessionId);
+  }
+
+  function handleCancelDelete() {
+    setPendingDeleteSessionId(null);
+  }
+
+  function handleConfirmDelete(sessionId: string) {
+    deleteWorkoutSession(sessionId);
+    setPendingDeleteSessionId(null);
+  }
   return (
     <div className="history-page">
       <div className="history-page-container">
@@ -276,67 +293,112 @@ export default function HistoryPage() {
                     return (
                       <article key={session.id} className="history-page-card">
                         <div className="history-page-card-header">
-                          <div className="history-page-card-info">
-                            <h3 className="history-page-card-title">
-                              {routine?.name ?? "Workout session"}
-                            </h3>
+  <div className="history-page-card-header-top">
+    <div className="history-page-card-info">
+      <h3 className="history-page-card-title">
+        {routine?.name ?? "Workout session"}
+      </h3>
 
-                            <p className="history-page-card-routine">
-                              {exercises.length} exercise
-                              {exercises.length === 1 ? "" : "s"}
+      <p className="history-page-card-routine">
+        {exercises.length} exercise
+        {exercises.length === 1 ? "" : "s"}
+      </p>
+    </div>
+
+    <button
+      type="button"
+      className="history-page-delete-icon"
+      aria-label="Delete session"
+      title="Delete session"
+      onClick={() => handleRequestDelete(session.id)}
+    >
+      ×
+    </button>
+  </div>
+
+  {(startTime || duration) && (
+    <div className="history-page-card-meta">
+      {startTime && (
+        <span className="history-page-card-meta-chip">
+          {endTime ? `${startTime} - ${endTime}` : startTime}
+        </span>
+      )}
+
+      {duration && (
+        <span className="history-page-card-meta-chip">
+          {duration}
+        </span>
+      )}
+    </div>
+  )}
+</div>
+
+                        {pendingDeleteSessionId === session.id && (
+                          <div className="history-page-delete-confirm">
+                            <p className="history-page-delete-text">
+                              Delete session?
                             </p>
-                          </div>
+                            <p className="history-page-delete-subtext">
+                              This completed workout session will be permanently
+                              removed.
+                            </p>
 
-                          <div className="history-page-card-meta">
-                            {startTime && (
-                              <span className="history-page-card-meta-chip">
-                                {endTime
-                                  ? `${startTime} - ${endTime}`
-                                  : startTime}
-                              </span>
-                            )}
+                            <div className="history-page-delete-actions">
+                              <button
+                                type="button"
+                                className="history-page-btn history-page-btn-danger"
+                                onClick={() => handleConfirmDelete(session.id)}
+                              >
+                                Delete
+                              </button>
 
-                            {duration && (
-                              <span className="history-page-card-meta-chip">
-                                {duration}
-                              </span>
-                            )}
+                              <button
+                                type="button"
+                                className="history-page-btn history-page-btn-secondary"
+                                onClick={handleCancelDelete}
+                              >
+                                Cancel
+                              </button>
+                            </div>
                           </div>
-                        </div>
+                        )}
 
                         <div className="history-page-session-exercises">
-                          {exercises.map(({ sessionExercise, exercise, variant }) => (
-                            <div
-                              key={sessionExercise.id}
-                              className="history-page-session-exercise"
-                            >
-                              <div className="history-page-session-exercise-top">
-                                <h4 className="history-page-session-exercise-title">
-                                  {exercise?.name ?? "Unknown exercise"}
-                                  {variant?.name ? (
-                                    <span className="history-page-card-title-variant">
-                                      {" "}
-                                      — {variant.name}
-                                    </span>
-                                  ) : null}
-                                </h4>
-                              </div>
+                          {exercises.map(
+                            ({ sessionExercise, exercise, variant }) => (
+                              <div
+                                key={sessionExercise.id}
+                                className="history-page-session-exercise"
+                              >
+                                <div className="history-page-session-exercise-top">
+                                  <h4 className="history-page-session-exercise-title">
+                                    {exercise?.name ?? "Unknown exercise"}
+                                    {variant?.name ? (
+                                      <span className="history-page-card-title-variant">
+                                        {" "}
+                                        — {variant.name}
+                                      </span>
+                                    ) : null}
+                                  </h4>
+                                </div>
 
-                              <p className="history-page-card-performance">
-                                <strong>Sets:</strong>{" "}
-                                {formatSessionExercisePerformance(
-                                  sessionExercise,
-                                  preferredWeightUnit,
-                                )}
-                              </p>
-
-                              {sessionExercise.notes?.trim() && (
-                                <p className="history-page-card-notes">
-                                  <strong>Notes:</strong> {sessionExercise.notes}
+                                <p className="history-page-card-performance">
+                                  <strong>Sets:</strong>{" "}
+                                  {formatSessionExercisePerformance(
+                                    sessionExercise,
+                                    preferredWeightUnit,
+                                  )}
                                 </p>
-                              )}
-                            </div>
-                          ))}
+
+                                {sessionExercise.notes?.trim() && (
+                                  <p className="history-page-card-notes">
+                                    <strong>Notes:</strong>{" "}
+                                    {sessionExercise.notes}
+                                  </p>
+                                )}
+                              </div>
+                            ),
+                          )}
                         </div>
 
                         {session.notes?.trim() && (
