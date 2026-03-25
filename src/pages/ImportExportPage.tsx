@@ -15,6 +15,8 @@ export default function ImportExportPage() {
   const workoutLogs = useAppStore((state) => state.workoutLogs);
   const preferredWeightUnit = useAppStore((state) => state.preferredWeightUnit);
   const replaceAppData = useAppStore((state) => state.replaceAppData);
+  const workoutSessions = useAppStore((state) => state.workoutSessions);
+const activeWorkoutSession = useAppStore((state) => state.activeWorkoutSession);
 
   const [importMessage, setImportMessage] = useState<string>("");
   const [generalMessage, setGeneralMessage] = useState<string>("");
@@ -40,15 +42,13 @@ export default function ImportExportPage() {
       const payload = parseAppImportPayload(raw);
 
       replaceAppData({
-        ...payload.data,
-        workoutSessions: [],
-        activeWorkoutSession: null,
-        preferredWeightUnit: payload.data.preferredWeightUnit ?? "kg",
-      });
+  ...payload.data,
+  preferredWeightUnit: payload.data.preferredWeightUnit ?? "kg",
+});
 
-      setImportMessage(
-        `Import successful: ${payload.data.routines.length} routines, ${payload.data.exercises.length} exercises, ${payload.data.exerciseVariants.length} variants, ${payload.data.workoutLogs.length} logs.`,
-      );
+setImportMessage(
+  `Import successful: ${payload.data.routines.length} routines, ${payload.data.exercises.length} exercises, ${payload.data.exerciseVariants.length} variants, ${payload.data.workoutLogs.length} legacy logs, ${payload.data.workoutSessions.length} sessions.`,
+);
     } catch (importError) {
       const nextError =
         importError instanceof Error
@@ -68,15 +68,17 @@ export default function ImportExportPage() {
     setError("");
 
     downloadAppDataAsJson({
-      version: 2,
-      data: {
-        exercises,
-        exerciseVariants,
-        routines,
-        workoutLogs,
-        preferredWeightUnit,
-      },
-    });
+  version: 2,
+  data: {
+    exercises,
+    exerciseVariants,
+    routines,
+    workoutLogs,
+    workoutSessions,
+    activeWorkoutSession,
+    preferredWeightUnit,
+  },
+});
 
     setGeneralMessage("Export created successfully.");
   }
@@ -96,7 +98,7 @@ export default function ImportExportPage() {
 
       <header className="import-export-page-header">
         <h1>Import / Export</h1>
-        <p>Import a full app JSON or export your current data.</p>
+        <p>Import your data or export your current setup.</p>
       </header>
 
       <section className="import-export-card">
@@ -161,13 +163,17 @@ export default function ImportExportPage() {
         <div className="import-export-help">
           <p className="import-export-help-title">What the import expects</p>
           <ul className="import-export-help-list">
+                        <li>You can leave history fields empty if you only want to import your setup.</li>
+
             <li>Store all weights in kg.</li>
+           
             <li>
+              PreferredWeightUnit is optional. If omitted, the app uses kg.
+            </li>
+             <li>
               Linked ids must match existing exercises, variants, and routines.
             </li>
-            <li>
-              `preferredWeightUnit` is optional. If omitted, the app uses kg.
-            </li>
+            
           </ul>
         </div>
       </section>

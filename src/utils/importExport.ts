@@ -1,7 +1,13 @@
 import type { Exercise, ExerciseVariant } from "../types/exercise";
 import type { WorkoutLog } from "../types/log";
 import type { Routine } from "../types/routine";
+import type {
+  WorkoutSession,
+  WorkoutSessionExercise,
+  CompletedSet,
+} from "../types/session";
 import type { WeightUnit } from "../store/persistence";
+import { migrateLegacyLogsToSessions } from "./sessionMigration";
 
 export type AppImportPayload = {
   version: 2;
@@ -10,6 +16,8 @@ export type AppImportPayload = {
     exerciseVariants: ExerciseVariant[];
     routines: Routine[];
     workoutLogs: WorkoutLog[];
+    workoutSessions: WorkoutSession[];
+    activeWorkoutSession: WorkoutSession | null;
     preferredWeightUnit?: WeightUnit;
   };
 };
@@ -24,6 +32,10 @@ function isString(value: unknown): value is string {
 
 function isNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
+}
+
+function isBoolean(value: unknown): value is boolean {
+  return typeof value === "boolean";
 }
 
 function isStringArray(value: unknown): value is string[] {
@@ -80,7 +92,7 @@ function isExerciseVariant(value: unknown): value is ExerciseVariant {
     isString(value.id) &&
     isString(value.exerciseId) &&
     isString(value.name) &&
-    typeof value.isActive === "boolean" &&
+    isBoolean(value.isActive) &&
     isString(value.trackingType) &&
     isString(value.createdAt) &&
     isString(value.updatedAt) &&
@@ -139,6 +151,83 @@ function isRoutine(value: unknown): value is Routine {
   );
 }
 
+function isCompletedSet(value: unknown): value is CompletedSet {
+  if (!isObject(value)) return false;
+
+  return (
+    isString(value.id) &&
+    isNumber(value.setNumber) &&
+    isBoolean(value.isCompleted) &&
+    (value.reps === undefined || value.reps === null || isNumber(value.reps)) &&
+    (value.weight === undefined ||
+      value.weight === null ||
+      isNumber(value.weight)) &&
+    (value.rir === undefined || value.rir === null || isNumber(value.rir)) &&
+    (value.durationSeconds === undefined ||
+      value.durationSeconds === null ||
+      isNumber(value.durationSeconds)) &&
+    (value.previousReps === undefined ||
+      value.previousReps === null ||
+      isNumber(value.previousReps)) &&
+    (value.previousWeight === undefined ||
+      value.previousWeight === null ||
+      isNumber(value.previousWeight)) &&
+    (value.previousDurationSeconds === undefined ||
+      value.previousDurationSeconds === null ||
+      isNumber(value.previousDurationSeconds)) &&
+    (value.completedAt === undefined ||
+      value.completedAt === null ||
+      isString(value.completedAt))
+  );
+}
+
+function isWorkoutSessionExercise(
+  value: unknown,
+): value is WorkoutSessionExercise {
+  if (!isObject(value)) return false;
+
+  return (
+    isString(value.id) &&
+    isString(value.sessionId) &&
+    isString(value.exerciseId) &&
+    isString(value.variantId) &&
+    isNumber(value.order) &&
+    isString(value.trackingType) &&
+    Array.isArray(value.performedSets) &&
+    value.performedSets.every(isCompletedSet) &&
+    isBoolean(value.isCompleted) &&
+    isString(value.createdAt) &&
+    isString(value.updatedAt) &&
+    (value.sourceRoutineExerciseRefId === undefined ||
+      isString(value.sourceRoutineExerciseRefId)) &&
+    (value.prescription === undefined || isPrescription(value.prescription)) &&
+    (value.bodyweightKg === undefined ||
+      value.bodyweightKg === null ||
+      isNumber(value.bodyweightKg)) &&
+    (value.notes === undefined || isString(value.notes))
+  );
+}
+
+function isWorkoutSession(value: unknown): value is WorkoutSession {
+  if (!isObject(value)) return false;
+
+  return (
+    isString(value.id) &&
+    isString(value.date) &&
+    isString(value.startedAt) &&
+    isString(value.status) &&
+    Array.isArray(value.exercises) &&
+    value.exercises.every(isWorkoutSessionExercise) &&
+    isString(value.createdAt) &&
+    isString(value.updatedAt) &&
+    (value.routineId === undefined || isString(value.routineId)) &&
+    (value.endedAt === undefined ||
+      value.endedAt === null ||
+      isString(value.endedAt)) &&
+    (value.notes === undefined || isString(value.notes))
+  );
+}
+
 export function parseAppImportPayload(raw: string): AppImportPayload {
   const parsed: unknown = JSON.parse(raw);
 
@@ -175,6 +264,37 @@ export function parseAppImportPayload(raw: string): AppImportPayload {
     throw new Error("Invalid workoutLogs array.");
   }
 
+  const hasFullSessionData =
+    Array.isArray(parsed.data.workoutSessions) &&
+    parsed.data.workoutSessions.every(isWorkoutSession) &&
+    (parsed.data.activeWorkoutSession === null ||
+      parsed.data.activeWorkoutSession === undefined ||
+      isWorkoutSession(parsed.data.activeWorkoutSession));
+
+  if (hasFullSessionData) {
+    return {
+      version: 2,
+      data: {
+        exercises,
+        exerciseVariants,
+        routines,
+        workoutLogs,
+        workoutSessions: parsed.data.workoutSessions as WorkoutSession[],
+        activeWorkoutSession:
+          parsed.data.activeWorkoutSession === undefined
+            ? null
+            : (parsed.data.activeWorkoutSession as WorkoutSession | null),
+        preferredWeightUnit:
+          parsed.data.preferredWeightUnit === "lb" ? "lb" : "kg",
+      },
+    };
+  }
+
+  const migratedSessions = migrateLegacyLogsToSessions(
+    workoutLogs,
+    exerciseVariants,
+  );
+
   return {
     version: 2,
     data: {
@@ -182,6 +302,8 @@ export function parseAppImportPayload(raw: string): AppImportPayload {
       exerciseVariants,
       routines,
       workoutLogs,
+      workoutSessions: migratedSessions,
+      activeWorkoutSession: null,
       preferredWeightUnit:
         parsed.data.preferredWeightUnit === "lb" ? "lb" : "kg",
     },
@@ -205,82 +327,106 @@ export function downloadAppDataAsJson(payload: AppImportPayload): void {
 
 export function downloadImportTemplateJson(): void {
   const template: AppImportPayload = {
-    version: 2,
-    data: {
-      preferredWeightUnit: "kg",
-      exercises: [
-        {
-          id: "ex-bench-press",
-          name: "Bench Press",
-          category: "Push",
-          muscleGroups: ["chest", "triceps", "shoulders"],
-          notes: "Optional exercise notes",
-          createdAt: "2026-01-01T00:00:00.000Z",
-          updatedAt: "2026-01-01T00:00:00.000Z",
-        },
-      ],
-      exerciseVariants: [
-        {
-          id: "var-bench-press-barbell",
-          exerciseId: "ex-bench-press",
-          name: "Barbell",
-          equipment: "Barbell",
-          gymLabel: "Flat bench",
-          notes: "Optional variant notes",
-          isActive: true,
-          trackingType: "weight_reps",
-          createdAt: "2026-01-01T00:00:00.000Z",
-          updatedAt: "2026-01-01T00:00:00.000Z",
-        },
-      ],
-      routines: [
-        {
-          id: "routine-push-a",
-          name: "Push A",
-          dayType: "Push",
-          description: "Optional routine description",
-          exerciseRefs: [
-            {
-              id: "ref-push-a-1",
-              routineId: "routine-push-a",
-              exerciseId: "ex-bench-press",
-              variantId: "var-bench-press-barbell",
-              order: 1,
-              prescription: {
-                sets: 4,
-                repRange: {
-                  min: 6,
-                  max: 8,
-                },
-                targetRIR: 1,
-                restSeconds: 180,
-                notes: "Optional target notes",
+  version: 2,
+  data: {
+    preferredWeightUnit: "kg",
+    exercises: [
+      {
+        id: "ex-row",
+        name: "Row",
+        category: "Pull",
+        muscleGroups: ["back", "biceps"],
+        notes: "",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+      {
+        id: "ex-bench-press",
+        name: "Bench Press",
+        category: "Push",
+        muscleGroups: ["chest", "triceps", "shoulders"],
+        notes: "",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+    ],
+    exerciseVariants: [
+      {
+        id: "var-row-seated-cable",
+        exerciseId: "ex-row",
+        name: "Seated Cable",
+        equipment: "Cable",
+        gymLabel: "",
+        notes: "",
+        isActive: true,
+        trackingType: "weight_reps",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+      {
+        id: "var-bench-press-barbell",
+        exerciseId: "ex-bench-press",
+        name: "Barbell",
+        equipment: "Barbell",
+        gymLabel: "",
+        notes: "",
+        isActive: true,
+        trackingType: "weight_reps",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+    ],
+    routines: [
+      {
+        id: "routine-upper-a",
+        name: "Upper A",
+        dayType: "Upper",
+        description: "",
+        exerciseRefs: [
+          {
+            id: "ref-upper-a-1",
+            routineId: "routine-upper-a",
+            exerciseId: "ex-bench-press",
+            variantId: "var-bench-press-barbell",
+            order: 1,
+            prescription: {
+              sets: 4,
+              repRange: {
+                min: 6,
+                max: 8,
               },
+              targetRIR: 1,
+              restSeconds: 180,
+              notes: "",
             },
-          ],
-          createdAt: "2026-01-01T00:00:00.000Z",
-          updatedAt: "2026-01-01T00:00:00.000Z",
-        },
-      ],
-      workoutLogs: [
-        {
-          id: "log-bench-press-1",
-          date: "2026-01-05",
-          routineId: "routine-push-a",
-          exerciseId: "ex-bench-press",
-          variantId: "var-bench-press-barbell",
-          performedSets: [
-            { reps: 8, weight: 60 },
-            { reps: 8, weight: 60 },
-            { reps: 7, weight: 60 },
-            { reps: 6, weight: 60 },
-          ],
-          notes: "Optional workout notes",
-          createdAt: "2026-01-05T18:00:00.000Z",
-        },
-      ],
-    },
-  };
+          },
+          {
+            id: "ref-upper-a-2",
+            routineId: "routine-upper-a",
+            exerciseId: "ex-row",
+            variantId: "var-row-seated-cable",
+            order: 2,
+            prescription: {
+              sets: 3,
+              repRange: {
+                min: 8,
+                max: 12,
+              },
+              targetRIR: 1,
+              restSeconds: 120,
+              notes: "",
+            },
+          },
+        ],
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+    ],
+    workoutLogs: [],
+    workoutSessions: [],
+    activeWorkoutSession: null,
+  },
+};
 
   const blob = new Blob([JSON.stringify(template, null, 2)], {
     type: "application/json",
