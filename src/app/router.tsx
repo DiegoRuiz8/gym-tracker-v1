@@ -4,9 +4,9 @@ import RoutinesPage from "../pages/RoutinesPage";
 import RoutineDetailPage from "../pages/RoutineDetailPage";
 import ExercisesPage from "../pages/ExercisesPage";
 import HistoryPage from "../pages/HistoryPage";
-import NewWorkoutLogPage from "../pages/NewWorkoutLogPage";
+
 import VariantHistoryPage from "../pages/VariantHistoryPage";
-import EditWorkoutLogPage from "../pages/EditWorkoutLogPage";
+
 import NewRoutinePage from "../pages/NewRoutinePage";
 import EditRoutinePage from "../pages/EditRoutinePage";
 import NewExercisePage from "../pages/NewExercisePage";
@@ -14,7 +14,7 @@ import NewVariantPage from "../pages/NewVariantPage";
 import EditVariantPage from "../pages/EditVariantPage";
 import EditExercisePage from "../pages/EditExercisePage";
 import ImportExportPage from "../pages/ImportExportPage";
-import DevSessionTestPage from "../pages/DevSessionTestPage";
+
 import ActiveWorkoutPage from "../pages/ActiveWorkoutPage";
 import "../styles/app-shell.css";
 
@@ -140,10 +140,7 @@ export function AppRouter() {
             path="/routines/:routineId/edit"
             element={<EditRoutinePage />}
           />
-          <Route
-            path="/routines/:routineId/log/:variantId"
-            element={<NewWorkoutLogPage />}
-          />
+
           <Route path="/exercises" element={<ExercisesPage />} />
           <Route path="/exercises/new" element={<NewExercisePage />} />
           <Route
@@ -159,16 +156,13 @@ export function AppRouter() {
             path="/history/variant/:variantId"
             element={<VariantHistoryPage />}
           />
-          <Route
-            path="/history/log/:logId/edit"
-            element={<EditWorkoutLogPage />}
-          />
+
           <Route
             path="/exercises/:exerciseId/edit"
             element={<EditExercisePage />}
           />
           <Route path="/data" element={<ImportExportPage />} />
-          <Route path="/dev-session-test" element={<DevSessionTestPage />} />
+
           <Route path="/active-workout" element={<ActiveWorkoutPage />} />
         </Routes>
       </main>
