@@ -11,8 +11,6 @@ import type {
 } from "../types/session";
 import { savePersistedAppData, type WeightUnit } from "./persistence";
 
-type AddWorkoutLogInput = WorkoutLog;
-
 type AppData = {
   exercises: Exercise[];
   exerciseVariants: ExerciseVariant[];
@@ -55,8 +53,6 @@ function updateActiveSessionExerciseInList(
     exercise.id === sessionExerciseId ? updater(exercise) : exercise,
   );
 }
-
-
 
 function createSessionFromRoutine(
   routine: Routine,
@@ -136,11 +132,12 @@ type AppState = {
   removeLastActiveSessionExerciseSet: (sessionExerciseId: string) => void;
   addExerciseToActiveWorkoutSession: (variantId: string) => void;
   deleteWorkoutSession: (sessionId: string) => void;
+
+  removeExerciseFromActiveWorkoutSession: (sessionExerciseId: string) => void;
   removeExerciseFromWorkoutSession: (
-  sessionId: string,
-  sessionExerciseId: string,
-) => void;
-removeExerciseFromActiveWorkoutSession: (sessionExerciseId: string) => void;
+    sessionId: string,
+    sessionExerciseId: string,
+  ) => void;
 
   updateActiveSessionSetReps: (
     sessionExerciseId: string,
@@ -179,10 +176,6 @@ removeExerciseFromActiveWorkoutSession: (sessionExerciseId: string) => void;
   updateExercise: (updatedExercise: Exercise) => void;
   addExerciseVariant: (variant: ExerciseVariant) => void;
   updateExerciseVariant: (updatedVariant: ExerciseVariant) => void;
-
-  addWorkoutLog: (log: AddWorkoutLogInput) => void;
-  updateWorkoutLog: (updatedLog: WorkoutLog) => void;
-  deleteWorkoutLog: (logId: string) => void;
 
   addRoutine: (routine: Routine) => void;
   updateRoutine: (updatedRoutine: Routine) => void;
@@ -391,52 +384,52 @@ export const useAppStore = create<AppState>((set) => ({
       };
     }),
 
-    deleteWorkoutSession: (sessionId) =>
-  set((state) => ({
-    workoutSessions: state.workoutSessions.filter(
-      (session) => session.id !== sessionId,
-    ),
-  })),
+  deleteWorkoutSession: (sessionId) =>
+    set((state) => ({
+      workoutSessions: state.workoutSessions.filter(
+        (session) => session.id !== sessionId,
+      ),
+    })),
 
   removeExerciseFromWorkoutSession: (sessionId, sessionExerciseId) =>
-  set((state) => {
-    const targetSession = state.workoutSessions.find(
-      (session) => session.id === sessionId,
-    );
+    set((state) => {
+      const targetSession = state.workoutSessions.find(
+        (session) => session.id === sessionId,
+      );
 
-    if (!targetSession) {
-      return state;
-    }
+      if (!targetSession) {
+        return state;
+      }
 
-    const nextExercises = targetSession.exercises
-      .filter((exercise) => exercise.id !== sessionExerciseId)
-      .map((exercise, index) => ({
-        ...exercise,
-        order: index + 1,
-      }));
+      const nextExercises = targetSession.exercises
+        .filter((exercise) => exercise.id !== sessionExerciseId)
+        .map((exercise, index) => ({
+          ...exercise,
+          order: index + 1,
+        }));
 
-    if (nextExercises.length === 0) {
+      if (nextExercises.length === 0) {
+        return {
+          workoutSessions: state.workoutSessions.filter(
+            (session) => session.id !== sessionId,
+          ),
+        };
+      }
+
+      const now = new Date().toISOString();
+
       return {
-        workoutSessions: state.workoutSessions.filter(
-          (session) => session.id !== sessionId,
+        workoutSessions: state.workoutSessions.map((session) =>
+          session.id === sessionId
+            ? {
+                ...session,
+                exercises: nextExercises,
+                updatedAt: now,
+              }
+            : session,
         ),
       };
-    }
-
-    const now = new Date().toISOString();
-
-    return {
-      workoutSessions: state.workoutSessions.map((session) =>
-        session.id === sessionId
-          ? {
-              ...session,
-              exercises: nextExercises,
-              updatedAt: now,
-            }
-          : session,
-      ),
-    };
-  }),
+    }),
 
   updateActiveSessionSetReps: (sessionExerciseId, setId, reps) =>
     set((state) => {
@@ -540,56 +533,61 @@ export const useAppStore = create<AppState>((set) => ({
       };
     }),
 
- addActiveSessionExerciseSet: (sessionExerciseId) =>
-  set((state) => {
-    if (!state.activeWorkoutSession) {
-      return state;
-    }
+  addActiveSessionExerciseSet: (sessionExerciseId) =>
+    set((state) => {
+      if (!state.activeWorkoutSession) {
+        return state;
+      }
 
-    const now = new Date().toISOString();
+      const now = new Date().toISOString();
 
-    return {
-      activeWorkoutSession: {
-        ...state.activeWorkoutSession,
-        updatedAt: now,
-        exercises: updateActiveSessionExerciseInList(
-          state.activeWorkoutSession.exercises,
-          sessionExerciseId,
-          (exercise) => {
-            const nextSetNumber = exercise.performedSets.length + 1;
-            const previousSet =
-              exercise.performedSets[exercise.performedSets.length - 1];
+      return {
+        activeWorkoutSession: {
+          ...state.activeWorkoutSession,
+          updatedAt: now,
+          exercises: updateActiveSessionExerciseInList(
+            state.activeWorkoutSession.exercises,
+            sessionExerciseId,
+            (exercise) => {
+              const nextSetNumber = exercise.performedSets.length + 1;
+              const previousSet =
+                exercise.performedSets[exercise.performedSets.length - 1];
 
-            return {
-              ...exercise,
-              updatedAt: now,
-              performedSets: [
-                ...exercise.performedSets,
-                {
-                  id: generateId(),
-                  setNumber: nextSetNumber,
-                  reps: previousSet?.previousReps ?? previousSet?.reps ?? null,
-                  weight:
-                    previousSet?.previousWeight ?? previousSet?.weight ?? null,
-                  rir: null,
-                  durationSeconds:
-                    previousSet?.previousDurationSeconds ?? null,
-                  previousReps:
-                    previousSet?.previousReps ?? previousSet?.reps ?? null,
-                  previousWeight:
-                    previousSet?.previousWeight ?? previousSet?.weight ?? null,
-                  previousDurationSeconds:
-                    previousSet?.previousDurationSeconds ?? null,
-                  completedAt: null,
-                  isCompleted: false,
-                },
-              ],
-            };
-          },
-        ),
-      },
-    };
-  }),
+              return {
+                ...exercise,
+                updatedAt: now,
+                performedSets: [
+                  ...exercise.performedSets,
+                  {
+                    id: generateId(),
+                    setNumber: nextSetNumber,
+                    reps:
+                      previousSet?.previousReps ?? previousSet?.reps ?? null,
+                    weight:
+                      previousSet?.previousWeight ??
+                      previousSet?.weight ??
+                      null,
+                    rir: null,
+                    durationSeconds:
+                      previousSet?.previousDurationSeconds ?? null,
+                    previousReps:
+                      previousSet?.previousReps ?? previousSet?.reps ?? null,
+                    previousWeight:
+                      previousSet?.previousWeight ??
+                      previousSet?.weight ??
+                      null,
+                    previousDurationSeconds:
+                      previousSet?.previousDurationSeconds ?? null,
+                    completedAt: null,
+                    isCompleted: false,
+                  },
+                ],
+              };
+            },
+          ),
+        },
+      };
+    }),
 
   addExerciseToActiveWorkoutSession: (variantId) =>
     set((state) => {
@@ -658,38 +656,38 @@ export const useAppStore = create<AppState>((set) => ({
       };
     }),
 
-    removeExerciseFromActiveWorkoutSession: (sessionExerciseId) =>
-  set((state) => {
-    if (!state.activeWorkoutSession) {
-      return state;
-    }
+  removeExerciseFromActiveWorkoutSession: (sessionExerciseId) =>
+    set((state) => {
+      if (!state.activeWorkoutSession) {
+        return state;
+      }
 
-    const targetExists = state.activeWorkoutSession.exercises.some(
-      (exercise) => exercise.id === sessionExerciseId,
-    );
+      const targetExists = state.activeWorkoutSession.exercises.some(
+        (exercise) => exercise.id === sessionExerciseId,
+      );
 
-    if (!targetExists) {
-      return state;
-    }
+      if (!targetExists) {
+        return state;
+      }
 
-    const now = new Date().toISOString();
+      const now = new Date().toISOString();
 
-    const nextExercises = state.activeWorkoutSession.exercises
-      .filter((exercise) => exercise.id !== sessionExerciseId)
-      .map((exercise, index) => ({
-        ...exercise,
-        order: index + 1,
-        updatedAt: now,
-      }));
+      const nextExercises = state.activeWorkoutSession.exercises
+        .filter((exercise) => exercise.id !== sessionExerciseId)
+        .map((exercise, index) => ({
+          ...exercise,
+          order: index + 1,
+          updatedAt: now,
+        }));
 
-    return {
-      activeWorkoutSession: {
-        ...state.activeWorkoutSession,
-        updatedAt: now,
-        exercises: nextExercises,
-      },
-    };
-  }),
+      return {
+        activeWorkoutSession: {
+          ...state.activeWorkoutSession,
+          updatedAt: now,
+          exercises: nextExercises,
+        },
+      };
+    }),
 
   removeLastActiveSessionExerciseSet: (sessionExerciseId) =>
     set((state) => {
@@ -765,66 +763,66 @@ export const useAppStore = create<AppState>((set) => ({
     }),
 
   swapActiveSessionExerciseVariant: (sessionExerciseId, nextVariantId) =>
-  set((state) => {
-    if (!state.activeWorkoutSession) {
-      return state;
-    }
+    set((state) => {
+      if (!state.activeWorkoutSession) {
+        return state;
+      }
 
-    const nextVariant = state.exerciseVariants.find(
-      (variant) => variant.id === nextVariantId,
-    );
+      const nextVariant = state.exerciseVariants.find(
+        (variant) => variant.id === nextVariantId,
+      );
 
-    if (!nextVariant) {
-      return state;
-    }
+      if (!nextVariant) {
+        return state;
+      }
 
-    const targetExercise = state.activeWorkoutSession.exercises.find(
-      (exercise) => exercise.id === sessionExerciseId,
-    );
+      const targetExercise = state.activeWorkoutSession.exercises.find(
+        (exercise) => exercise.id === sessionExerciseId,
+      );
 
-    if (!targetExercise) {
-      return state;
-    }
+      if (!targetExercise) {
+        return state;
+      }
 
-    if (targetExercise.variantId === nextVariantId) {
-      return state;
-    }
+      if (targetExercise.variantId === nextVariantId) {
+        return state;
+      }
 
-    if (targetExercise.exerciseId !== nextVariant.exerciseId) {
-      return state;
-    }
+      if (targetExercise.exerciseId !== nextVariant.exerciseId) {
+        return state;
+      }
 
-    const now = new Date().toISOString();
-    const setCount = targetExercise.performedSets.length;
+      const now = new Date().toISOString();
+      const setCount = targetExercise.performedSets.length;
 
-    const latestSets = getLatestPerformanceForVariant(
-      state.workoutSessions,
-      state.workoutLogs,
-      nextVariantId,
-    );
+      const latestSets = getLatestPerformanceForVariant(
+        state.workoutSessions,
+        state.workoutLogs,
+        nextVariantId,
+      );
 
-    return {
-      activeWorkoutSession: {
-        ...state.activeWorkoutSession,
-        updatedAt: now,
-        exercises: updateActiveSessionExerciseInList(
-          state.activeWorkoutSession.exercises,
-          sessionExerciseId,
-          (exercise) => ({
-            ...exercise,
-            variantId: nextVariantId,
-            trackingType: nextVariant.trackingType,
-            updatedAt: now,
-            performedSets: createCompletedSetsFromLatest(
-              setCount,
-              latestSets,
-            ),
-            isCompleted: false,
-          }),
-        ),
-      },
-    };
-  }),
+      return {
+        activeWorkoutSession: {
+          ...state.activeWorkoutSession,
+          updatedAt: now,
+          exercises: updateActiveSessionExerciseInList(
+            state.activeWorkoutSession.exercises,
+            sessionExerciseId,
+            (exercise) => ({
+              ...exercise,
+              variantId: nextVariantId,
+              trackingType: nextVariant.trackingType,
+              updatedAt: now,
+              performedSets: createCompletedSetsFromLatest(
+                setCount,
+                latestSets,
+              ),
+              isCompleted: false,
+            }),
+          ),
+        },
+      };
+    }),
   replaceAppData: (data) =>
     set({
       exercises: data.exercises,
@@ -874,23 +872,6 @@ export const useAppStore = create<AppState>((set) => ({
       exerciseVariants: state.exerciseVariants.map((variant) =>
         variant.id === updatedVariant.id ? updatedVariant : variant,
       ),
-    })),
-
-  addWorkoutLog: (log) =>
-    set((state) => ({
-      workoutLogs: [log, ...state.workoutLogs],
-    })),
-
-  updateWorkoutLog: (updatedLog) =>
-    set((state) => ({
-      workoutLogs: state.workoutLogs.map((log) =>
-        log.id === updatedLog.id ? updatedLog : log,
-      ),
-    })),
-
-  deleteWorkoutLog: (logId) =>
-    set((state) => ({
-      workoutLogs: state.workoutLogs.filter((log) => log.id !== logId),
     })),
 
   addRoutine: (routine) =>

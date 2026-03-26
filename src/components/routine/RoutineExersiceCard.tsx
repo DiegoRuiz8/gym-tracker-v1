@@ -26,9 +26,7 @@ export default function RoutineExerciseCard({
   lastLog,
   onBeforeNavigate,
 }: Props) {
-  const preferredWeightUnit = useAppStore(
-    (state) => state.preferredWeightUnit,
-  );
+  const preferredWeightUnit = useAppStore((state) => state.preferredWeightUnit);
 
   const exerciseName = exercise?.name ?? "Unknown exercise";
   const variantName = variant?.name ?? "Unknown variant";
