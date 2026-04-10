@@ -151,6 +151,12 @@ type AppState = {
     weight: number | null,
   ) => void;
 
+  propagateActiveSessionSetWeightFromFirstSet: (
+    sessionExerciseId: string,
+    originalWeight: number | null,
+    newWeight: number | null,
+  ) => void;
+
   toggleActiveSessionSetCompleted: (
     sessionExerciseId: string,
     setId: string,
@@ -480,6 +486,69 @@ export const useAppStore = create<AppState>((set) => ({
                 set.id === setId ? { ...set, weight } : set,
               ),
             }),
+          ),
+        },
+      };
+    }),
+
+  propagateActiveSessionSetWeightFromFirstSet: (
+    sessionExerciseId,
+    originalWeight,
+    newWeight,
+  ) =>
+    set((state) => {
+      if (!state.activeWorkoutSession) {
+        return state;
+      }
+
+      if (originalWeight == null || newWeight == null) {
+        return state;
+      }
+
+      if (originalWeight === newWeight) {
+        return state;
+      }
+
+      const now = new Date().toISOString();
+
+      return {
+        activeWorkoutSession: {
+          ...state.activeWorkoutSession,
+          updatedAt: now,
+          exercises: updateActiveSessionExerciseInList(
+            state.activeWorkoutSession.exercises,
+            sessionExerciseId,
+            (exercise) => {
+              if (exercise.performedSets.length === 0) {
+                return exercise;
+              }
+
+              const firstSet = exercise.performedSets[0];
+
+              if (!firstSet || firstSet.weight !== newWeight) {
+                return exercise;
+              }
+
+              const updatedPerformedSets = exercise.performedSets.map(
+                (set, index) => {
+                  if (index === 0) {
+                    return set;
+                  }
+
+                  if (set.weight === originalWeight) {
+                    return { ...set, weight: newWeight };
+                  }
+
+                  return set;
+                },
+              );
+
+              return {
+                ...exercise,
+                updatedAt: now,
+                performedSets: updatedPerformedSets,
+              };
+            },
           ),
         },
       };
