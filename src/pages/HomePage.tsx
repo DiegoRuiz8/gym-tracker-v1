@@ -198,7 +198,23 @@ export default function HomePage() {
                 {visibleRoutines.map((routine) => (
                   <article
                     key={routine.id}
-                    className="simple-page-home-routine-item"
+                    className="simple-page-home-routine-item simple-page-home-routine-item-clickable"
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Open routine ${routine.name}`}
+                    onClick={() =>
+                      navigate(`/routines/${routine.id}`, {
+                        state: { from: "home" },
+                      })
+                    }
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        navigate(`/routines/${routine.id}`, {
+                          state: { from: "home" },
+                        });
+                      }
+                    }}
                   >
                     <div className="simple-page-home-routine-header-row">
                       <div className="simple-page-home-routine-main">
@@ -217,7 +233,9 @@ export default function HomePage() {
                                 ? "home-routine-action-btn-neutral"
                                 : "home-routine-action-btn-secondary"
                           }`}
-                          onClick={() => {
+                          onClick={(event) => {
+                            event.stopPropagation();
+
                             if (
                               activeWorkoutSession &&
                               activeWorkoutSession.routineId !== routine.id
