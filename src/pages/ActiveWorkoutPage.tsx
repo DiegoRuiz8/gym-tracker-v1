@@ -63,6 +63,9 @@ export default function ActiveWorkoutPage() {
   const updateActiveSessionSetWeight = useAppStore(
     (state) => state.updateActiveSessionSetWeight,
   );
+  const propagateActiveSessionSetWeightFromFirstSet = useAppStore(
+    (state) => state.propagateActiveSessionSetWeightFromFirstSet,
+  );
   const updateActiveSessionSetReps = useAppStore(
     (state) => state.updateActiveSessionSetReps,
   );
@@ -76,8 +79,8 @@ export default function ActiveWorkoutPage() {
     (state) => state.removeLastActiveSessionExerciseSet,
   );
   const removeExerciseFromActiveWorkoutSession = useAppStore(
-  (state) => state.removeExerciseFromActiveWorkoutSession,
-);
+    (state) => state.removeExerciseFromActiveWorkoutSession,
+  );
   const updateActiveSessionExerciseNotes = useAppStore(
     (state) => state.updateActiveSessionExerciseNotes,
   );
@@ -100,8 +103,11 @@ export default function ActiveWorkoutPage() {
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState<
-  Record<string, boolean>
->({});
+    Record<string, boolean>
+  >({});
+  const [firstSetWeightBeforeEdit, setFirstSetWeightBeforeEdit] = useState<
+    Record<string, number | null>
+  >({});
 
   const addExerciseToActiveWorkoutSession = useAppStore(
     (state) => state.addExerciseToActiveWorkoutSession,
@@ -149,6 +155,14 @@ export default function ActiveWorkoutPage() {
     navigate,
     swapActiveSessionExerciseVariant,
   ]);
+
+    const elapsedLabel = useMemo(() => {
+    if (!activeWorkoutSession) {
+      return "0s";
+    }
+
+    return formatElapsedTime(activeWorkoutSession.startedAt, nowMs);
+  }, [activeWorkoutSession, nowMs]);
 
   if (!activeWorkoutSession) {
     return <Navigate to="/routines" replace />;
@@ -309,10 +323,7 @@ export default function ActiveWorkoutPage() {
     return unit.toUpperCase();
   }
 
-  const elapsedLabel = useMemo(
-    () => formatElapsedTime(activeWorkoutSession.startedAt, nowMs),
-    [activeWorkoutSession.startedAt, nowMs],
-  );
+ 
 
   const completedExercisesCount = activeWorkoutSession.exercises.filter(
     (exercise) => exercise.isCompleted,
@@ -331,41 +342,41 @@ export default function ActiveWorkoutPage() {
       return hasAnyIncompleteSet;
     }).length;
 
-    function handleRequestDeleteExercise(sessionExerciseId: string) {
-  setDeleteConfirmOpen((prev) => ({
-    ...prev,
-    [sessionExerciseId]: true,
-  }));
-}
+  function handleRequestDeleteExercise(sessionExerciseId: string) {
+    setDeleteConfirmOpen((prev) => ({
+      ...prev,
+      [sessionExerciseId]: true,
+    }));
+  }
 
-function handleCancelDeleteExercise(sessionExerciseId: string) {
-  setDeleteConfirmOpen((prev) => ({
-    ...prev,
-    [sessionExerciseId]: false,
-  }));
-}
+  function handleCancelDeleteExercise(sessionExerciseId: string) {
+    setDeleteConfirmOpen((prev) => ({
+      ...prev,
+      [sessionExerciseId]: false,
+    }));
+  }
 
-function handleConfirmDeleteExercise(sessionExerciseId: string) {
-  removeExerciseFromActiveWorkoutSession(sessionExerciseId);
+  function handleConfirmDeleteExercise(sessionExerciseId: string) {
+    removeExerciseFromActiveWorkoutSession(sessionExerciseId);
 
-  setDeleteConfirmOpen((prev) => {
-    const next = { ...prev };
-    delete next[sessionExerciseId];
-    return next;
-  });
+    setDeleteConfirmOpen((prev) => {
+      const next = { ...prev };
+      delete next[sessionExerciseId];
+      return next;
+    });
 
-  setNotesOpen((prev) => {
-    const next = { ...prev };
-    delete next[sessionExerciseId];
-    return next;
-  });
+    setNotesOpen((prev) => {
+      const next = { ...prev };
+      delete next[sessionExerciseId];
+      return next;
+    });
 
-  setSwapOpen((prev) => {
-    const next = { ...prev };
-    delete next[sessionExerciseId];
-    return next;
-  });
-}
+    setSwapOpen((prev) => {
+      const next = { ...prev };
+      delete next[sessionExerciseId];
+      return next;
+    });
+  }
 
   return (
     <div className="active-workout-page">
@@ -443,101 +454,111 @@ function handleConfirmDeleteExercise(sessionExerciseId: string) {
                   className="surface-card active-workout-card"
                 >
                   <div className="active-workout-card-top">
-  <div className="active-workout-card-heading-row">
-    <div className="active-workout-card-heading-main">
-      <div className="active-workout-title-row">
-        <h2 className="active-workout-exercise-title">
-          {exercise?.name ?? "Unknown exercise"}
+                    <div className="active-workout-card-heading-row">
+                      <div className="active-workout-card-heading-main">
+                        <div className="active-workout-title-row">
+                          <h2 className="active-workout-exercise-title">
+                            {exercise?.name ?? "Unknown exercise"}
 
-          {variant?.name ? (
-            <span className="active-workout-exercise-variant-wrap">
-              <span className="active-workout-exercise-variant">
-                ({variant.name})
-              </span>
+                            {variant?.name ? (
+                              <span className="active-workout-exercise-variant-wrap">
+                                <span className="active-workout-exercise-variant">
+                                  ({variant.name})
+                                </span>
 
-              <button
-                type="button"
-                className="active-workout-swap-btn"
-                onClick={() =>
-                  setSwapOpen((prev) => ({
-                    ...prev,
-                    [sessionExercise.id]: !prev[sessionExercise.id],
-                  }))
-                }
-                aria-label={`Swap variant for ${
-                  exercise?.name ?? "exercise"
-                }`}
-                aria-expanded={isSwapOpen}
-                title="Swap variant"
-              >
-                ⇄
-              </button>
-            </span>
-          ) : null}
-        </h2>
-      </div>
+                                <button
+                                  type="button"
+                                  className="active-workout-swap-btn"
+                                  onClick={() =>
+                                    setSwapOpen((prev) => ({
+                                      ...prev,
+                                      [sessionExercise.id]:
+                                        !prev[sessionExercise.id],
+                                    }))
+                                  }
+                                  aria-label={`Swap variant for ${
+                                    exercise?.name ?? "exercise"
+                                  }`}
+                                  aria-expanded={isSwapOpen}
+                                  title="Swap variant"
+                                >
+                                  ⇄
+                                </button>
+                              </span>
+                            ) : null}
+                          </h2>
+                        </div>
 
-      <p className="active-workout-prescription">
-        {formatPrescriptionLabel(
-          prescription?.sets ?? sessionExercise.performedSets.length,
-          prescription?.repRange?.min,
-          prescription?.repRange?.max,
-          prescription?.targetRIR,
-          prescription?.restSeconds,
-        )}
-      </p>
+                        <p className="active-workout-prescription">
+                          {formatPrescriptionLabel(
+                            prescription?.sets ??
+                              sessionExercise.performedSets.length,
+                            prescription?.repRange?.min,
+                            prescription?.repRange?.max,
+                            prescription?.targetRIR,
+                            prescription?.restSeconds,
+                          )}
+                        </p>
 
-      <button
-        type="button"
-        className="active-workout-notes-toggle"
-        onClick={() =>
-          setNotesOpen((prev) => ({
-            ...prev,
-            [sessionExercise.id]: !prev[sessionExercise.id],
-          }))
-        }
-      >
-        {isNotesOpen ? "Hide notes" : "Add notes"}
-      </button>
-    </div>
+                        <button
+                          type="button"
+                          className="active-workout-notes-toggle"
+                          onClick={() =>
+                            setNotesOpen((prev) => ({
+                              ...prev,
+                              [sessionExercise.id]: !prev[sessionExercise.id],
+                            }))
+                          }
+                        >
+                          {isNotesOpen ? "Hide notes" : "Add notes"}
+                        </button>
+                      </div>
 
-    <button
-      type="button"
-      className="active-workout-delete-icon"
-      aria-label="Remove exercise"
-      title="Remove exercise"
-      onClick={() => handleRequestDeleteExercise(sessionExercise.id)}
-    >
-      ✕
-    </button>
-  </div>
+                      <button
+                        type="button"
+                        className="active-workout-delete-icon"
+                        aria-label="Remove exercise"
+                        title="Remove exercise"
+                        onClick={() =>
+                          handleRequestDeleteExercise(sessionExercise.id)
+                        }
+                      >
+                        ✕
+                      </button>
+                    </div>
 
-  {deleteConfirmOpen[sessionExercise.id] ? (
-    <div className="active-workout-delete-confirm">
-      <p className="active-workout-delete-text">Remove exercise?</p>
-      <p className="active-workout-delete-subtext">
-        This exercise will be removed from the active session.
-      </p>
+                    {deleteConfirmOpen[sessionExercise.id] ? (
+                      <div className="active-workout-delete-confirm">
+                        <p className="active-workout-delete-text">
+                          Remove exercise?
+                        </p>
+                        <p className="active-workout-delete-subtext">
+                          This exercise will be removed from the active session.
+                        </p>
 
-      <div className="active-workout-delete-actions">
-        <button
-          type="button"
-          className="active-workout-btn active-workout-btn-danger"
-          onClick={() => handleConfirmDeleteExercise(sessionExercise.id)}
-        >
-          Remove
-        </button>
+                        <div className="active-workout-delete-actions">
+                          <button
+                            type="button"
+                            className="active-workout-btn active-workout-btn-danger"
+                            onClick={() =>
+                              handleConfirmDeleteExercise(sessionExercise.id)
+                            }
+                          >
+                            Remove
+                          </button>
 
-        <button
-          type="button"
-          className="active-workout-btn active-workout-btn-secondary"
-          onClick={() => handleCancelDeleteExercise(sessionExercise.id)}
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  ) : null}
+                          <button
+                            type="button"
+                            className="active-workout-btn active-workout-btn-secondary"
+                            onClick={() =>
+                              handleCancelDeleteExercise(sessionExercise.id)
+                            }
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
 
                     {isSwapOpen ? (
                       <div className="active-workout-swap-panel">
@@ -645,7 +666,7 @@ function handleConfirmDeleteExercise(sessionExerciseId: string) {
                       </thead>
 
                       <tbody>
-                        {sessionExercise.performedSets.map((set) => (
+                        {sessionExercise.performedSets.map((set, setIndex) => (
                           <tr
                             key={set.id}
                             className={
@@ -672,6 +693,16 @@ function handleConfirmDeleteExercise(sessionExerciseId: string) {
                                   set.weight,
                                   preferredWeightUnit,
                                 )}
+                                onFocus={() => {
+                                  if (setIndex !== 0) {
+                                    return;
+                                  }
+
+                                  setFirstSetWeightBeforeEdit((prev) => ({
+                                    ...prev,
+                                    [sessionExercise.id]: set.weight ?? null,
+                                  }));
+                                }}
                                 onChange={(e) =>
                                   updateActiveSessionSetWeight(
                                     sessionExercise.id,
@@ -684,6 +715,36 @@ function handleConfirmDeleteExercise(sessionExerciseId: string) {
                                         ),
                                   )
                                 }
+                                onBlur={(e) => {
+                                  if (setIndex !== 0) {
+                                    return;
+                                  }
+
+                                  const originalWeight =
+                                    firstSetWeightBeforeEdit[
+                                      sessionExercise.id
+                                    ] ?? null;
+
+                                  const finalWeight =
+                                    e.target.value === ""
+                                      ? null
+                                      : convertWeightToKg(
+                                          Number(e.target.value),
+                                          preferredWeightUnit,
+                                        );
+
+                                  propagateActiveSessionSetWeightFromFirstSet(
+                                    sessionExercise.id,
+                                    originalWeight,
+                                    finalWeight,
+                                  );
+
+                                  setFirstSetWeightBeforeEdit((prev) => {
+                                    const next = { ...prev };
+                                    delete next[sessionExercise.id];
+                                    return next;
+                                  });
+                                }}
                               />
                             </td>
 
