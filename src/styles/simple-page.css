@@ -840,6 +840,23 @@
   border-color: rgba(148, 163, 184, 0.24);
 }
 
+.simple-page-home-routine-item-clickable {
+  cursor: pointer;
+}
+
+.simple-page-home-routine-item-clickable:focus-visible {
+  outline: 2px solid rgba(74, 134, 255, 0.9);
+  outline-offset: 2px;
+}
+
+.simple-page-home-routine-item-clickable:hover {
+  transform: translateY(-1px);
+}
+
+
+
+
+
 @media (max-width: 640px) {
   .simple-page-active-workout-top {
     flex-direction: column;

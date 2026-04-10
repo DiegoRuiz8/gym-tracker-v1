@@ -67,7 +67,11 @@ export default function RoutineDetailPage() {
       <div className="routine-detail-page">
         <div className="routine-detail-container">
           <div className="routine-detail-back-row">
-            <PageBackButton fallbackTo="/routines" />
+            <PageBackButton
+              fallbackTo={
+                (location.state as any)?.from === "home" ? "/" : "/routines"
+              }
+            />
           </div>
 
           <section className="routine-detail-empty-state" aria-live="polite">
@@ -120,7 +124,11 @@ export default function RoutineDetailPage() {
       <div className="routine-detail-container">
         <header className="routine-detail-header">
           <div className="routine-detail-back-row">
-            <PageBackButton fallbackTo="/routines" />
+            <PageBackButton
+              fallbackTo={
+                (location.state as any)?.from === "home" ? "/" : "/routines"
+              }
+            />
           </div>
 
           <div className="routine-detail-header-top">
