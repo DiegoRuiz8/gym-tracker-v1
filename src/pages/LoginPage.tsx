@@ -115,7 +115,7 @@ export default function LoginPage() {
               {/* Logo */}
               <div style={{ marginBottom: "32px" }}>
                 <img
-                  src="/src/assets/barbell.png"
+                  src="/barbell.png"
                   alt="Lift Log"
                   style={{
                     width: "96px",
