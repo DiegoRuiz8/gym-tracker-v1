@@ -501,7 +501,7 @@ export const useAppStore = create<AppState>((set) => ({
         return state;
       }
 
-      if (originalWeight == null || newWeight == null) {
+      if (newWeight == null) {
         return state;
       }
 
@@ -535,7 +535,11 @@ export const useAppStore = create<AppState>((set) => ({
                     return set;
                   }
 
-                  if (set.weight === originalWeight) {
+                  if (
+                    set.weight === originalWeight ||
+                    set.weight == null ||
+                    set.weight === 0
+                  ) {
                     return { ...set, weight: newWeight };
                   }
 
