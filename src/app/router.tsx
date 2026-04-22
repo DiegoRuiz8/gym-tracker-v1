@@ -15,6 +15,7 @@ import EditExercisePage from "../pages/EditExercisePage";
 import ImportExportPage from "../pages/ImportExportPage";
 import ActiveWorkoutPage from "../pages/ActiveWorkoutPage";
 import LoginPage from "../pages/LoginPage";
+import ResetPasswordPage from "../pages/ResetPasswordPage";
 import "../styles/app-shell.css";
 
 function getNavLinkClassName({ isActive }: { isActive: boolean }) {
@@ -112,6 +113,7 @@ export function AppRouter() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       <Route
         path="/*"
