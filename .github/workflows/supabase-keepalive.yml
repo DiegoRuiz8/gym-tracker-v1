@@ -10,10 +10,10 @@ jobs:
   ping-supabase:
     runs-on: ubuntu-latest
     steps:
-      - name: Query liviano a la tabla routines
+      - name: Query liviano a la tabla user_data
         run: |
           response=$(curl -s -o /tmp/response.json -w "%{http_code}" \
-            "${SUPABASE_URL}/rest/v1/routines?select=id&limit=1" \
+            "${SUPABASE_URL}/rest/v1/user_data?select=id&limit=1" \
             -H "apikey: ${SUPABASE_ANON_KEY}" \
             -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
 
