@@ -1,4 +1,6 @@
-import type { Exercise, ExerciseVariant } from "../types/exercise";
+// src/store/persistence.ts
+
+import type { Exercise } from "../types/exercise";
 import type { WorkoutLog } from "../types/log";
 import type { Routine } from "../types/routine";
 import type { WorkoutSession } from "../types/session";
@@ -11,7 +13,6 @@ export type PersistedAppData = {
   version: number;
   data: {
     exercises: Exercise[];
-    exerciseVariants: ExerciseVariant[];
     routines: Routine[];
     workoutLogs: WorkoutLog[];
     workoutSessions: WorkoutSession[];
@@ -27,17 +28,16 @@ export function loadPersistedAppData(): PersistedAppData | null {
     if (!raw) return null;
 
     const parsed = JSON.parse(raw) as {
-  version?: number;
-  data?: {
-    exercises?: Exercise[];
-    exerciseVariants?: ExerciseVariant[];
-    routines?: Routine[];
-    workoutLogs?: WorkoutLog[];
-    workoutSessions?: WorkoutSession[];
-    activeWorkoutSession?: WorkoutSession | null;
-    preferredWeightUnit?: WeightUnit;
-  };
-};
+      version?: number;
+      data?: {
+        exercises?: Exercise[];
+        routines?: Routine[];
+        workoutLogs?: WorkoutLog[];
+        workoutSessions?: WorkoutSession[];
+        activeWorkoutSession?: WorkoutSession | null;
+        preferredWeightUnit?: WeightUnit;
+      };
+    };
     if (!parsed.version || !parsed.data) {
       return null;
     }
@@ -46,7 +46,6 @@ export function loadPersistedAppData(): PersistedAppData | null {
       version: parsed.version,
       data: {
         exercises: parsed.data.exercises ?? [],
-        exerciseVariants: parsed.data.exerciseVariants ?? [],
         routines: parsed.data.routines ?? [],
         workoutLogs: parsed.data.workoutLogs ?? [],
         workoutSessions: parsed.data.workoutSessions ?? [],

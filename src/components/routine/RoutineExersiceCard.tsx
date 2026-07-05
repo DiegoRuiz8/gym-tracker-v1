@@ -1,5 +1,7 @@
-import { Link } from "react-router-dom";
-import type { Exercise, ExerciseVariant } from "../../types/exercise";
+// src/components/routine/RoutineExersiceCard.tsx
+
+import { useNavigate } from "react-router-dom";
+import type { Exercise } from "../../types/exercise";
 import type { WorkoutLog } from "../../types/log";
 import type { Routine, RoutineExerciseRef } from "../../types/routine";
 import { useAppStore } from "../../store/useAppStore";
@@ -8,12 +10,13 @@ import {
   formatPrescriptionInline,
   formatSetPerformanceInline,
 } from "../../utils/format";
+import ExercisePhotoToggle from "../exercise/ExercisePhotoToggle";
 
 type Props = {
   routine: Routine;
   exerciseRef: RoutineExerciseRef;
   exercise?: Exercise;
-  variant?: ExerciseVariant;
+  images: string[];
   lastLog?: WorkoutLog;
   onBeforeNavigate?: () => void;
 };
@@ -22,44 +25,60 @@ export default function RoutineExerciseCard({
   routine,
   exerciseRef,
   exercise,
-  variant,
+  images,
   lastLog,
   onBeforeNavigate,
 }: Props) {
+  const navigate = useNavigate();
   const preferredWeightUnit = useAppStore((state) => state.preferredWeightUnit);
 
   const exerciseName = exercise?.name ?? "Unknown exercise";
-  const variantName = variant?.name ?? "Unknown variant";
 
-  function handleBeforeNavigate() {
+  function handleCardClick() {
     onBeforeNavigate?.();
+    navigate(`/history/exercise/${exerciseRef.exerciseId}`, {
+      state: {
+        returnTo: `/routines/${routine.id}`,
+        restoreDetailScroll: true,
+      },
+    });
   }
 
   return (
-    <article className="routine-exercise-card">
-      <div className="routine-exercise-card-top">
-        <div className="routine-exercise-title-wrap">
-          <h2 className="routine-exercise-title">
-            {exerciseName}
-            <span className="routine-exercise-title-separator"> — </span>
-            <span className="routine-exercise-variant-inline">
-              {variantName}
-            </span>
-          </h2>
-        </div>
-
-        <Link
-          to={`/history/variant/${exerciseRef.variantId}`}
-          state={{
-            returnTo: `/routines/${routine.id}`,
-            restoreDetailScroll: true,
+    <article
+      className="routine-exercise-card"
+      role="button"
+      tabIndex={0}
+      aria-label={`View history for ${exerciseName}`}
+      onClick={handleCardClick}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          handleCardClick();
+        }
+      }}
+    >
+      <div
+        className="routine-exercise-photo-wrap"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <ExercisePhotoToggle
+          images={images}
+          alt={exerciseName}
+          mode="compact"
+          onPlaceholderClick={() => {
+            onBeforeNavigate?.();
+            navigate(`/exercises/${exerciseRef.exerciseId}/edit`, {
+              state: {
+                returnTo: `/routines/${routine.id}`,
+                scrollToExerciseDbSection: true,
+              },
+            });
           }}
-          className="routine-exercise-history-link"
-          onClick={handleBeforeNavigate}
-        >
-          History
-        </Link>
+        />
       </div>
+
+      <h2 className="routine-exercise-title">{exerciseName}</h2>
 
       <p className="routine-exercise-target">
         <strong>Target:</strong>{" "}

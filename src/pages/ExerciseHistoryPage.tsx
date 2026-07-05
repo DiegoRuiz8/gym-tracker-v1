@@ -1,62 +1,65 @@
-import { useMemo, useState } from "react";
+// src/pages/ExerciseHistoryPage.tsx
+// Renombrado desde VariantHistoryPage.tsx
+
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { useAppStore } from "../store/useAppStore";
 import {
   getExerciseById,
-  getSessionHistoryForVariant,
-  getVariantById,
+  getSessionHistoryForExercise,
 } from "../store/selectors";
 import {
   formatLogDate,
   formatSessionExerciseSetsDetailed,
 } from "../utils/format";
+import {
+  getExerciseDbCatalog,
+  getImagesForExercise,
+  type ExerciseDbEntry,
+} from "../lib/exerciseDbCache";
+import ExercisePhotoToggle from "../components/exercise/ExercisePhotoToggle";
 import PageBackButton from "../components/navigation/PageBackButton";
 import "../styles/variant-history.css";
 
-type VariantHistoryLocationState = {
+type ExerciseHistoryLocationState = {
   returnTo?: string;
   restoreDetailScroll?: boolean;
 };
 
-export default function VariantHistoryPage() {
-  const { variantId } = useParams();
+export default function ExerciseHistoryPage() {
+  const { exerciseId } = useParams();
   const location = useLocation();
-  const [pendingRemoveExerciseId, setPendingRemoveExerciseId] = useState<
-    string | null
-  >(null);
-
+  const [pendingRemoveExerciseId, setPendingRemoveExerciseId] = useState<string | null>(null);
   const exercises = useAppStore((state) => state.exercises);
-  const exerciseVariants = useAppStore((state) => state.exerciseVariants);
   const workoutSessions = useAppStore((state) => state.workoutSessions);
   const routines = useAppStore((state) => state.routines);
   const preferredWeightUnit = useAppStore((state) => state.preferredWeightUnit);
   const removeExerciseFromWorkoutSession = useAppStore(
     (state) => state.removeExerciseFromWorkoutSession,
   );
+  const [catalog, setCatalog] = useState<ExerciseDbEntry[]>([]);
+
   const pageState =
-    (location.state as VariantHistoryLocationState | null) ?? null;
+    (location.state as ExerciseHistoryLocationState | null) ?? null;
 
   const returnTo = pageState?.returnTo ?? "/history";
-  
 
-  const variant = useMemo(
-    () => (variantId ? getVariantById(exerciseVariants, variantId) : undefined),
-    [exerciseVariants, variantId],
-  );
+  useEffect(() => {
+    getExerciseDbCatalog().then((result) => setCatalog(result.exercises));
+  }, []);
 
   const exercise = useMemo(
-    () =>
-      variant ? getExerciseById(exercises, variant.exerciseId) : undefined,
-    [exercises, variant],
+    () => (exerciseId ? getExerciseById(exercises, exerciseId) : undefined),
+    [exercises, exerciseId],
   );
 
   const sessionItems = useMemo(
     () =>
-      variantId ? getSessionHistoryForVariant(workoutSessions, variantId) : [],
-    [workoutSessions, variantId],
+      exerciseId ? getSessionHistoryForExercise(workoutSessions, exerciseId) : [],
+    [workoutSessions, exerciseId],
   );
 
-  if (!variantId || !variant || !exercise) {
+  if (!exerciseId || !exercise) {
     return (
       <div className="variant-history-page">
         <div className="variant-history-container">
@@ -65,16 +68,18 @@ export default function VariantHistoryPage() {
               <PageBackButton fallbackTo="/history" />
             </div>
 
-            <h2 className="variant-history-card-title">Variant not found</h2>
+            <h2 className="variant-history-card-title">Exercise not found</h2>
             <p className="variant-history-card-text">
-              The variant you are trying to open does not exist or is no longer
-              available.
+              The exercise you are trying to open does not exist or is no
+              longer available.
             </p>
           </div>
         </div>
       </div>
     );
   }
+
+  const images = getImagesForExercise(exercise.exerciseDbId, catalog);
 
   function getRoutineName(routineId?: string): string {
     if (!routineId) {
@@ -106,23 +111,25 @@ export default function VariantHistoryPage() {
             <PageBackButton fallbackTo={returnTo} />
           </div>
 
-          <h1 className="variant-history-title">
-            {exercise.name}
-            <span className="variant-history-title-separator"> — </span>
-            <span className="variant-history-title-variant">
-              {variant.name}
-            </span>
-          </h1>
+          <h1 className="variant-history-title">{exercise.name}</h1>
           <p className="variant-history-meta">
             {sessionItems.length} session{sessionItems.length === 1 ? "" : "s"}
           </p>
+
+          <div className="variant-history-photo-wrap">
+            <ExercisePhotoToggle
+              images={images}
+              alt={exercise.name}
+              mode="auto"
+            />
+          </div>
         </header>
 
         {sessionItems.length === 0 ? (
           <div className="variant-history-card">
             <h2 className="variant-history-card-title">No sessions yet</h2>
             <p className="variant-history-card-text">
-              This variant does not have any recorded sessions yet.
+              This exercise does not have any recorded sessions yet.
             </p>
           </div>
         ) : (

@@ -7,9 +7,12 @@ import type { Routine } from "../types/routine";
 import PageBackButton from "../components/navigation/PageBackButton";
 import "../styles/routine-form.css";
 
+
+
 export default function NewRoutinePage() {
   const navigate = useNavigate();
   const addRoutine = useAppStore((state) => state.addRoutine);
+
 
   const [name, setName] = useState("");
   const [dayType, setDayType] = useState("");

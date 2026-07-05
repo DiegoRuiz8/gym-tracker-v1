@@ -1,3 +1,5 @@
+// src/app/router.tsx
+
 import { Routes, Route, NavLink, Navigate } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import HomePage from "../pages/HomePage";
@@ -5,12 +7,10 @@ import RoutinesPage from "../pages/RoutinesPage";
 import RoutineDetailPage from "../pages/RoutineDetailPage";
 import ExercisesPage from "../pages/ExercisesPage";
 import HistoryPage from "../pages/HistoryPage";
-import VariantHistoryPage from "../pages/VariantHistoryPage";
+import ExerciseHistoryPage from "../pages/ExerciseHistoryPage";
 import NewRoutinePage from "../pages/NewRoutinePage";
 import EditRoutinePage from "../pages/EditRoutinePage";
 import NewExercisePage from "../pages/NewExercisePage";
-import NewVariantPage from "../pages/NewVariantPage";
-import EditVariantPage from "../pages/EditVariantPage";
 import EditExercisePage from "../pages/EditExercisePage";
 import ImportExportPage from "../pages/ImportExportPage";
 import ActiveWorkoutPage from "../pages/ActiveWorkoutPage";
@@ -128,11 +128,9 @@ export function AppRouter() {
                 <Route path="/routines/:routineId/edit" element={<EditRoutinePage />} />
                 <Route path="/exercises" element={<ExercisesPage />} />
                 <Route path="/exercises/new" element={<NewExercisePage />} />
-                <Route path="/exercises/:exerciseId/variants/new" element={<NewVariantPage />} />
-                <Route path="/variants/:variantId/edit" element={<EditVariantPage />} />
-                <Route path="/history" element={<HistoryPage />} />
-                <Route path="/history/variant/:variantId" element={<VariantHistoryPage />} />
                 <Route path="/exercises/:exerciseId/edit" element={<EditExercisePage />} />
+                <Route path="/history" element={<HistoryPage />} />
+                <Route path="/history/exercise/:exerciseId" element={<ExerciseHistoryPage />} />
                 <Route path="/data" element={<ImportExportPage />} />
                 <Route path="/active-workout" element={<ActiveWorkoutPage />} />
               </Routes>

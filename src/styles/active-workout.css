@@ -119,7 +119,11 @@
 }
 
 .active-workout-card {
+  position: relative;
+}
+.active-workout-card-inner {
   overflow: hidden;
+  border-radius: inherit;
 }
 
 .active-workout-card-top {
@@ -141,14 +145,14 @@
 .active-workout-title-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-3);
   min-width: 0;
 }
 
 .active-workout-exercise-title {
   margin: 0;
   min-width: 0;
-  flex: 1;
+  flex: 0 1 auto;
   color: var(--color-text);
   font-size: 1.1rem;
   line-height: 1.25;
@@ -234,6 +238,13 @@
     color 140ms ease,
     transform 120ms ease;
   flex-shrink: 0;
+  position: relative;
+}
+
+.active-workout-swap-btn::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
 }
 
 .active-workout-swap-btn:hover {
@@ -845,62 +856,37 @@
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.14);
 }
 
-.active-workout-swap-option-add {
-  border-style: dashed;
-  color: var(--color-accent);
-}
-
-.active-workout-exercise-header {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
-  gap: 12px;
-}
-
-.active-workout-exercise-header-main {
-  min-width: 0;
-}
-
-.active-workout-notes-link {
-  margin-top: 8px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--color-text-soft);
-  font: inherit;
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-}
-
-.active-workout-notes-link:hover {
-  color: var(--color-text);
-}
-
-.active-workout-delete-icon {
+.active-workout-card-delete-badge {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  z-index: 5;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   padding: 0;
-  margin: 0;
   border: 1px solid rgba(239, 68, 68, 0.2);
-  border-radius: 9px;
-  background: rgba(239, 68, 68, 0.08);
+  border-radius: 9999px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
   color: #ff9b9b;
-  font-family: Arial, sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
-  flex-shrink: 0;
-  transform: translate(0.5px, 1px);
 }
 
-.active-workout-delete-icon:hover {
+.active-workout-card-delete-badge:hover {
   background: rgba(239, 68, 68, 0.14);
   border-color: rgba(239, 68, 68, 0.32);
   color: #ffc2c2;
+}
+
+.active-workout-exercise-photo-wrap {
+  flex-shrink: 0;
+  margin-top: 4px;
 }
 
 .active-workout-delete-confirm {
@@ -956,6 +942,53 @@
   border: 1px solid var(--color-border);
   background: var(--color-surface-2);
   color: var(--color-text);
+}
+
+.active-workout-add-exercise-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.active-workout-swap-same-muscle-tag {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(59, 130, 246, 0.14);
+  color: #93c5fd;
+  font-size: 0.74rem;
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+/* Scroll interno del panel de swap para que no ocupe toda la pantalla */
+.active-workout-swap-results-scroll {
+  max-height: 45vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: 0 calc(var(--space-3) * -1);
+  padding: 0 var(--space-3);
+}
+
+/* Botón "Show all" / "Show only same muscle" */
+.active-workout-swap-show-all-btn {
+  width: 100%;
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  background: transparent;
+  color: var(--color-accent);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.active-workout-swap-show-all-btn:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: var(--color-accent);
 }
 
 /* RESPONSIVE */
@@ -1014,29 +1047,29 @@
     height: 52px;
   }
   .active-workout-col-set {
-  width: 12%;
-}
+    width: 12%;
+  }
 
-.active-workout-col-previous {
-  width: 26%;
-}
+  .active-workout-col-previous {
+    width: 26%;
+  }
 
-.active-workout-col-weight {
-  width: 24%;
-}
+  .active-workout-col-weight {
+    width: 24%;
+  }
 
-.active-workout-col-reps {
-  width: 24%;
-}
+  .active-workout-col-reps {
+    width: 24%;
+  }
 
-.active-workout-col-check {
-  width: 12%;
-}
+  .active-workout-col-check {
+    width: 12%;
+  }
 
-.active-workout-previous-cell {
-  font-size: 0.8rem;
-  padding: 0 4px;
-}
+  .active-workout-previous-cell {
+    font-size: 0.8rem;
+    padding: 0 4px;
+  }
 }
 
 @media (min-width: 641px) {

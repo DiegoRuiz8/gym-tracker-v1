@@ -1,3 +1,5 @@
+// src/types/log.ts
+
 import type { ID } from "./common";
 
 export type PerformedSet = {
@@ -11,7 +13,6 @@ export type WorkoutLog = {
   date: string;
   routineId?: ID;
   exerciseId: ID;
-  variantId: ID;
   performedSets: PerformedSet[];
   bodyweightKg?: number | null;
   notes?: string;

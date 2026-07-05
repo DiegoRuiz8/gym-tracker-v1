@@ -1,4 +1,6 @@
-import type { Exercise, ExerciseVariant } from "../types/exercise";
+// src/store/seedData.ts
+
+import type { Exercise } from "../types/exercise";
 import type { WorkoutLog } from "../types/log";
 import type { Routine } from "../types/routine";
 
@@ -6,60 +8,11 @@ const now = new Date().toISOString();
 
 export const seedExercises: Exercise[] = [
   {
-    id: "ex-bench-press",
-    name: "Bench Press",
-    category: "Push",
-    muscleGroups: ["chest", "triceps", "front-delts"],
-    createdAt: now,
-    updatedAt: now,
-  },
-  {
-    id: "ex-incline-press",
-    name: "Incline Press",
-    category: "Push",
-    muscleGroups: ["upper-chest", "triceps", "front-delts"],
-    createdAt: now,
-    updatedAt: now,
-  },
-  {
-    id: "ex-lateral-raise",
-    name: "Lateral Raise",
-    category: "Push",
-    muscleGroups: ["side-delts"],
-    createdAt: now,
-    updatedAt: now,
-  },
-  {
-    id: "ex-triceps-pushdown",
-    name: "Triceps Pushdown",
-    category: "Push",
-    muscleGroups: ["triceps"],
-    createdAt: now,
-    updatedAt: now,
-  },
-  {
-    id: "ex-lat-pulldown",
-    name: "Lat Pulldown",
-    category: "Pull",
-    muscleGroups: ["lats", "upper-back", "biceps"],
-    createdAt: now,
-    updatedAt: now,
-  },
-  {
-    id: "ex-row",
-    name: "Row",
-    category: "Pull",
-    muscleGroups: ["mid-back", "lats", "biceps"],
-    createdAt: now,
-    updatedAt: now,
-  },
-];
-
-export const seedExerciseVariants: ExerciseVariant[] = [
-  {
-    id: "var-bench-barbell",
-    exerciseId: "ex-bench-press",
+    id: "ex-bench-barbell",
     name: "Bench Press - Barbell",
+    category: "Push",
+    primaryMuscle: "chest",
+    secondaryMuscleGroups: ["triceps", "front-delts"],
     equipment: "barbell",
     gymLabel: "Flat bench",
     isActive: true,
@@ -68,9 +21,11 @@ export const seedExerciseVariants: ExerciseVariant[] = [
     updatedAt: now,
   },
   {
-    id: "var-bench-smith",
-    exerciseId: "ex-bench-press",
+    id: "ex-bench-smith",
     name: "Bench Press - Smith",
+    category: "Push",
+    primaryMuscle: "chest",
+    secondaryMuscleGroups: ["triceps", "front-delts"],
     equipment: "smith",
     gymLabel: "Smith machine",
     isActive: true,
@@ -79,9 +34,11 @@ export const seedExerciseVariants: ExerciseVariant[] = [
     updatedAt: now,
   },
   {
-    id: "var-incline-smith",
-    exerciseId: "ex-incline-press",
+    id: "ex-incline-smith",
     name: "Incline Press - Smith",
+    category: "Push",
+    primaryMuscle: "chest",
+    secondaryMuscleGroups: ["triceps", "front-delts"],
     equipment: "smith",
     gymLabel: "Incline smith",
     isActive: true,
@@ -90,9 +47,10 @@ export const seedExerciseVariants: ExerciseVariant[] = [
     updatedAt: now,
   },
   {
-    id: "var-lateral-cable",
-    exerciseId: "ex-lateral-raise",
+    id: "ex-lateral-cable",
     name: "Lateral Raise - Cable",
+    category: "Push",
+    primaryMuscle: "shoulders",
     equipment: "cable",
     gymLabel: "Cable station",
     isActive: true,
@@ -101,9 +59,10 @@ export const seedExerciseVariants: ExerciseVariant[] = [
     updatedAt: now,
   },
   {
-    id: "var-pushdown-rope",
-    exerciseId: "ex-triceps-pushdown",
+    id: "ex-pushdown-rope",
     name: "Triceps Pushdown - Rope",
+    category: "Push",
+    primaryMuscle: "triceps",
     equipment: "cable",
     gymLabel: "High pulley rope",
     isActive: true,
@@ -112,9 +71,11 @@ export const seedExerciseVariants: ExerciseVariant[] = [
     updatedAt: now,
   },
   {
-    id: "var-lat-pulldown-wide",
-    exerciseId: "ex-lat-pulldown",
+    id: "ex-lat-pulldown-wide",
     name: "Lat Pulldown - Wide Grip",
+    category: "Pull",
+    primaryMuscle: "lats",
+    secondaryMuscleGroups: ["back", "biceps"],
     equipment: "machine",
     gymLabel: "Lat pulldown machine",
     isActive: true,
@@ -123,9 +84,11 @@ export const seedExerciseVariants: ExerciseVariant[] = [
     updatedAt: now,
   },
   {
-    id: "var-row-chest-supported",
-    exerciseId: "ex-row",
+    id: "ex-row-chest-supported",
     name: "Row - Chest Supported",
+    category: "Pull",
+    primaryMuscle: "back",
+    secondaryMuscleGroups: ["lats", "biceps"],
     equipment: "machine",
     gymLabel: "Chest supported row",
     isActive: true,
@@ -147,8 +110,7 @@ export const seedRoutines: Routine[] = [
       {
         id: "ref-push-a-1",
         routineId: "routine-push-a",
-        exerciseId: "ex-bench-press",
-        variantId: "var-bench-barbell",
+        exerciseId: "ex-bench-barbell",
         order: 1,
         prescription: {
           sets: 4,
@@ -161,8 +123,7 @@ export const seedRoutines: Routine[] = [
       {
         id: "ref-push-a-2",
         routineId: "routine-push-a",
-        exerciseId: "ex-incline-press",
-        variantId: "var-incline-smith",
+        exerciseId: "ex-incline-smith",
         order: 2,
         prescription: {
           sets: 3,
@@ -174,8 +135,7 @@ export const seedRoutines: Routine[] = [
       {
         id: "ref-push-a-3",
         routineId: "routine-push-a",
-        exerciseId: "ex-lateral-raise",
-        variantId: "var-lateral-cable",
+        exerciseId: "ex-lateral-cable",
         order: 3,
         prescription: {
           sets: 3,
@@ -187,8 +147,7 @@ export const seedRoutines: Routine[] = [
       {
         id: "ref-push-a-4",
         routineId: "routine-push-a",
-        exerciseId: "ex-triceps-pushdown",
-        variantId: "var-pushdown-rope",
+        exerciseId: "ex-pushdown-rope",
         order: 4,
         prescription: {
           sets: 3,
@@ -210,8 +169,7 @@ export const seedRoutines: Routine[] = [
       {
         id: "ref-push-b-1",
         routineId: "routine-push-b",
-        exerciseId: "ex-bench-press",
-        variantId: "var-bench-barbell",
+        exerciseId: "ex-bench-barbell",
         order: 1,
         prescription: {
           sets: 3,
@@ -223,8 +181,7 @@ export const seedRoutines: Routine[] = [
       {
         id: "ref-push-b-2",
         routineId: "routine-push-b",
-        exerciseId: "ex-lateral-raise",
-        variantId: "var-lateral-cable",
+        exerciseId: "ex-lateral-cable",
         order: 2,
         prescription: {
           sets: 4,
@@ -236,8 +193,7 @@ export const seedRoutines: Routine[] = [
       {
         id: "ref-push-b-3",
         routineId: "routine-push-b",
-        exerciseId: "ex-triceps-pushdown",
-        variantId: "var-pushdown-rope",
+        exerciseId: "ex-pushdown-rope",
         order: 3,
         prescription: {
           sets: 3,
@@ -255,8 +211,7 @@ export const seedWorkoutLogs: WorkoutLog[] = [
     id: "log-1",
     date: "2026-03-01",
     routineId: "routine-push-a",
-    exerciseId: "ex-bench-press",
-    variantId: "var-bench-barbell",
+    exerciseId: "ex-bench-barbell",
     performedSets: [
       { reps: 8, weight: 25, rir: 1 },
       { reps: 7, weight: 25, rir: 1 },
@@ -270,8 +225,7 @@ export const seedWorkoutLogs: WorkoutLog[] = [
     id: "log-2",
     date: "2026-03-03",
     routineId: "routine-push-a",
-    exerciseId: "ex-incline-press",
-    variantId: "var-incline-smith",
+    exerciseId: "ex-incline-smith",
     performedSets: [
       { reps: 12, weight: 20, rir: 1 },
       { reps: 11, weight: 20, rir: 1 },
@@ -283,8 +237,7 @@ export const seedWorkoutLogs: WorkoutLog[] = [
     id: "log-3",
     date: "2026-03-05",
     routineId: "routine-push-b",
-    exerciseId: "ex-bench-press",
-    variantId: "var-bench-barbell",
+    exerciseId: "ex-bench-barbell",
     performedSets: [
       { reps: 10, weight: 25, rir: 1 },
       { reps: 9, weight: 25, rir: 1 },
@@ -297,8 +250,7 @@ export const seedWorkoutLogs: WorkoutLog[] = [
     id: "log-4",
     date: "2026-03-06",
     routineId: "routine-push-b",
-    exerciseId: "ex-lateral-raise",
-    variantId: "var-lateral-cable",
+    exerciseId: "ex-lateral-cable",
     performedSets: [
       { reps: 15, weight: 7.5, rir: 1 },
       { reps: 14, weight: 7.5, rir: 1 },

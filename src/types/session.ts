@@ -1,3 +1,5 @@
+// src/types/session.ts
+
 import type { ID } from "./common";
 import type { TrackingType } from "./exercise";
 import type { Prescription } from "./routine";
@@ -24,7 +26,6 @@ export type WorkoutSessionExercise = {
   id: ID;
   sessionId: ID;
   exerciseId: ID;
-  variantId: ID;
   order: number;
   trackingType: TrackingType;
   sourceRoutineExerciseRefId?: ID;
