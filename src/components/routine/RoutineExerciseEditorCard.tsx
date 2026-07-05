@@ -1,3 +1,5 @@
+// src/components/routine/RoutineExerciseEditorCard.tsx
+
 import { useState } from "react";
 import type { RoutineExerciseRef } from "../../types/routine";
 
@@ -12,7 +14,7 @@ type PrescriptionDraft = {
 
 type Props = {
   exerciseRef: RoutineExerciseRef;
-  variantName: string;
+  exerciseName: string;
   draft: PrescriptionDraft;
   error?: string;
   success?: boolean;
@@ -31,7 +33,7 @@ type Props = {
 
 export default function RoutineExerciseEditorCard({
   exerciseRef,
-  variantName,
+  exerciseName,
   draft,
   error,
   success,
@@ -51,7 +53,7 @@ export default function RoutineExerciseEditorCard({
       <div className="routine-form-list-item-content">
         <div className="routine-form-list-item-header">
           <div className="routine-form-list-item-title-wrap">
-            <h3 className="routine-form-list-item-title">{variantName}</h3>
+            <h3 className="routine-form-list-item-title">{exerciseName}</h3>
           </div>
 
           <div className="routine-form-list-item-order-actions">
@@ -63,7 +65,7 @@ export default function RoutineExerciseEditorCard({
                   onMoveUp(exerciseRef.id);
                 }
               }}
-              aria-label={`Move ${variantName} up`}
+              aria-label={`Move ${exerciseName} up`}
               title="Move up"
             >
               ↑
@@ -77,7 +79,7 @@ export default function RoutineExerciseEditorCard({
                   onMoveDown(exerciseRef.id);
                 }
               }}
-              aria-label={`Move ${variantName} down`}
+              aria-label={`Move ${exerciseName} down`}
               title="Move down"
             >
               ↓
@@ -91,7 +93,7 @@ export default function RoutineExerciseEditorCard({
               Remove exercise from routine?
             </p>
             <p className="routine-form-inline-confirm-text">
-              Remove <strong>{variantName}</strong> from this routine? Existing
+              Remove <strong>{exerciseName}</strong> from this routine? Existing
               workout logs will stay.
             </p>
 
@@ -116,75 +118,75 @@ export default function RoutineExerciseEditorCard({
         )}
 
         <div className="routine-form-prescription-stack">
-  <div className="routine-form-prescription-field">
-    <label className="routine-form-prescription-label">Sets</label>
-    <input
-      className="routine-form-prescription-input"
-      type="number"
-      min="0"
-      value={draft.sets}
-      onChange={(event) =>
-        onDraftChange(exerciseRef.id, "sets", event.target.value)
-      }
-    />
-  </div>
+          <div className="routine-form-prescription-field">
+            <label className="routine-form-prescription-label">Sets</label>
+            <input
+              className="routine-form-prescription-input"
+              type="number"
+              min="0"
+              value={draft.sets}
+              onChange={(event) =>
+                onDraftChange(exerciseRef.id, "sets", event.target.value)
+              }
+            />
+          </div>
 
-  <div className="routine-form-prescription-row">
-    <div className="routine-form-prescription-field">
-      <label className="routine-form-prescription-label">Min reps</label>
-      <input
-        className="routine-form-prescription-input"
-        type="number"
-        min="0"
-        value={draft.repMin}
-        onChange={(event) =>
-          onDraftChange(exerciseRef.id, "repMin", event.target.value)
-        }
-      />
-    </div>
+          <div className="routine-form-prescription-row">
+            <div className="routine-form-prescription-field">
+              <label className="routine-form-prescription-label">Min reps</label>
+              <input
+                className="routine-form-prescription-input"
+                type="number"
+                min="0"
+                value={draft.repMin}
+                onChange={(event) =>
+                  onDraftChange(exerciseRef.id, "repMin", event.target.value)
+                }
+              />
+            </div>
 
-    <div className="routine-form-prescription-field">
-      <label className="routine-form-prescription-label">Max reps</label>
-      <input
-        className="routine-form-prescription-input"
-        type="number"
-        min="0"
-        value={draft.repMax}
-        onChange={(event) =>
-          onDraftChange(exerciseRef.id, "repMax", event.target.value)
-        }
-      />
-    </div>
-  </div>
+            <div className="routine-form-prescription-field">
+              <label className="routine-form-prescription-label">Max reps</label>
+              <input
+                className="routine-form-prescription-input"
+                type="number"
+                min="0"
+                value={draft.repMax}
+                onChange={(event) =>
+                  onDraftChange(exerciseRef.id, "repMax", event.target.value)
+                }
+              />
+            </div>
+          </div>
 
-  <div className="routine-form-prescription-row">
-    <div className="routine-form-prescription-field">
-      <label className="routine-form-prescription-label">RIR</label>
-      <input
-        className="routine-form-prescription-input"
-        type="number"
-        min="0"
-        value={draft.targetRIR}
-        onChange={(event) =>
-          onDraftChange(exerciseRef.id, "targetRIR", event.target.value)
-        }
-      />
-    </div>
+          <div className="routine-form-prescription-row">
+            <div className="routine-form-prescription-field">
+              <label className="routine-form-prescription-label">RIR</label>
+              <input
+                className="routine-form-prescription-input"
+                type="number"
+                min="0"
+                value={draft.targetRIR}
+                onChange={(event) =>
+                  onDraftChange(exerciseRef.id, "targetRIR", event.target.value)
+                }
+              />
+            </div>
 
-    <div className="routine-form-prescription-field">
-      <label className="routine-form-prescription-label">Rest (s)</label>
-      <input
-        className="routine-form-prescription-input"
-        type="number"
-        min="0"
-        value={draft.restSeconds}
-        onChange={(event) =>
-          onDraftChange(exerciseRef.id, "restSeconds", event.target.value)
-        }
-      />
-    </div>
-  </div>
-</div>
+            <div className="routine-form-prescription-field">
+              <label className="routine-form-prescription-label">Rest (s)</label>
+              <input
+                className="routine-form-prescription-input"
+                type="number"
+                min="0"
+                value={draft.restSeconds}
+                onChange={(event) =>
+                  onDraftChange(exerciseRef.id, "restSeconds", event.target.value)
+                }
+              />
+            </div>
+          </div>
+        </div>
 
         <div className="routine-form-notes-toggle-row">
           <button

@@ -1,3 +1,5 @@
+// src/pages/ImportExportPage.tsx
+
 import { useState } from "react";
 import PageBackButton from "../components/navigation/PageBackButton";
 import { useAppStore } from "../store/useAppStore";
@@ -10,13 +12,14 @@ import "../styles/import-export.css";
 
 export default function ImportExportPage() {
   const exercises = useAppStore((state) => state.exercises);
-  const exerciseVariants = useAppStore((state) => state.exerciseVariants);
   const routines = useAppStore((state) => state.routines);
   const workoutLogs = useAppStore((state) => state.workoutLogs);
   const preferredWeightUnit = useAppStore((state) => state.preferredWeightUnit);
   const replaceAppData = useAppStore((state) => state.replaceAppData);
   const workoutSessions = useAppStore((state) => state.workoutSessions);
-const activeWorkoutSession = useAppStore((state) => state.activeWorkoutSession);
+  const activeWorkoutSession = useAppStore(
+    (state) => state.activeWorkoutSession,
+  );
 
   const [importMessage, setImportMessage] = useState<string>("");
   const [generalMessage, setGeneralMessage] = useState<string>("");
@@ -42,13 +45,13 @@ const activeWorkoutSession = useAppStore((state) => state.activeWorkoutSession);
       const payload = parseAppImportPayload(raw);
 
       replaceAppData({
-  ...payload.data,
-  preferredWeightUnit: payload.data.preferredWeightUnit ?? "kg",
-});
+        ...payload.data,
+        preferredWeightUnit: payload.data.preferredWeightUnit ?? "kg",
+      });
 
-setImportMessage(
-  `Import successful: ${payload.data.routines.length} routines, ${payload.data.exercises.length} exercises, ${payload.data.exerciseVariants.length} variants, ${payload.data.workoutLogs.length} legacy logs, ${payload.data.workoutSessions.length} sessions.`,
-);
+      setImportMessage(
+        `Import successful: ${payload.data.routines.length} routines, ${payload.data.exercises.length} exercises, ${payload.data.workoutLogs.length} legacy logs, ${payload.data.workoutSessions.length} sessions.`,
+      );
     } catch (importError) {
       const nextError =
         importError instanceof Error
@@ -68,17 +71,16 @@ setImportMessage(
     setError("");
 
     downloadAppDataAsJson({
-  version: 2,
-  data: {
-    exercises,
-    exerciseVariants,
-    routines,
-    workoutLogs,
-    workoutSessions,
-    activeWorkoutSession,
-    preferredWeightUnit,
-  },
-});
+      version: 4,
+      data: {
+        exercises,
+        routines,
+        workoutLogs,
+        workoutSessions,
+        activeWorkoutSession,
+        preferredWeightUnit,
+      },
+    });
 
     setGeneralMessage("Export created successfully.");
   }
@@ -149,7 +151,7 @@ setImportMessage(
         <p>
           Download the exact JSON shape this app expects. You can give this
           template to ChatGPT and ask it to fill it with your routines,
-          exercises, variants, and logs.
+          exercises, and logs.
         </p>
 
         <button
@@ -163,17 +165,19 @@ setImportMessage(
         <div className="import-export-help">
           <p className="import-export-help-title">What the import expects</p>
           <ul className="import-export-help-list">
-                        <li>You can leave history fields empty if you only want to import your setup.</li>
-
+            <li>
+              You can leave history fields empty if you only want to import your
+              setup.
+            </li>
             <li>Store all weights in kg.</li>
-           
             <li>
               PreferredWeightUnit is optional. If omitted, the app uses kg.
             </li>
-             <li>
-              Linked ids must match existing exercises, variants, and routines.
+            <li>
+              Each exercise uses primaryMuscle (single value, e.g. "chest") and
+              an optional secondaryMuscleGroups list.
             </li>
-            
+            <li>Linked ids must match existing exercises and routines.</li>
           </ul>
         </div>
       </section>

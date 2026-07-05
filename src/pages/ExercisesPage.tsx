@@ -1,21 +1,52 @@
-import { Link } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
+// src/pages/ExercisesPage.tsx
+
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore } from "../store/useAppStore";
-import { getLogsForVariant } from "../store/selectors";
+import { getLogsForExercise } from "../store/selectors";
 import { formatLogDate, formatSetPerformanceInline } from "../utils/format";
+import {
+  getExerciseDbCatalog,
+  getImagesForExercise,
+  type ExerciseDbEntry,
+} from "../lib/exerciseDbCache";
+import ExercisePhotoToggle from "../components/exercise/ExercisePhotoToggle";
 import "../styles/exercises-page.css";
 
 const EXERCISES_SCROLL_KEY = "exercises-page-scroll-y";
 
 export default function ExercisesPage() {
   const exercises = useAppStore((state) => state.exercises);
-  const exerciseVariants = useAppStore((state) => state.exerciseVariants);
   const workoutLogs = useAppStore((state) => state.workoutLogs);
   const preferredWeightUnit = useAppStore((state) => state.preferredWeightUnit);
 
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All categories");
   const [showInactive, setShowInactive] = useState(false);
+  const [catalog, setCatalog] = useState<ExerciseDbEntry[]>([]);
+  const [openMenuExerciseId, setOpenMenuExerciseId] = useState<string | null>(
+    null,
+  );
+  const openMenuRef = useRef<HTMLDivElement | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    getExerciseDbCatalog().then((result) => setCatalog(result.exercises));
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        openMenuRef.current &&
+        !openMenuRef.current.contains(event.target as Node)
+      ) {
+        setOpenMenuExerciseId(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const savedScroll = sessionStorage.getItem(EXERCISES_SCROLL_KEY);
@@ -35,6 +66,17 @@ export default function ExercisesPage() {
     sessionStorage.setItem(EXERCISES_SCROLL_KEY, String(window.scrollY));
   }
 
+  function handleToggleMenu(exerciseId: string) {
+    setOpenMenuExerciseId((current) =>
+      current === exerciseId ? null : exerciseId,
+    );
+  }
+
+  function handleMenuLinkClick() {
+    saveCurrentScroll();
+    setOpenMenuExerciseId(null);
+  }
+
   const categoryOptions = useMemo(() => {
     const categories = exercises
       .map((exercise) => exercise.category?.trim())
@@ -47,80 +89,44 @@ export default function ExercisesPage() {
 
   const normalizedSearch = search.trim().toLowerCase();
 
-  const filteredExerciseGroups = useMemo(() => {
-    return exercises
-      .map((exercise) => {
-        const exerciseMatchesCategory =
-          selectedCategory === "All categories" ||
-          exercise.category === selectedCategory;
+  const filteredExercises = useMemo(() => {
+    return exercises.filter((exercise) => {
+      const matchesCategory =
+        selectedCategory === "All categories" ||
+        exercise.category === selectedCategory;
 
-        if (!exerciseMatchesCategory) {
-          return null;
-        }
+      if (!matchesCategory) {
+        return false;
+      }
 
-        const visibleVariants = exerciseVariants.filter((variant) => {
-          if (variant.exerciseId !== exercise.id) {
-            return false;
-          }
+      if (!showInactive && !exercise.isActive) {
+        return false;
+      }
 
-          if (!showInactive && !variant.isActive) {
-            return false;
-          }
+      if (!normalizedSearch) {
+        return true;
+      }
 
-          if (!normalizedSearch) {
-            return true;
-          }
+      const setupLabel = exercise.gymLabel || exercise.equipment || "";
 
-          const setupLabel = variant.gymLabel || variant.equipment || "";
-
-          return (
-            exercise.name.toLowerCase().includes(normalizedSearch) ||
-            (exercise.category ?? "")
-              .toLowerCase()
-              .includes(normalizedSearch) ||
-            (exercise.notes ?? "").toLowerCase().includes(normalizedSearch) ||
-            (exercise.muscleGroups ?? []).some((muscle) =>
-              muscle.toLowerCase().includes(normalizedSearch),
-            ) ||
-            variant.name.toLowerCase().includes(normalizedSearch) ||
-            setupLabel.toLowerCase().includes(normalizedSearch) ||
-            (variant.notes ?? "").toLowerCase().includes(normalizedSearch)
-          );
-        });
-
-        const exerciseMatchesSearch =
-          !normalizedSearch ||
-          exercise.name.toLowerCase().includes(normalizedSearch) ||
-          (exercise.category ?? "").toLowerCase().includes(normalizedSearch) ||
-          (exercise.notes ?? "").toLowerCase().includes(normalizedSearch) ||
-          (exercise.muscleGroups ?? []).some((muscle) =>
-            muscle.toLowerCase().includes(normalizedSearch),
-          );
-
-        if (visibleVariants.length === 0 && !exerciseMatchesSearch) {
-          return null;
-        }
-
-        return {
-          exercise,
-          variants: visibleVariants,
-        };
-      })
-      .filter(
-        (
-          group,
-        ): group is {
-          exercise: (typeof exercises)[number];
-          variants: typeof exerciseVariants;
-        } => Boolean(group),
+      // Búsqueda en primaryMuscle + secondaryMuscleGroups
+      const matchesPrimary = (exercise.primaryMuscle ?? "")
+        .toLowerCase()
+        .includes(normalizedSearch);
+      const matchesSecondary = (exercise.secondaryMuscleGroups ?? []).some(
+        (muscle) => muscle.toLowerCase().includes(normalizedSearch),
       );
-  }, [
-    exercises,
-    exerciseVariants,
-    normalizedSearch,
-    selectedCategory,
-    showInactive,
-  ]);
+
+      return (
+        exercise.name.toLowerCase().includes(normalizedSearch) ||
+        (exercise.category ?? "").toLowerCase().includes(normalizedSearch) ||
+        (exercise.notes ?? "").toLowerCase().includes(normalizedSearch) ||
+        matchesPrimary ||
+        matchesSecondary ||
+        setupLabel.toLowerCase().includes(normalizedSearch)
+      );
+    });
+  }, [exercises, normalizedSearch, selectedCategory, showInactive]);
 
   return (
     <div className="exercises-page">
@@ -139,7 +145,7 @@ export default function ExercisesPage() {
           </div>
 
           <p className="exercises-page-description">
-            Manage your exercise library and variant history.
+            Manage your exercise library.
           </p>
         </header>
 
@@ -162,7 +168,7 @@ export default function ExercisesPage() {
                 type="text"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search exercises or variants..."
+                placeholder="Search exercises..."
               />
 
               {search.trim() && (
@@ -213,7 +219,7 @@ export default function ExercisesPage() {
           </div>
         </section>
 
-        {filteredExerciseGroups.length === 0 ? (
+        {filteredExercises.length === 0 ? (
           <div className="exercises-page-empty-state">
             <h2 className="exercises-page-empty-title">No exercises found</h2>
             <p className="exercises-page-empty-text">
@@ -221,170 +227,138 @@ export default function ExercisesPage() {
             </p>
           </div>
         ) : (
-          <div className="exercises-page-groups">
-            {filteredExerciseGroups.map(({ exercise, variants }) => (
-              <section key={exercise.id} className="exercises-page-group">
-                <div className="exercises-page-group-top">
-                  <div className="exercises-page-group-title-wrap">
-                    <p className="exercises-page-group-kicker">Exercise</p>
-                    <h2 className="exercises-page-group-title">
-                      {exercise.name}
-                    </h2>
+          <div className="exercises-page-variants">
+            {filteredExercises.map((exercise) => {
+              const logs = getLogsForExercise(workoutLogs, exercise.id);
+              const lastLog = logs[0];
+              const setupLabel = exercise.gymLabel || exercise.equipment;
+              const images = getImagesForExercise(
+                exercise.exerciseDbId,
+                catalog,
+              );
+              const isMenuOpen = openMenuExerciseId === exercise.id;
+
+              const hasSecondary =
+                exercise.secondaryMuscleGroups &&
+                exercise.secondaryMuscleGroups.length > 0;
+
+              return (
+                <div key={exercise.id} className="exercises-page-variant-card">
+                  <div className="exercises-page-variant-photo-float">
+                    <ExercisePhotoToggle
+                      images={images}
+                      alt={exercise.name}
+                      mode="compact"
+                      onPlaceholderClick={() =>
+                        navigate(`/exercises/${exercise.id}/edit`, {
+                          state: { returnTo: "/exercises" },
+                        })
+                      }
+                    />
                   </div>
 
-                  <div className="exercises-page-group-actions">
-                    <Link
-                      to={`/exercises/${exercise.id}/edit`}
-                      className="exercises-page-group-btn"
-                      state={{ returnTo: "/exercises" }}
-                      onClick={saveCurrentScroll}
-                    >
-                      Edit
-                    </Link>
+                  <div className="exercises-page-variant-title-row">
+                    <div className="exercises-page-variant-title-inline">
+                      <h3 className="exercises-page-variant-title">
+                        {exercise.name}
+                      </h3>
 
-                    <Link
-                      to={`/exercises/${exercise.id}/variants/new`}
-                      className="exercises-page-group-btn exercises-page-group-btn-primary"
-                      state={{ returnTo: "/exercises" }}
-                      onClick={saveCurrentScroll}
+                      {!exercise.isActive && (
+                        <span className="exercises-page-badge exercises-page-badge-inactive">
+                          Inactive
+                        </span>
+                      )}
+                    </div>
+
+                    <div
+                      className="exercises-page-kebab-wrap"
+                      ref={isMenuOpen ? openMenuRef : undefined}
                     >
-                      + Variant
-                    </Link>
+                      <button
+                        type="button"
+                        className="exercises-page-kebab-btn"
+                        onClick={() => handleToggleMenu(exercise.id)}
+                        aria-label={`More actions for ${exercise.name}`}
+                        aria-expanded={isMenuOpen}
+                      >
+                        ⋮
+                      </button>
+
+                      {isMenuOpen && (
+                        <div className="exercises-page-kebab-menu">
+                          <Link
+                            to={`/history/exercise/${exercise.id}`}
+                            className="exercises-page-kebab-menu-item"
+                            state={{ returnTo: "/exercises" }}
+                            onClick={handleMenuLinkClick}
+                          >
+                            History
+                          </Link>
+
+                          <Link
+                            to={`/exercises/${exercise.id}/edit`}
+                            className="exercises-page-kebab-menu-item"
+                            state={{ returnTo: "/exercises" }}
+                            onClick={handleMenuLinkClick}
+                          >
+                            Edit
+                          </Link>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                {(exercise.category ||
-                  exercise.muscleGroups?.length ||
-                  exercise.notes) && (
-                  <div className="exercises-page-group-meta">
-                    {exercise.category && (
-                      <p className="exercises-page-group-detail">
-                        <strong>Category:</strong> {exercise.category}
-                      </p>
-                    )}
-
-                    {exercise.muscleGroups &&
-                      exercise.muscleGroups.length > 0 && (
-                        <p className="exercises-page-group-detail">
-                          <strong>Muscles:</strong>{" "}
-                          {exercise.muscleGroups.join(", ")}
+                  {(exercise.category ||
+                    exercise.primaryMuscle ||
+                    hasSecondary ||
+                    setupLabel ||
+                    exercise.notes) && (
+                    <div className="exercises-page-variant-info">
+                      {exercise.category && (
+                        <p className="exercises-page-variant-detail">
+                          <strong>Category:</strong> {exercise.category}
                         </p>
                       )}
 
-                    {exercise.notes && (
-                      <p className="exercises-page-group-detail">
-                        <strong>Notes:</strong> {exercise.notes}
-                      </p>
-                    )}
-                  </div>
-                )}
+                      {exercise.primaryMuscle && (
+                        <p className="exercises-page-variant-detail">
+                          <strong>Primary muscle:</strong>{" "}
+                          {exercise.primaryMuscle}
+                        </p>
+                      )}
 
-                <div className="exercises-page-variants-header">
-                  <span className="exercises-page-variants-label">
-                    Variants
-                    <span className="exercises-page-variants-count">
-                      {variants.length}
-                    </span>
-                  </span>
+                      {hasSecondary && (
+                        <p className="exercises-page-variant-detail">
+                          <strong>Secondary:</strong>{" "}
+                          {exercise.secondaryMuscleGroups!.join(", ")}
+                        </p>
+                      )}
+
+                      {setupLabel && (
+                        <p className="exercises-page-variant-detail">
+                          <strong>Setup:</strong> {setupLabel}
+                        </p>
+                      )}
+
+                      {exercise.notes && (
+                        <p className="exercises-page-variant-detail">
+                          <strong>Notes:</strong> {exercise.notes}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  <p className="exercises-page-variant-latest">
+                    <strong>Latest:</strong>{" "}
+                    {formatSetPerformanceInline(lastLog, preferredWeightUnit)}
+                  </p>
+
+                  <p className="exercises-page-variant-meta">
+                    {formatLogDate(lastLog?.date)}
+                  </p>
                 </div>
-
-                {variants.length === 0 ? (
-                  <div className="exercises-page-empty-variants">
-                    <p className="exercises-page-empty-variants-text">
-                      No visible variants yet.
-                    </p>
-
-                    <Link
-                      to={`/exercises/${exercise.id}/variants/new`}
-                      className="exercises-page-empty-variants-link"
-                      state={{ returnTo: "/exercises" }}
-                      onClick={saveCurrentScroll}
-                    >
-                      Create the first variant
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="exercises-page-variants">
-                    {variants.map((variant) => {
-                      const logs = getLogsForVariant(workoutLogs, variant.id);
-                      const lastLog = logs[0];
-                      const setupLabel = variant.gymLabel || variant.equipment;
-
-                      return (
-                        <div
-                          key={variant.id}
-                          className="exercises-page-variant-card"
-                        >
-                          <div className="exercises-page-variant-top">
-                            <div className="exercises-page-variant-title-wrap">
-                              <h3 className="exercises-page-variant-title">
-                                {variant.name}
-                              </h3>
-
-                              {!variant.isActive && (
-                                <div className="exercises-page-variant-badges">
-                                  <span className="exercises-page-badge exercises-page-badge-inactive">
-                                    Inactive
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="exercises-page-variant-actions">
-                              <Link
-                                className="exercises-page-variant-link"
-                                to={`/history/variant/${variant.id}`}
-                                state={{ returnTo: "/exercises" }}
-                                onClick={saveCurrentScroll}
-                              >
-                                History
-                              </Link>
-
-                              <Link
-                                className="exercises-page-variant-link"
-                                to={`/variants/${variant.id}/edit`}
-                                state={{ returnTo: "/exercises" }}
-                                onClick={saveCurrentScroll}
-                              >
-                                Edit
-                              </Link>
-                            </div>
-                          </div>
-
-                          {(setupLabel || variant.notes) && (
-                            <div className="exercises-page-variant-info">
-                              {setupLabel && (
-                                <p className="exercises-page-variant-detail">
-                                  <strong>Setup:</strong> {setupLabel}
-                                </p>
-                              )}
-
-                              {variant.notes && (
-                                <p className="exercises-page-variant-detail">
-                                  <strong>Notes:</strong> {variant.notes}
-                                </p>
-                              )}
-                            </div>
-                          )}
-
-                          <p className="exercises-page-variant-latest">
-                            <strong>Latest:</strong>{" "}
-                            {formatSetPerformanceInline(
-                              lastLog,
-                              preferredWeightUnit,
-                            )}
-                          </p>
-
-                          <p className="exercises-page-variant-meta">
-                            {formatLogDate(lastLog?.date)}
-                          </p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </section>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

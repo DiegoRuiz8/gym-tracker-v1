@@ -1,7 +1,16 @@
-import { Navigate, useNavigate, useLocation } from "react-router-dom";
+// src/pages/ActiveWorkoutPage.tsx
+
+import { Navigate, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { useAppStore } from "../store/useAppStore";
+import {
+  getExerciseDbCatalog,
+  getImagesForExercise,
+  type ExerciseDbEntry,
+} from "../lib/exerciseDbCache";
+import ExercisePhotoToggle from "../components/exercise/ExercisePhotoToggle";
 import "../styles/active-workout.css";
+import type { Exercise } from "../types/exercise";
 
 function formatPrescriptionLabel(
   sets: number,
@@ -51,14 +60,11 @@ function formatElapsedTime(startedAt: string, nowMs: number) {
 export default function ActiveWorkoutPage() {
   const navigate = useNavigate();
 
-  const location = useLocation();
-
   const activeWorkoutSession = useAppStore(
     (state) => state.activeWorkoutSession,
   );
   const routines = useAppStore((state) => state.routines);
   const exercises = useAppStore((state) => state.exercises);
-  const variants = useAppStore((state) => state.exerciseVariants);
 
   const updateActiveSessionSetWeight = useAppStore(
     (state) => state.updateActiveSessionSetWeight,
@@ -90,13 +96,17 @@ export default function ActiveWorkoutPage() {
   const cancelActiveWorkoutSession = useAppStore(
     (state) => state.cancelActiveWorkoutSession,
   );
-  const swapActiveSessionExerciseVariant = useAppStore(
-    (state) => state.swapActiveSessionExerciseVariant,
+  const swapActiveSessionExercise = useAppStore(
+    (state) => state.swapActiveSessionExercise,
+  );
+  const addExerciseToActiveWorkoutSession = useAppStore(
+    (state) => state.addExerciseToActiveWorkoutSession,
   );
   const preferredWeightUnit = useAppStore((state) => state.preferredWeightUnit);
 
   const [notesOpen, setNotesOpen] = useState<Record<string, boolean>>({});
   const [swapOpen, setSwapOpen] = useState<Record<string, boolean>>({});
+  const [swapSearch, setSwapSearch] = useState<Record<string, string>>({});
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [showAddExercisePicker, setShowAddExercisePicker] = useState(false);
   const [exerciseSearch, setExerciseSearch] = useState("");
@@ -108,10 +118,12 @@ export default function ActiveWorkoutPage() {
   const [firstSetWeightBeforeEdit, setFirstSetWeightBeforeEdit] = useState<
     Record<string, number | null>
   >({});
+  const [catalog, setCatalog] = useState<ExerciseDbEntry[]>([]);
+  const [swapExpanded, setSwapExpanded] = useState<Record<string, boolean>>({});
 
-  const addExerciseToActiveWorkoutSession = useAppStore(
-    (state) => state.addExerciseToActiveWorkoutSession,
-  );
+  useEffect(() => {
+    getExerciseDbCatalog().then((result) => setCatalog(result.exercises));
+  }, []);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -121,42 +133,7 @@ export default function ActiveWorkoutPage() {
     return () => window.clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    const state = location.state as
-      | {
-          source?: string;
-          createdVariantId?: string;
-          sessionExerciseId?: string;
-        }
-      | undefined;
-
-    if (
-      state?.source !== "active-workout" ||
-      !state.createdVariantId ||
-      !state.sessionExerciseId
-    ) {
-      return;
-    }
-
-    swapActiveSessionExerciseVariant(
-      state.sessionExerciseId,
-      state.createdVariantId,
-    );
-
-    setSwapOpen((prev) => ({
-      ...prev,
-      [state.sessionExerciseId!]: true,
-    }));
-
-    navigate(location.pathname, { replace: true, state: null });
-  }, [
-    location.pathname,
-    location.state,
-    navigate,
-    swapActiveSessionExerciseVariant,
-  ]);
-
-    const elapsedLabel = useMemo(() => {
+  const elapsedLabel = useMemo(() => {
     if (!activeWorkoutSession) {
       return "0s";
     }
@@ -172,59 +149,38 @@ export default function ActiveWorkoutPage() {
     (item) => item.id === activeWorkoutSession.routineId,
   );
 
-  const availableVariantsToAdd = variants.filter((variant) => {
+  // Ejercicios elegibles para agregar (o intercambiar): activos y que todavia
+  // no esten en la sesion. Reusado tanto por el panel "Add exercise" como por
+  // cada panel de swap individual.
+  const availableExercisesToAdd = exercises.filter((exercise) => {
     const alreadyInSession = activeWorkoutSession.exercises.some(
-      (exercise) => exercise.variantId === variant.id,
+      (sessionExercise) => sessionExercise.exerciseId === exercise.id,
     );
 
-    return variant.isActive && !alreadyInSession;
+    return exercise.isActive && !alreadyInSession;
   });
 
-  const filteredVariantsToAdd = availableVariantsToAdd.filter((variant) => {
-    const exercise = exercises.find((item) => item.id === variant.exerciseId);
-    const search = exerciseSearch.trim().toLowerCase();
+  function filterExercisesBySearch(search: string) {
+    const normalizedSearch = search.trim().toLowerCase();
 
-    if (!search) {
-      return true;
+    if (!normalizedSearch) {
+      return availableExercisesToAdd;
     }
 
-    const exerciseName = exercise?.name.toLowerCase() ?? "";
-    const variantName = variant.name.toLowerCase();
-    const equipment = variant.equipment?.toLowerCase() ?? "";
-    const gymLabel = variant.gymLabel?.toLowerCase() ?? "";
+    return availableExercisesToAdd.filter((exercise) => {
+      const name = exercise.name.toLowerCase();
+      const equipment = exercise.equipment?.toLowerCase() ?? "";
+      const gymLabel = exercise.gymLabel?.toLowerCase() ?? "";
 
-    return (
-      exerciseName.includes(search) ||
-      variantName.includes(search) ||
-      equipment.includes(search) ||
-      gymLabel.includes(search)
-    );
-  });
-
-  function getVariantDisplayLabel(variantId: string): string {
-    const variant = variants.find((item) => item.id === variantId);
-
-    if (!variant) {
-      return "Unknown exercise — Unknown variant";
-    }
-
-    const exercise = exercises.find((item) => item.id === variant.exerciseId);
-    const exerciseName = exercise?.name ?? "Unknown exercise";
-
-    return `${exerciseName} — ${variant.name}`;
-  }
-  function handleOpenNewVariantFromSession(
-    exerciseId: string,
-    sessionExerciseId: string,
-  ) {
-    navigate(`/exercises/${exerciseId}/variants/new`, {
-      state: {
-        returnTo: "/active-workout",
-        source: "active-workout",
-        sessionExerciseId,
-      },
+      return (
+        name.includes(normalizedSearch) ||
+        equipment.includes(normalizedSearch) ||
+        gymLabel.includes(normalizedSearch)
+      );
     });
   }
+
+  const filteredExercisesToAdd = filterExercisesBySearch(exerciseSearch);
 
   function formatPreviousSetLabel(
     set: {
@@ -323,8 +279,6 @@ export default function ActiveWorkoutPage() {
     return unit.toUpperCase();
   }
 
- 
-
   const completedExercisesCount = activeWorkoutSession.exercises.filter(
     (exercise) => exercise.isCompleted,
   ).length;
@@ -376,8 +330,56 @@ export default function ActiveWorkoutPage() {
       delete next[sessionExerciseId];
       return next;
     });
+
+    setSwapSearch((prev) => {
+      const next = { ...prev };
+      delete next[sessionExerciseId];
+      return next;
+    });
+
+    setSwapExpanded((prev) => {
+  const next = { ...prev };
+  delete next[sessionExerciseId];
+  return next;
+});
   }
 
+  function handleToggleSwap(sessionExerciseId: string) {
+  setSwapOpen((prev) => ({
+    ...prev,
+    [sessionExerciseId]: !prev[sessionExerciseId],
+  }));
+  // Al cerrar el swap, resetear también el estado expanded
+  setSwapExpanded((prev) => {
+    const next = { ...prev };
+    delete next[sessionExerciseId];
+    return next;
+  });
+}
+
+  function handleSelectSwapExercise(
+  sessionExerciseId: string,
+  nextExerciseId: string,
+) {
+  swapActiveSessionExercise(sessionExerciseId, nextExerciseId);
+
+  setSwapOpen((prev) => ({ ...prev, [sessionExerciseId]: false }));
+  setSwapSearch((prev) => ({ ...prev, [sessionExerciseId]: "" }));
+  setSwapExpanded((prev) => {
+    const next = { ...prev };
+    delete next[sessionExerciseId];
+    return next;
+  });
+}
+
+  function hasSharedMuscle(a: Exercise, b: Exercise): boolean {
+  const aPrimary = a.primaryMuscle?.toLowerCase();
+  const bPrimary = b.primaryMuscle?.toLowerCase();
+
+  if (!aPrimary || !bPrimary) return false;
+
+  return aPrimary === bPrimary;
+}
   return (
     <div className="active-workout-page">
       <header className="active-workout-header">
@@ -427,16 +429,6 @@ export default function ActiveWorkoutPage() {
                 (item) => item.id === sessionExercise.exerciseId,
               );
 
-              const variant = variants.find(
-                (item) => item.id === sessionExercise.variantId,
-              );
-
-              const availableSwapVariants = variants.filter(
-                (item) =>
-                  item.exerciseId === sessionExercise.exerciseId &&
-                  item.isActive,
-              );
-
               const prescription = sessionExercise.prescription;
               const prescribedSetCount = prescription?.sets ?? 0;
               const canRemoveLastSet =
@@ -447,381 +439,481 @@ export default function ActiveWorkoutPage() {
                 Boolean(sessionExercise.notes?.trim());
 
               const isSwapOpen = Boolean(swapOpen[sessionExercise.id]);
+              const currentSwapSearch = swapSearch[sessionExercise.id] ?? "";
+              const unsortedSwapResults =
+                filterExercisesBySearch(currentSwapSearch);
+              const swapResults = exercise
+                ? [...unsortedSwapResults].sort((a, b) => {
+                    const aShares = hasSharedMuscle(exercise, a) ? 0 : 1;
+                    const bShares = hasSharedMuscle(exercise, b) ? 0 : 1;
+                    return aShares - bShares;
+                  })
+                : unsortedSwapResults;
+
+              // Agregar antes del return en ActiveWorkoutPage.tsx (junto a las otras funciones helper)
 
               return (
                 <article
                   key={sessionExercise.id}
                   className="surface-card active-workout-card"
                 >
-                  <div className="active-workout-card-top">
-                    <div className="active-workout-card-heading-row">
-                      <div className="active-workout-card-heading-main">
-                        <div className="active-workout-title-row">
-                          <h2 className="active-workout-exercise-title">
-                            {exercise?.name ?? "Unknown exercise"}
+                  <button
+                    type="button"
+                    className="active-workout-card-delete-badge"
+                    aria-label="Remove exercise"
+                    title="Remove exercise"
+                    onClick={() =>
+                      handleRequestDeleteExercise(sessionExercise.id)
+                    }
+                  >
+                    ✕
+                  </button>
+                  <div className="active-workout-card-inner">
+                    <div className="active-workout-card-top">
+                      <div className="active-workout-card-heading-row">
+                        <div className="active-workout-card-heading-main">
+                          <div className="active-workout-title-row">
+                            <h2 className="active-workout-exercise-title">
+                              {exercise?.name ?? "Unknown exercise"}
+                            </h2>
 
-                            {variant?.name ? (
-                              <span className="active-workout-exercise-variant-wrap">
-                                <span className="active-workout-exercise-variant">
-                                  ({variant.name})
-                                </span>
+                            <button
+                              type="button"
+                              className="active-workout-swap-btn"
+                              onClick={() =>
+                                handleToggleSwap(sessionExercise.id)
+                              }
+                              aria-label={`Swap exercise for ${
+                                exercise?.name ?? "exercise"
+                              }`}
+                              aria-expanded={isSwapOpen}
+                              title="Swap exercise"
+                            >
+                              ⇄
+                            </button>
+                          </div>
 
-                                <button
-                                  type="button"
-                                  className="active-workout-swap-btn"
-                                  onClick={() =>
-                                    setSwapOpen((prev) => ({
-                                      ...prev,
-                                      [sessionExercise.id]:
-                                        !prev[sessionExercise.id],
-                                    }))
-                                  }
-                                  aria-label={`Swap variant for ${
-                                    exercise?.name ?? "exercise"
-                                  }`}
-                                  aria-expanded={isSwapOpen}
-                                  title="Swap variant"
-                                >
-                                  ⇄
-                                </button>
-                              </span>
-                            ) : null}
-                          </h2>
+                          <p className="active-workout-prescription">
+                            {formatPrescriptionLabel(
+                              prescription?.sets ??
+                                sessionExercise.performedSets.length,
+                              prescription?.repRange?.min,
+                              prescription?.repRange?.max,
+                              prescription?.targetRIR,
+                              prescription?.restSeconds,
+                            )}
+                          </p>
+
+                          <button
+                            type="button"
+                            className="active-workout-notes-toggle"
+                            onClick={() =>
+                              setNotesOpen((prev) => ({
+                                ...prev,
+                                [sessionExercise.id]: !prev[sessionExercise.id],
+                              }))
+                            }
+                          >
+                            {isNotesOpen ? "Hide notes" : "Add notes"}
+                          </button>
                         </div>
 
-                        <p className="active-workout-prescription">
-                          {formatPrescriptionLabel(
-                            prescription?.sets ??
-                              sessionExercise.performedSets.length,
-                            prescription?.repRange?.min,
-                            prescription?.repRange?.max,
-                            prescription?.targetRIR,
-                            prescription?.restSeconds,
-                          )}
-                        </p>
-
-                        <button
-                          type="button"
-                          className="active-workout-notes-toggle"
-                          onClick={() =>
-                            setNotesOpen((prev) => ({
-                              ...prev,
-                              [sessionExercise.id]: !prev[sessionExercise.id],
-                            }))
-                          }
-                        >
-                          {isNotesOpen ? "Hide notes" : "Add notes"}
-                        </button>
+                        <div className="active-workout-exercise-photo-wrap">
+                          <ExercisePhotoToggle
+                            images={getImagesForExercise(
+                              exercise?.exerciseDbId,
+                              catalog,
+                            )}
+                            alt={exercise?.name ?? "Unknown exercise"}
+                            mode="compact"
+                          />
+                        </div>
                       </div>
 
-                      <button
-                        type="button"
-                        className="active-workout-delete-icon"
-                        aria-label="Remove exercise"
-                        title="Remove exercise"
-                        onClick={() =>
-                          handleRequestDeleteExercise(sessionExercise.id)
-                        }
-                      >
-                        ✕
-                      </button>
+                      {deleteConfirmOpen[sessionExercise.id] ? (
+                        <div className="active-workout-delete-confirm">
+                          <p className="active-workout-delete-text">
+                            Remove exercise?
+                          </p>
+                          <p className="active-workout-delete-subtext">
+                            This exercise will be removed from the active
+                            session.
+                          </p>
+
+                          <div className="active-workout-delete-actions">
+                            <button
+                              type="button"
+                              className="active-workout-btn active-workout-btn-danger"
+                              onClick={() =>
+                                handleConfirmDeleteExercise(sessionExercise.id)
+                              }
+                            >
+                              Remove
+                            </button>
+
+                            <button
+                              type="button"
+                              className="active-workout-btn active-workout-btn-secondary"
+                              onClick={() =>
+                                handleCancelDeleteExercise(sessionExercise.id)
+                              }
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {isSwapOpen ? (() => {
+  // Cuando NO hay búsqueda: solo mostrar Same muscle + botón "Show all".
+  // Cuando SÍ hay búsqueda: mostrar todos los resultados filtrados
+  // (con Same muscle arriba, ya viene ordenado desde swapResults).
+  const isSearching = currentSwapSearch.trim().length > 0;
+  const isExpanded = Boolean(swapExpanded[sessionExercise.id]);
+
+  const sameMuscleResults = exercise
+    ? swapResults.filter((item) => hasSharedMuscle(exercise, item))
+    : [];
+  const otherResults = exercise
+    ? swapResults.filter((item) => !hasSharedMuscle(exercise, item))
+    : swapResults;
+
+  // Sin búsqueda: default a mostrar solo same muscle, con opción de expandir.
+  // Con búsqueda: mostrar todos los que matchean (same muscle primero).
+  const visibleResults = isSearching
+    ? swapResults
+    : isExpanded
+      ? swapResults
+      : sameMuscleResults;
+
+  const hasHiddenOthers =
+    !isSearching && !isExpanded && otherResults.length > 0;
+
+  return (
+    <div className="active-workout-swap-panel">
+      <p className="active-workout-swap-label">Swap for today</p>
+
+      <div className="active-workout-add-exercise-input-wrap">
+        <input
+          className="input active-workout-add-exercise-input"
+          type="text"
+          placeholder="Search exercise"
+          value={currentSwapSearch}
+          onChange={(event) =>
+            setSwapSearch((prev) => ({
+              ...prev,
+              [sessionExercise.id]: event.target.value,
+            }))
+          }
+        />
+
+        {currentSwapSearch.trim() ? (
+          <button
+            type="button"
+            className="active-workout-add-exercise-clear-btn"
+            aria-label="Clear search"
+            onClick={() =>
+              setSwapSearch((prev) => ({
+                ...prev,
+                [sessionExercise.id]: "",
+              }))
+            }
+          >
+            ×
+          </button>
+        ) : null}
+      </div>
+
+      {visibleResults.length > 0 ? (
+        <div className="active-workout-swap-results-scroll">
+          <div className="active-workout-add-exercise-results">
+            {visibleResults.slice(0, 20).map((item) => {
+              const sharesMuscle = exercise
+                ? hasSharedMuscle(exercise, item)
+                : false;
+
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="active-workout-add-exercise-result"
+                  onClick={() =>
+                    handleSelectSwapExercise(
+                      sessionExercise.id,
+                      item.id,
+                    )
+                  }
+                >
+                  <span>{item.name}</span>
+                  {sharesMuscle && (
+                    <span className="active-workout-swap-same-muscle-tag">
+                      Same muscle
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <p className="active-workout-add-exercise-empty">
+          {isSearching
+            ? "No available exercises match your search."
+            : "No exercises with the same primary muscle. Show all to browse other options."}
+        </p>
+      )}
+
+      {hasHiddenOthers ? (
+        <button
+          type="button"
+          className="active-workout-swap-show-all-btn"
+          onClick={() =>
+            setSwapExpanded((prev) => ({
+              ...prev,
+              [sessionExercise.id]: true,
+            }))
+          }
+        >
+          Show all exercises ({otherResults.length} more)
+        </button>
+      ) : null}
+
+      {!isSearching && isExpanded ? (
+        <button
+          type="button"
+          className="active-workout-swap-show-all-btn"
+          onClick={() =>
+            setSwapExpanded((prev) => ({
+              ...prev,
+              [sessionExercise.id]: false,
+            }))
+          }
+        >
+          Show only same muscle
+        </button>
+      ) : null}
+    </div>
+  );
+})() : null}
+
+                      {isNotesOpen ? (
+                        <div className="active-workout-notes">
+                          <textarea
+                            className="textarea"
+                            placeholder="Notes for this exercise..."
+                            value={sessionExercise.notes ?? ""}
+                            onChange={(e) => {
+                              updateActiveSessionExerciseNotes(
+                                sessionExercise.id,
+                                e.target.value,
+                              );
+
+                              e.target.style.height = "42px";
+                              e.target.style.height = `${e.target.scrollHeight}px`;
+                            }}
+                            onInput={(e) => {
+                              const target = e.currentTarget;
+                              target.style.height = "42px";
+                              target.style.height = `${target.scrollHeight}px`;
+                            }}
+                          />
+                        </div>
+                      ) : null}
                     </div>
 
-                    {deleteConfirmOpen[sessionExercise.id] ? (
-                      <div className="active-workout-delete-confirm">
-                        <p className="active-workout-delete-text">
-                          Remove exercise?
-                        </p>
-                        <p className="active-workout-delete-subtext">
-                          This exercise will be removed from the active session.
-                        </p>
+                    <div className="active-workout-table-wrap">
+                      <table className="active-workout-table">
+                        <colgroup>
+                          <col className="active-workout-col-set" />
+                          <col className="active-workout-col-previous" />
+                          <col className="active-workout-col-weight" />
+                          <col className="active-workout-col-reps" />
+                          <col className="active-workout-col-check" />
+                        </colgroup>
 
-                        <div className="active-workout-delete-actions">
-                          <button
-                            type="button"
-                            className="active-workout-btn active-workout-btn-danger"
-                            onClick={() =>
-                              handleConfirmDeleteExercise(sessionExercise.id)
-                            }
-                          >
-                            Remove
-                          </button>
-
-                          <button
-                            type="button"
-                            className="active-workout-btn active-workout-btn-secondary"
-                            onClick={() =>
-                              handleCancelDeleteExercise(sessionExercise.id)
-                            }
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {isSwapOpen ? (
-                      <div className="active-workout-swap-panel">
-                        <p className="active-workout-swap-label">
-                          Swap for today
-                        </p>
-
-                        <div className="active-workout-swap-options">
-                          {availableSwapVariants.map((item) => (
-                            <button
-                              key={item.id}
-                              type="button"
-                              className={`active-workout-swap-option ${
-                                item.id === sessionExercise.variantId
-                                  ? "active-workout-swap-option-active"
-                                  : ""
-                              }`}
-                              onClick={() => {
-                                if (item.id === sessionExercise.variantId) {
-                                  setSwapOpen((prev) => ({
-                                    ...prev,
-                                    [sessionExercise.id]: false,
-                                  }));
-                                  return;
-                                }
-
-                                swapActiveSessionExerciseVariant(
-                                  sessionExercise.id,
-                                  item.id,
-                                );
-
-                                setSwapOpen((prev) => ({
-                                  ...prev,
-                                  [sessionExercise.id]: false,
-                                }));
-                              }}
+                        <thead>
+                          <tr>
+                            <th>Set</th>
+                            <th>Previous</th>
+                            <th>
+                              {formatWeightUnitLabel(preferredWeightUnit)}
+                            </th>
+                            <th>Reps</th>
+                            <th
+                              className="active-workout-check-header"
+                              aria-label="Completed"
                             >
-                              {item.name}
-                            </button>
-                          ))}
-                          <button
-                            type="button"
-                            className="active-workout-swap-option active-workout-swap-chip-add"
-                            onClick={() =>
-                              handleOpenNewVariantFromSession(
-                                sessionExercise.exerciseId,
-                                sessionExercise.id,
-                              )
-                            }
-                          >
-                            + New variant
-                          </button>
-                        </div>
-                      </div>
-                    ) : null}
+                              <span aria-hidden="true">✓</span>
+                            </th>
+                          </tr>
+                        </thead>
 
-                    {isNotesOpen ? (
-                      <div className="active-workout-notes">
-                        <textarea
-                          className="textarea"
-                          placeholder="Notes for this exercise..."
-                          value={sessionExercise.notes ?? ""}
-                          onChange={(e) => {
-                            updateActiveSessionExerciseNotes(
-                              sessionExercise.id,
-                              e.target.value,
-                            );
-
-                            e.target.style.height = "42px";
-                            e.target.style.height = `${e.target.scrollHeight}px`;
-                          }}
-                          onInput={(e) => {
-                            const target = e.currentTarget;
-                            target.style.height = "42px";
-                            target.style.height = `${target.scrollHeight}px`;
-                          }}
-                        />
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <div className="active-workout-table-wrap">
-                    <table className="active-workout-table">
-                      <colgroup>
-                        <col className="active-workout-col-set" />
-                        <col className="active-workout-col-previous" />
-                        <col className="active-workout-col-weight" />
-                        <col className="active-workout-col-reps" />
-                        <col className="active-workout-col-check" />
-                      </colgroup>
-
-                      <thead>
-                        <tr>
-                          <th>Set</th>
-                          <th>Previous</th>
-                          <th>{formatWeightUnitLabel(preferredWeightUnit)}</th>
-                          <th>Reps</th>
-                          <th
-                            className="active-workout-check-header"
-                            aria-label="Completed"
-                          >
-                            <span aria-hidden="true">✓</span>
-                          </th>
-                        </tr>
-                      </thead>
-
-                      <tbody>
-                        {sessionExercise.performedSets.map((set, setIndex) => (
-                          <tr
-                            key={set.id}
-                            className={
-                              set.isCompleted
-                                ? "active-workout-set-row is-completed"
-                                : "active-workout-set-row"
-                            }
-                          >
-                            <td className="active-workout-set-number">
-                              {set.setNumber}
-                            </td>
-
-                            <td className="active-workout-previous-cell">
-                              {formatPreviousSetLabel(set, preferredWeightUnit)}
-                            </td>
-
-                            <td className="active-workout-cell-input">
-                              <input
-                                className="input"
-                                type="number"
-                                inputMode="decimal"
-                                placeholder="0"
-                                value={formatDisplayWeightValue(
-                                  set.weight,
-                                  preferredWeightUnit,
-                                )}
-                                onFocus={() => {
-                                  if (setIndex !== 0) {
-                                    return;
-                                  }
-
-                                  setFirstSetWeightBeforeEdit((prev) => ({
-                                    ...prev,
-                                    [sessionExercise.id]: set.weight ?? null,
-                                  }));
-                                }}
-                                onChange={(e) =>
-                                  updateActiveSessionSetWeight(
-                                    sessionExercise.id,
-                                    set.id,
-                                    e.target.value === ""
-                                      ? null
-                                      : convertWeightToKg(
-                                          Number(e.target.value),
-                                          preferredWeightUnit,
-                                        ),
-                                  )
-                                }
-                                onBlur={(e) => {
-                                  if (setIndex !== 0) {
-                                    return;
-                                  }
-
-                                  const originalWeight =
-                                    firstSetWeightBeforeEdit[
-                                      sessionExercise.id
-                                    ] ?? null;
-
-                                  const finalWeight =
-                                    e.target.value === ""
-                                      ? null
-                                      : convertWeightToKg(
-                                          Number(e.target.value),
-                                          preferredWeightUnit,
-                                        );
-
-                                  propagateActiveSessionSetWeightFromFirstSet(
-                                    sessionExercise.id,
-                                    originalWeight,
-                                    finalWeight,
-                                  );
-
-                                  setFirstSetWeightBeforeEdit((prev) => {
-                                    const next = { ...prev };
-                                    delete next[sessionExercise.id];
-                                    return next;
-                                  });
-                                }}
-                              />
-                            </td>
-
-                            <td className="active-workout-cell-input">
-                              <input
-                                className="input"
-                                type="number"
-                                inputMode="numeric"
-                                placeholder="0"
-                                value={set.reps ?? ""}
-                                onChange={(e) =>
-                                  updateActiveSessionSetReps(
-                                    sessionExercise.id,
-                                    set.id,
-                                    e.target.value === ""
-                                      ? null
-                                      : Number(e.target.value),
-                                  )
-                                }
-                              />
-                            </td>
-
-                            <td className="active-workout-check-cell">
-                              <button
-                                type="button"
-                                aria-label={
+                        <tbody>
+                          {sessionExercise.performedSets.map(
+                            (set, setIndex) => (
+                              <tr
+                                key={set.id}
+                                className={
                                   set.isCompleted
-                                    ? "Mark set as incomplete"
-                                    : "Mark set as complete"
-                                }
-                                className={`active-workout-check-btn ${
-                                  set.isCompleted ? "is-completed" : ""
-                                }`}
-                                onClick={() =>
-                                  toggleActiveSessionSetCompleted(
-                                    sessionExercise.id,
-                                    set.id,
-                                  )
+                                    ? "active-workout-set-row is-completed"
+                                    : "active-workout-set-row"
                                 }
                               >
-                                ✓
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                                <td className="active-workout-set-number">
+                                  {set.setNumber}
+                                </td>
 
-                  <div
-                    className={`active-workout-card-footer ${
-                      canRemoveLastSet
-                        ? "active-workout-card-footer-with-secondary"
-                        : ""
-                    }`}
-                  >
-                    <button
-                      type="button"
-                      className="button-secondary active-workout-add-set-btn"
-                      onClick={() =>
-                        addActiveSessionExerciseSet(sessionExercise.id)
-                      }
+                                <td className="active-workout-previous-cell">
+                                  {formatPreviousSetLabel(
+                                    set,
+                                    preferredWeightUnit,
+                                  )}
+                                </td>
+
+                                <td className="active-workout-cell-input">
+                                  <input
+                                    className="input"
+                                    type="number"
+                                    inputMode="decimal"
+                                    placeholder="0"
+                                    value={formatDisplayWeightValue(
+                                      set.weight,
+                                      preferredWeightUnit,
+                                    )}
+                                    onFocus={() => {
+                                      if (setIndex !== 0) {
+                                        return;
+                                      }
+
+                                      setFirstSetWeightBeforeEdit((prev) => ({
+                                        ...prev,
+                                        [sessionExercise.id]:
+                                          set.weight ?? null,
+                                      }));
+                                    }}
+                                    onChange={(e) =>
+                                      updateActiveSessionSetWeight(
+                                        sessionExercise.id,
+                                        set.id,
+                                        e.target.value === ""
+                                          ? null
+                                          : convertWeightToKg(
+                                              Number(e.target.value),
+                                              preferredWeightUnit,
+                                            ),
+                                      )
+                                    }
+                                    onBlur={(e) => {
+                                      if (setIndex !== 0) {
+                                        return;
+                                      }
+
+                                      const originalWeight =
+                                        firstSetWeightBeforeEdit[
+                                          sessionExercise.id
+                                        ] ?? null;
+
+                                      const finalWeight =
+                                        e.target.value === ""
+                                          ? null
+                                          : convertWeightToKg(
+                                              Number(e.target.value),
+                                              preferredWeightUnit,
+                                            );
+
+                                      propagateActiveSessionSetWeightFromFirstSet(
+                                        sessionExercise.id,
+                                        originalWeight,
+                                        finalWeight,
+                                      );
+
+                                      setFirstSetWeightBeforeEdit((prev) => {
+                                        const next = { ...prev };
+                                        delete next[sessionExercise.id];
+                                        return next;
+                                      });
+                                    }}
+                                  />
+                                </td>
+
+                                <td className="active-workout-cell-input">
+                                  <input
+                                    className="input"
+                                    type="number"
+                                    inputMode="numeric"
+                                    placeholder="0"
+                                    value={set.reps ?? ""}
+                                    onChange={(e) =>
+                                      updateActiveSessionSetReps(
+                                        sessionExercise.id,
+                                        set.id,
+                                        e.target.value === ""
+                                          ? null
+                                          : Number(e.target.value),
+                                      )
+                                    }
+                                  />
+                                </td>
+
+                                <td className="active-workout-check-cell">
+                                  <button
+                                    type="button"
+                                    aria-label={
+                                      set.isCompleted
+                                        ? "Mark set as incomplete"
+                                        : "Mark set as complete"
+                                    }
+                                    className={`active-workout-check-btn ${
+                                      set.isCompleted ? "is-completed" : ""
+                                    }`}
+                                    onClick={() =>
+                                      toggleActiveSessionSetCompleted(
+                                        sessionExercise.id,
+                                        set.id,
+                                      )
+                                    }
+                                  >
+                                    ✓
+                                  </button>
+                                </td>
+                              </tr>
+                            ),
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div
+                      className={`active-workout-card-footer ${
+                        canRemoveLastSet
+                          ? "active-workout-card-footer-with-secondary"
+                          : ""
+                      }`}
                     >
-                      + Add set
-                    </button>
-
-                    {canRemoveLastSet ? (
                       <button
                         type="button"
-                        className="active-workout-remove-set-btn"
+                        className="button-secondary active-workout-add-set-btn"
                         onClick={() =>
-                          removeLastActiveSessionExerciseSet(sessionExercise.id)
+                          addActiveSessionExerciseSet(sessionExercise.id)
                         }
                       >
-                        Undo add set
+                        + Add set
                       </button>
-                    ) : null}
+
+                      {canRemoveLastSet ? (
+                        <button
+                          type="button"
+                          className="active-workout-remove-set-btn"
+                          onClick={() =>
+                            removeLastActiveSessionExerciseSet(
+                              sessionExercise.id,
+                            )
+                          }
+                        >
+                          Undo add set
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
                 </article>
               );
@@ -851,7 +943,7 @@ export default function ActiveWorkoutPage() {
                   id="active-workout-exercise-search"
                   className="input active-workout-add-exercise-input"
                   type="text"
-                  placeholder="Search exercise or variant"
+                  placeholder="Search exercise"
                   value={exerciseSearch}
                   onChange={(event) => setExerciseSearch(event.target.value)}
                 />
@@ -868,28 +960,28 @@ export default function ActiveWorkoutPage() {
                 ) : null}
               </div>
 
-              {filteredVariantsToAdd.length > 0 ? (
+              {filteredExercisesToAdd.length > 0 ? (
                 <div className="active-workout-add-exercise-results">
-                  {filteredVariantsToAdd.slice(0, 8).map((variant) => (
+                  {filteredExercisesToAdd.slice(0, 8).map((exercise) => (
                     <button
-                      key={variant.id}
+                      key={exercise.id}
                       type="button"
                       className="active-workout-add-exercise-result"
                       onClick={() => {
-                        addExerciseToActiveWorkoutSession(variant.id);
+                        addExerciseToActiveWorkoutSession(exercise.id);
                         setExerciseSearch("");
                         setShowAddExercisePicker(false);
                       }}
                     >
-                      {getVariantDisplayLabel(variant.id)}
+                      {exercise.name}
                     </button>
                   ))}
                 </div>
               ) : (
                 <p className="active-workout-add-exercise-empty">
                   {exerciseSearch.trim()
-                    ? "No available variants match your search."
-                    : "Start typing to search available variants."}
+                    ? "No available exercises match your search."
+                    : "Start typing to search available exercises."}
                 </p>
               )}
             </div>

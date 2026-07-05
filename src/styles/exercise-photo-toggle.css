@@ -1,0 +1,121 @@
+/* src/styles/exercise-photo-toggle.css */
+
+.exercise-photo-placeholder {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.exercise-photo-placeholder-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--color-text-muted);
+}
+
+.exercise-photo-thumbnail {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  padding: 0;
+  overflow: hidden;
+  flex-shrink: 0;
+  cursor: pointer;
+  background: none;
+  transition: border-color 140ms ease;
+}
+
+.exercise-photo-thumbnail:hover {
+  border-color: var(--color-border-strong);
+}
+
+.exercise-photo-thumbnail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.exercise-photo-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+}
+
+.exercise-photo-frame-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.exercise-photo-frame-img.is-visible {
+  opacity: 1;
+}
+
+.exercise-photo-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: var(--space-6);
+}
+
+.exercise-photo-overlay-content {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+}
+
+.exercise-photo-overlay-close {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  background: rgba(0, 0, 0, 0.55);
+  border: none;
+  width: var(--tap-size);
+  height: var(--tap-size);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 140ms ease;
+}
+
+.exercise-photo-overlay-close:hover {
+  background: var(--color-surface-hover);
+}
+
+.exercise-photo-placeholder-clickable {
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  padding: 0;
+  transition: border-color 140ms ease, color 140ms ease;
+}
+
+.exercise-photo-placeholder-clickable:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}

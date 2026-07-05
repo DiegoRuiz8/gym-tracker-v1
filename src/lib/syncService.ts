@@ -1,8 +1,9 @@
+// src/lib/syncService.ts
+
 import { supabase } from "./supabase";
 
 type AppData = {
   exercises: unknown[];
-  exerciseVariants: unknown[];
   routines: unknown[];
   workoutLogs: unknown[];
   workoutSessions: unknown[];

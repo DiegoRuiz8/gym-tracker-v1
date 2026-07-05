@@ -854,8 +854,69 @@
 }
 
 
+.exercisedb-current-link,
+.exercisedb-suggestion {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
 
+.exercisedb-current-link-info,
+.exercisedb-suggestion-info {
+  flex: 1;
+  min-width: 0;
+}
 
+.exercisedb-current-link-name,
+.exercisedb-suggestion-name {
+  margin: 0;
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+}
+
+.exercisedb-search-results {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.exercisedb-search-result {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-elevated);
+}
+
+.exercisedb-search-result-name {
+  flex: 1;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.exercisedb-search-result-name:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-accent);
+}
+
+.exercisedb-search-result:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-hover);
+}
+
+.simple-page-card-spaced-top {
+  margin-top: var(--space-6);
+}
 
 @media (max-width: 640px) {
   .simple-page-active-workout-top {

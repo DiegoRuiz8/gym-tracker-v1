@@ -1,11 +1,14 @@
-import { useEffect, useMemo } from "react";
+// src/pages/RoutineDetailPage.tsx
+
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useParams, Link, useNavigate } from "react-router-dom";
 import { useAppStore } from "../store/useAppStore";
+import { getExerciseById, getLogsForExercise } from "../store/selectors";
 import {
-  getExerciseById,
-  getLogsForVariant,
-  getVariantById,
-} from "../store/selectors";
+  getExerciseDbCatalog,
+  getImagesForExercise,
+  type ExerciseDbEntry,
+} from "../lib/exerciseDbCache";
 import RoutineExerciseCard from "../components/routine/RoutineExersiceCard";
 import PageBackButton from "../components/navigation/PageBackButton";
 import "../styles/routine-detail.css";
@@ -25,8 +28,8 @@ export default function RoutineDetailPage() {
 
   const routines = useAppStore((state) => state.routines);
   const exercises = useAppStore((state) => state.exercises);
-  const exerciseVariants = useAppStore((state) => state.exerciseVariants);
   const workoutLogs = useAppStore((state) => state.workoutLogs);
+  const [catalog, setCatalog] = useState<ExerciseDbEntry[]>([]);
 
   const activeWorkoutSession = useAppStore(
     (state) => state.activeWorkoutSession,
@@ -34,6 +37,10 @@ export default function RoutineDetailPage() {
   const startWorkoutSessionFromRoutine = useAppStore(
     (state) => state.startWorkoutSessionFromRoutine,
   );
+
+  useEffect(() => {
+    getExerciseDbCatalog().then((result) => setCatalog(result.exercises));
+  }, []);
 
   const routine = useMemo(
     () => routines.find((item) => item.id === routineId),
@@ -188,12 +195,15 @@ export default function RoutineDetailPage() {
           <div className="routine-detail-list">
             {sortedExerciseRefs.map((ref) => {
               const exercise = getExerciseById(exercises, ref.exerciseId);
-              const variant = getVariantById(exerciseVariants, ref.variantId);
-              const logsForVariant = getLogsForVariant(
+              const logsForExercise = getLogsForExercise(
                 workoutLogs,
-                ref.variantId,
+                ref.exerciseId,
               );
-              const lastLog = logsForVariant[0];
+              const lastLog = logsForExercise[0];
+              const images = getImagesForExercise(
+                exercise?.exerciseDbId,
+                catalog,
+              );
 
               return (
                 <RoutineExerciseCard
@@ -201,7 +211,7 @@ export default function RoutineDetailPage() {
                   routine={safeRoutine}
                   exerciseRef={ref}
                   exercise={exercise}
-                  variant={variant}
+                  images={images}
                   lastLog={lastLog}
                   onBeforeNavigate={saveCurrentDetailScroll}
                 />

@@ -1,3 +1,5 @@
+// src/types/routine.ts
+
 import type { ID } from "./common";
 
 export type Prescription = {
@@ -15,7 +17,6 @@ export type RoutineExerciseRef = {
   id: ID;
   routineId: ID;
   exerciseId: ID;
-  variantId: ID;
   order: number;
   prescription: Prescription;
 };

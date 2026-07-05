@@ -1,4 +1,6 @@
-import type { Exercise, ExerciseVariant } from "../types/exercise";
+// src/store/selectors.ts
+
+import type { Exercise } from "../types/exercise";
 import type { WorkoutLog } from "../types/log";
 import type {
   WorkoutSession,
@@ -8,35 +10,28 @@ import type { Routine } from "../types/routine";
 
 export function getExerciseById(
   exercises: Exercise[],
-  exerciseId: string
+  exerciseId: string,
 ): Exercise | undefined {
   return exercises.find((exercise) => exercise.id === exerciseId);
 }
 
-export function getVariantById(
-  variants: ExerciseVariant[],
-  variantId: string
-): ExerciseVariant | undefined {
-  return variants.find((variant) => variant.id === variantId);
-}
-
-export function getLogsForVariant(
+export function getLogsForExercise(
   logs: WorkoutLog[],
-  variantId: string
+  exerciseId: string,
 ): WorkoutLog[] {
   return logs
-    .filter((log) => log.variantId === variantId)
+    .filter((log) => log.exerciseId === exerciseId)
     .sort((a, b) => {
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     });
 }
 
-export function getLastLogForVariant(
+export function getLastLogForExercise(
   logs: WorkoutLog[],
-  variantId: string
+  exerciseId: string,
 ): WorkoutLog | undefined {
-  const variantLogs = getLogsForVariant(logs, variantId);
-  return variantLogs[0];
+  const exerciseLogs = getLogsForExercise(logs, exerciseId);
+  return exerciseLogs[0];
 }
 
 export function getWorkoutLogById(
@@ -49,7 +44,6 @@ export function getWorkoutLogById(
 export type ResolvedWorkoutSessionExercise = {
   sessionExercise: WorkoutSessionExercise;
   exercise?: Exercise;
-  variant?: ExerciseVariant;
 };
 
 export type ResolvedWorkoutSession = {
@@ -62,7 +56,6 @@ export type ResolvedWorkoutSession = {
 export function buildResolvedWorkoutSessions(
   workoutSessions: WorkoutSession[],
   routines: Routine[],
-  exerciseVariants: ExerciseVariant[],
   exercises: Exercise[],
 ): ResolvedWorkoutSession[] {
   return workoutSessions.map((session) => {
@@ -70,18 +63,10 @@ export function buildResolvedWorkoutSessions(
 
     const resolvedExercises = [...session.exercises]
       .sort((a, b) => a.order - b.order)
-      .map((sessionExercise) => {
-        const variant = getVariantById(exerciseVariants, sessionExercise.variantId);
-        const exercise = variant
-          ? getExerciseById(exercises, variant.exerciseId)
-          : getExerciseById(exercises, sessionExercise.exerciseId);
-
-        return {
-          sessionExercise,
-          exercise,
-          variant,
-        };
-      });
+      .map((sessionExercise) => ({
+        sessionExercise,
+        exercise: getExerciseById(exercises, sessionExercise.exerciseId),
+      }));
 
     return {
       session,
@@ -92,7 +77,7 @@ export function buildResolvedWorkoutSessions(
   });
 }
 
-export type VariantSessionHistoryItem = {
+export type ExerciseSessionHistoryItem = {
   sessionId: string;
   date: string;
   routineId?: string;
@@ -102,10 +87,10 @@ export type VariantSessionHistoryItem = {
   sessionExercise: WorkoutSessionExercise;
 };
 
-export function getSessionHistoryForVariant(
+export function getSessionHistoryForExercise(
   workoutSessions: WorkoutSession[],
-  variantId: string,
-): VariantSessionHistoryItem[] {
+  exerciseId: string,
+): ExerciseSessionHistoryItem[] {
   return [...workoutSessions]
     .sort((a, b) => {
       const aTime = a.endedAt ?? a.startedAt;
@@ -114,7 +99,7 @@ export function getSessionHistoryForVariant(
     })
     .flatMap((session) =>
       session.exercises
-        .filter((exercise) => exercise.variantId === variantId)
+        .filter((exercise) => exercise.exerciseId === exerciseId)
         .map((sessionExercise) => ({
           sessionId: session.id,
           date: session.date,

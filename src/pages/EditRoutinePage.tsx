@@ -1,11 +1,21 @@
+// src/pages/EditRoutinePage.tsx
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import RoutineExerciseEditorCard from "../components/routine/RoutineExerciseEditorCard";
 import { useAppStore } from "../store/useAppStore";
-import { getExerciseById, getVariantById } from "../store/selectors";
+import { getExerciseById } from "../store/selectors";
 import { generateId } from "../utils/ids";
 import { EXERCISE_CATEGORY_OPTIONS } from "../utils/exerciseCategories";
+import {
+  getExerciseDbCatalog,
+  getImagesForExercise,
+  type ExerciseDbEntry,
+} from "../lib/exerciseDbCache";
+import { searchExerciseDbByText } from "../lib/exerciseDbMatching";
+import ExercisePhotoToggle from "../components/exercise/ExercisePhotoToggle";
 import PageBackButton from "../components/navigation/PageBackButton";
+import { normalizeExerciseDbMuscle } from "../utils/primaryMuscles";
 import "../styles/routine-form.css";
 
 type PrescriptionDraft = {
@@ -20,10 +30,7 @@ type PrescriptionDraft = {
 function buildPrescriptionDraft(exerciseRef: {
   prescription: {
     sets: number;
-    repRange?: {
-      min: number;
-      max: number;
-    };
+    repRange?: { min: number; max: number };
     targetRIR?: number | null;
     restSeconds?: number | null;
     notes?: string;
@@ -52,7 +59,7 @@ export default function EditRoutinePage() {
 
   const routines = useAppStore((state) => state.routines);
   const exercises = useAppStore((state) => state.exercises);
-  const exerciseVariants = useAppStore((state) => state.exerciseVariants);
+  const addExercise = useAppStore((state) => state.addExercise);
   const updateRoutine = useAppStore((state) => state.updateRoutine);
   const deleteRoutine = useAppStore((state) => state.deleteRoutine);
   const addExerciseRefToRoutine = useAppStore(
@@ -68,6 +75,12 @@ export default function EditRoutinePage() {
     (state) => state.moveExerciseRefInRoutine,
   );
 
+  const [catalog, setCatalog] = useState<ExerciseDbEntry[]>([]);
+
+  useEffect(() => {
+    getExerciseDbCatalog().then((result) => setCatalog(result.exercises));
+  }, []);
+
   const routine = useMemo(
     () => routines.find((item) => item.id === routineId),
     [routines, routineId],
@@ -79,9 +92,9 @@ export default function EditRoutinePage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const addExerciseSectionRef = useRef<HTMLDivElement | null>(null);
   const [highlightAddExercise, setHighlightAddExercise] = useState(false);
-
-  const [variantSearch, setVariantSearch] = useState("");
+  const [exerciseSearch, setExerciseSearch] = useState("");
   const [routineError, setRoutineError] = useState("");
+
   const pageState =
     (location.state as {
       returnTo?: string;
@@ -93,9 +106,7 @@ export default function EditRoutinePage() {
   const restoreDetailScroll = pageState?.restoreDetailScroll ?? false;
 
   useEffect(() => {
-    if (!pageState?.scrollToAddExercise) {
-      return;
-    }
+    if (!pageState?.scrollToAddExercise) return;
 
     const scrollTimer = window.setTimeout(() => {
       addExerciseSectionRef.current?.scrollIntoView({
@@ -115,13 +126,8 @@ export default function EditRoutinePage() {
     return () => window.clearTimeout(scrollTimer);
   }, [pageState?.scrollToAddExercise]);
 
-  const [prescriptionDrafts, setPrescriptionDrafts] = useState<
-    Record<string, PrescriptionDraft>
-  >(() => {
-    if (!routine) {
-      return {};
-    }
-
+  const [prescriptionDrafts, setPrescriptionDrafts] = useState<Record<string, PrescriptionDraft>>(() => {
+    if (!routine) return {};
     return Object.fromEntries(
       routine.exerciseRefs.map((exerciseRef) => [
         exerciseRef.id,
@@ -130,13 +136,8 @@ export default function EditRoutinePage() {
     );
   });
 
-  const [prescriptionErrors, setPrescriptionErrors] = useState<
-    Record<string, string | undefined>
-  >({});
-
-  const [prescriptionSuccess, setPrescriptionSuccess] = useState<
-    Record<string, boolean | undefined>
-  >({});
+  const [prescriptionErrors, setPrescriptionErrors] = useState<Record<string, string | undefined>>({});
+  const [prescriptionSuccess, setPrescriptionSuccess] = useState<Record<string, boolean | undefined>>({});
 
   if (!routine) {
     return (
@@ -146,7 +147,6 @@ export default function EditRoutinePage() {
             <div className="routine-form-back-row">
               <PageBackButton fallbackTo={returnTo} />
             </div>
-
             <p className="routine-form-routine-error">Routine not found.</p>
           </div>
         </div>
@@ -160,58 +160,53 @@ export default function EditRoutinePage() {
     (a, b) => a.order - b.order,
   );
 
-  const availableVariants = exerciseVariants.filter((variant) => {
+  // Ejercicios propios disponibles (activos, no ya en la rutina)
+  const availableExercises = exercises.filter((exercise) => {
     const alreadyInRoutine = safeRoutine.exerciseRefs.some(
-      (ref) => ref.variantId === variant.id,
+      (ref) => ref.exerciseId === exercise.id,
     );
-
-    return variant.isActive && !alreadyInRoutine;
+    return exercise.isActive && !alreadyInRoutine;
   });
 
-  const filteredAvailableVariants = availableVariants.filter((variant) => {
-    const exercise = getExerciseById(exercises, variant.exerciseId);
-    const search = variantSearch.trim().toLowerCase();
+  const normalizedSearch = exerciseSearch.trim().toLowerCase();
 
-    if (!search) {
-      return true;
-    }
-
-    const exerciseName = exercise?.name.toLowerCase() ?? "";
-    const variantName = variant.name.toLowerCase();
-    const equipment = variant.equipment?.toLowerCase() ?? "";
-    const gymLabel = variant.gymLabel?.toLowerCase() ?? "";
-
+  // Resultados de tu librería personal
+  const myExerciseResults = availableExercises.filter((exercise) => {
+    if (!normalizedSearch) return true;
+    const name = exercise.name.toLowerCase();
+    const equipment = exercise.equipment?.toLowerCase() ?? "";
+    const gymLabel = exercise.gymLabel?.toLowerCase() ?? "";
     return (
-      exerciseName.includes(search) ||
-      variantName.includes(search) ||
-      equipment.includes(search) ||
-      gymLabel.includes(search)
+      name.includes(normalizedSearch) ||
+      equipment.includes(normalizedSearch) ||
+      gymLabel.includes(normalizedSearch)
     );
   });
 
-  function getVariantDisplayLabel(variantId: string): string {
-    const variant = getVariantById(exerciseVariants, variantId);
+  // IDs de ejercicios ya en tu librería (para excluir del catálogo)
+  const myExerciseDbIds = new Set(
+    exercises.map((e) => e.exerciseDbId).filter(Boolean),
+  );
 
-    if (!variant) {
-      return "Unknown exercise — Unknown variant";
-    }
+  // Resultados del catálogo de ExerciseDB (excluye los que ya están en tu librería)
+  const catalogResults = normalizedSearch
+    ? searchExerciseDbByText(normalizedSearch, catalog, 6).filter(
+        (entry) => !myExerciseDbIds.has(entry.id),
+      )
+    : [];
 
-    const exercise = getExerciseById(exercises, variant.exerciseId);
-    const exerciseName = exercise?.name ?? "Unknown exercise";
-
-    return `${exerciseName} — ${variant.name}`;
+  function getExerciseDisplayLabel(exerciseId: string): string {
+    const exercise = getExerciseById(exercises, exerciseId);
+    return exercise?.name ?? "Unknown exercise";
   }
 
   function handleSaveRoutine() {
     const trimmedName = name.trim();
-
     if (!trimmedName) {
       setRoutineError("Routine name is required.");
       return;
     }
-
     setRoutineError("");
-
     updateRoutine({
       ...safeRoutine,
       name: trimmedName,
@@ -219,7 +214,6 @@ export default function EditRoutinePage() {
       description: description.trim() || undefined,
       updatedAt: new Date().toISOString(),
     });
-
     navigate(returnTo, {
       state: restoreDetailScroll ? { restoreDetailScroll: true } : undefined,
     });
@@ -238,67 +232,101 @@ export default function EditRoutinePage() {
     navigate("/routines");
   }
 
-  function handleAddExerciseRef(variantId: string) {
-    const selectedVariant = getVariantById(exerciseVariants, variantId);
-
-    if (!selectedVariant) {
-      return;
-    }
+  function handleAddExerciseRef(exerciseId: string) {
+    const selectedExercise = getExerciseById(exercises, exerciseId);
+    if (!selectedExercise) return;
 
     const nextOrder = safeRoutine.exerciseRefs.length + 1;
-
     const newExerciseRef = {
       id: generateId(),
       routineId: safeRoutine.id,
-      exerciseId: selectedVariant.exerciseId,
-      variantId: selectedVariant.id,
+      exerciseId: selectedExercise.id,
       order: nextOrder,
       prescription: {
         sets: 3,
-        repRange: {
-          min: 8,
-          max: 12,
-        },
+        repRange: { min: 8, max: 12 },
         targetRIR: 1,
         restSeconds: 90,
       },
     };
 
     addExerciseRefToRoutine(safeRoutine.id, newExerciseRef);
-
     setPrescriptionDrafts((current) => ({
       ...current,
       [newExerciseRef.id]: buildPrescriptionDraft(newExerciseRef),
     }));
+    setPrescriptionErrors((current) => ({ ...current, [newExerciseRef.id]: undefined }));
+    setPrescriptionSuccess((current) => ({ ...current, [newExerciseRef.id]: undefined }));
+    setExerciseSearch("");
+  }
 
-    setPrescriptionErrors((current) => ({
+  // Crea el ejercicio desde el catálogo y lo agrega a la rutina en un solo paso
+  function handleAddFromCatalog(entry: ExerciseDbEntry) {
+    const now = new Date().toISOString();
+
+// Toma el primer músculo del catálogo y lo normaliza a nuestra lista fija.
+// El resto queda como secundarios en texto libre.
+const primaryFromCatalog = entry.primaryMuscles[0];
+const primaryMuscle = primaryFromCatalog
+  ? normalizeExerciseDbMuscle(primaryFromCatalog)
+  : undefined;
+const secondary = entry.primaryMuscles.slice(1);
+
+const newExercise = {
+  id: generateId(),
+  name: entry.name,
+  category: undefined,
+  primaryMuscle,
+  secondaryMuscleGroups: secondary.length > 0 ? secondary : undefined,
+  equipment: entry.equipment ?? undefined,
+  gymLabel: undefined,
+  notes: undefined,
+  isActive: true,
+  trackingType: "weight_reps" as const,
+  exerciseDbId: entry.id,
+  exerciseDbLinkStatus: "auto" as const,
+  createdAt: now,
+  updatedAt: now,
+};
+
+    addExercise(newExercise);
+
+    const nextOrder = safeRoutine.exerciseRefs.length + 1;
+    const newExerciseRef = {
+      id: generateId(),
+      routineId: safeRoutine.id,
+      exerciseId: newExercise.id,
+      order: nextOrder,
+      prescription: {
+        sets: 3,
+        repRange: { min: 8, max: 12 },
+        targetRIR: 1,
+        restSeconds: 90,
+      },
+    };
+
+    addExerciseRefToRoutine(safeRoutine.id, newExerciseRef);
+    setPrescriptionDrafts((current) => ({
       ...current,
-      [newExerciseRef.id]: undefined,
+      [newExerciseRef.id]: buildPrescriptionDraft(newExerciseRef),
     }));
-
-    setPrescriptionSuccess((current) => ({
-      ...current,
-      [newExerciseRef.id]: undefined,
-    }));
-
-    setVariantSearch("");
+    setPrescriptionErrors((current) => ({ ...current, [newExerciseRef.id]: undefined }));
+    setPrescriptionSuccess((current) => ({ ...current, [newExerciseRef.id]: undefined }));
+    setExerciseSearch("");
   }
 
   function handleRemoveExerciseRef(exerciseRefId: string) {
     removeExerciseRefFromRoutine(safeRoutine.id, exerciseRefId);
-
     setPrescriptionDrafts((current) => {
       const next = { ...current };
       delete next[exerciseRefId];
       return next;
     });
-
     setPrescriptionErrors((current) => {
       const next = { ...current };
       delete next[exerciseRefId];
       return next;
     });
-
     setPrescriptionSuccess((current) => {
       const next = { ...current };
       delete next[exerciseRefId];
@@ -310,11 +338,7 @@ export default function EditRoutinePage() {
     const currentIndex = sortedExerciseRefs.findIndex(
       (ref) => ref.id === exerciseRefId,
     );
-
-    if (currentIndex <= 0) {
-      return;
-    }
-
+    if (currentIndex <= 0) return;
     moveExerciseRefInRoutine(safeRoutine.id, currentIndex, currentIndex - 1);
   }
 
@@ -322,11 +346,7 @@ export default function EditRoutinePage() {
     const currentIndex = sortedExerciseRefs.findIndex(
       (ref) => ref.id === exerciseRefId,
     );
-
-    if (currentIndex < 0 || currentIndex >= sortedExerciseRefs.length - 1) {
-      return;
-    }
-
+    if (currentIndex < 0 || currentIndex >= sortedExerciseRefs.length - 1) return;
     moveExerciseRefInRoutine(safeRoutine.id, currentIndex, currentIndex + 1);
   }
 
@@ -337,21 +357,10 @@ export default function EditRoutinePage() {
   ) {
     setPrescriptionDrafts((current) => ({
       ...current,
-      [exerciseRefId]: {
-        ...current[exerciseRefId],
-        [field]: value,
-      },
+      [exerciseRefId]: { ...current[exerciseRefId], [field]: value },
     }));
-
-    setPrescriptionErrors((current) => ({
-      ...current,
-      [exerciseRefId]: undefined,
-    }));
-
-    setPrescriptionSuccess((current) => ({
-      ...current,
-      [exerciseRefId]: undefined,
-    }));
+    setPrescriptionErrors((current) => ({ ...current, [exerciseRefId]: undefined }));
+    setPrescriptionSuccess((current) => ({ ...current, [exerciseRefId]: undefined }));
   }
 
   function handleSaveExerciseRefPrescription(exerciseRefId: string) {
@@ -359,10 +368,7 @@ export default function EditRoutinePage() {
       (ref) => ref.id === exerciseRefId,
     );
     const draft = prescriptionDrafts[exerciseRefId];
-
-    if (!currentRef || !draft) {
-      return;
-    }
+    if (!currentRef || !draft) return;
 
     const trimmedSets = draft.sets.trim();
     const trimmedRepMin = draft.repMin.trim();
@@ -381,12 +387,8 @@ export default function EditRoutinePage() {
     const repMax = Number(trimmedRepMax);
 
     if (
-      Number.isNaN(sets) ||
-      Number.isNaN(repMin) ||
-      Number.isNaN(repMax) ||
-      sets <= 0 ||
-      repMin <= 0 ||
-      repMax <= 0
+      Number.isNaN(sets) || Number.isNaN(repMin) || Number.isNaN(repMax) ||
+      sets <= 0 || repMin <= 0 || repMax <= 0
     ) {
       setPrescriptionErrors((current) => ({
         ...current,
@@ -404,9 +406,7 @@ export default function EditRoutinePage() {
     }
 
     const targetRIR =
-      draft.targetRIR.trim() === ""
-        ? undefined
-        : Number(draft.targetRIR.trim());
+      draft.targetRIR.trim() === "" ? undefined : Number(draft.targetRIR.trim());
 
     if (targetRIR != null && (Number.isNaN(targetRIR) || targetRIR < 0)) {
       setPrescriptionErrors((current) => ({
@@ -417,9 +417,7 @@ export default function EditRoutinePage() {
     }
 
     const restSeconds =
-      draft.restSeconds.trim() === ""
-        ? undefined
-        : Number(draft.restSeconds.trim());
+      draft.restSeconds.trim() === "" ? undefined : Number(draft.restSeconds.trim());
 
     if (restSeconds != null && (Number.isNaN(restSeconds) || restSeconds < 0)) {
       setPrescriptionErrors((current) => ({
@@ -434,33 +432,23 @@ export default function EditRoutinePage() {
       prescription: {
         ...currentRef.prescription,
         sets,
-        repRange: {
-          min: repMin,
-          max: repMax,
-        },
+        repRange: { min: repMin, max: repMax },
         targetRIR,
         restSeconds,
         notes: draft.notes.trim() || undefined,
       },
     });
 
-    setPrescriptionErrors((current) => ({
-      ...current,
-      [exerciseRefId]: undefined,
-    }));
-
-    setPrescriptionSuccess((current) => ({
-      ...current,
-      [exerciseRefId]: true,
-    }));
+    setPrescriptionErrors((current) => ({ ...current, [exerciseRefId]: undefined }));
+    setPrescriptionSuccess((current) => ({ ...current, [exerciseRefId]: true }));
 
     window.setTimeout(() => {
-      setPrescriptionSuccess((current) => ({
-        ...current,
-        [exerciseRefId]: undefined,
-      }));
+      setPrescriptionSuccess((current) => ({ ...current, [exerciseRefId]: undefined }));
     }, 1800);
   }
+
+  const hasAnyResults =
+    myExerciseResults.length > 0 || catalogResults.length > 0;
 
   return (
     <div className="routine-form-page">
@@ -469,7 +457,6 @@ export default function EditRoutinePage() {
           <div className="routine-form-back-row">
             <PageBackButton fallbackTo="/routines" />
           </div>
-
           <h1 className="routine-form-title">Edit routine</h1>
           <p className="routine-form-subtitle">
             Update routine details and exercise targets.
@@ -571,7 +558,6 @@ export default function EditRoutinePage() {
                 Existing workout logs will stay, but this routine will be
                 removed.
               </p>
-
               <div className="routine-form-delete-actions">
                 <button
                   type="button"
@@ -580,7 +566,6 @@ export default function EditRoutinePage() {
                 >
                   Confirm delete
                 </button>
-
                 <button
                   type="button"
                   className="routine-form-btn routine-form-btn-secondary"
@@ -598,7 +583,7 @@ export default function EditRoutinePage() {
 
           {sortedExerciseRefs.length === 0 ? (
             <p className="routine-form-subtitle">
-              No exercises yet. Add a variant below.
+              No exercises yet. Add one below.
             </p>
           ) : (
             <div className="routine-form-list">
@@ -606,7 +591,6 @@ export default function EditRoutinePage() {
                 const draft =
                   prescriptionDrafts[exerciseRef.id] ??
                   buildPrescriptionDraft(exerciseRef);
-
                 const error = prescriptionErrors[exerciseRef.id];
                 const success = prescriptionSuccess[exerciseRef.id];
 
@@ -614,7 +598,7 @@ export default function EditRoutinePage() {
                   <RoutineExerciseEditorCard
                     key={exerciseRef.id}
                     exerciseRef={exerciseRef}
-                    variantName={getVariantDisplayLabel(exerciseRef.variantId)}
+                    exerciseName={getExerciseDisplayLabel(exerciseRef.exerciseId)}
                     draft={draft}
                     error={error}
                     success={success}
@@ -643,43 +627,123 @@ export default function EditRoutinePage() {
           <div className="routine-form-field">
             <label
               className="routine-form-label"
-              htmlFor="routine-variant-search"
+              htmlFor="routine-exercise-search"
             >
               Search
             </label>
             <input
-              id="routine-variant-search"
+              id="routine-exercise-search"
               className="routine-form-input"
               type="text"
-              placeholder="Search exercise or variant"
-              value={variantSearch}
-              onChange={(event) => setVariantSearch(event.target.value)}
+              placeholder="Search exercise"
+              value={exerciseSearch}
+              onChange={(event) => setExerciseSearch(event.target.value)}
             />
           </div>
 
-          {variantSearch.trim() ? (
-            filteredAvailableVariants.length > 0 ? (
-              <div className="routine-form-search-results">
-                {filteredAvailableVariants.slice(0, 8).map((variant) => (
-                  <button
-                    key={variant.id}
-                    type="button"
-                    className="routine-form-search-result"
-                    onClick={() => handleAddExerciseRef(variant.id)}
-                  >
-                    {getVariantDisplayLabel(variant.id)}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <p className="routine-form-helper-text">
-                No available variants match your search.
-              </p>
-            )
-          ) : (
+          {!exerciseSearch.trim() ? (
             <p className="routine-form-helper-text">
-              Start typing to search available variants.
+              Start typing to search your exercises or the exercise database.
             </p>
+          ) : !hasAnyResults ? (
+            <div className="routine-form-no-results">
+              <p className="routine-form-helper-text">
+                No exercises found for "{exerciseSearch}".
+              </p>
+              <button
+                type="button"
+                className="routine-form-btn routine-form-btn-secondary"
+                onClick={() =>
+                  navigate("/exercises/new", {
+                    state: {
+                      prefillName: exerciseSearch.trim(),
+                      returnTo: location.pathname,
+                    },
+                  })
+                }
+              >
+                + Add "{exerciseSearch.trim()}" manually
+              </button>
+            </div>
+          ) : (
+            <div className="routine-form-search-results">
+              {myExerciseResults.length > 0 && (
+                <>
+                  <p className="routine-form-search-section-label">
+                    Your exercises
+                  </p>
+                  {myExerciseResults.slice(0, 6).map((exercise) => {
+  const images = getImagesForExercise(
+    exercise.exerciseDbId,
+    catalog,
+  );
+  return (
+    <div
+      key={exercise.id}
+      className="routine-form-search-result routine-form-search-result-with-photo"
+    >
+      <ExercisePhotoToggle
+        images={images}
+        alt={exercise.name}
+        mode="compact"
+      />
+      <button
+        type="button"
+        className="routine-form-search-result-name"
+        onClick={() => handleAddExerciseRef(exercise.id)}
+      >
+        {exercise.name}
+      </button>
+    </div>
+  );
+})}
+                </>
+              )}
+
+              {catalogResults.length > 0 && (
+                <>
+                  <p className="routine-form-search-section-label">
+                    From exercise database
+                  </p>
+                 {catalogResults.map((entry) => (
+  <div
+    key={entry.id}
+    className="routine-form-search-result routine-form-search-result-with-photo"
+  >
+    <ExercisePhotoToggle
+      images={entry.images}
+      alt={entry.name}
+      mode="compact"
+    />
+    <button
+      type="button"
+      className="routine-form-search-result-name"
+      onClick={() => handleAddFromCatalog(entry)}
+    >
+      {entry.name}
+    </button>
+  </div>
+))}
+                </>
+              )}
+
+              {!hasAnyResults && (
+                <button
+                  type="button"
+                  className="routine-form-btn routine-form-btn-secondary"
+                  onClick={() =>
+                    navigate("/exercises/new", {
+                      state: {
+                        prefillName: exerciseSearch.trim(),
+                        returnTo: location.pathname,
+                      },
+                    })
+                  }
+                >
+                  + Add "{exerciseSearch.trim()}" manually
+                </button>
+              )}
+            </div>
           )}
         </div>
 

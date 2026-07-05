@@ -1,0 +1,183 @@
+/* src/styles/styled-select.css
+ *
+ * Estilos del componente StyledSelect. Usa las variables globales del app
+ * (--color-*, --space-*, --radius-*, --tap-size). Si algún nombre no
+ * coincide con tu globals.css, reemplázalo por el equivalente que ya tengas.
+ */
+
+.styled-select-root {
+  position: relative;
+  width: 100%;
+}
+
+/* -----------------------------------------------------------------------
+ * Trigger (botón que muestra el valor seleccionado)
+ * ----------------------------------------------------------------------- */
+
+.styled-select-trigger {
+  width: 100%;
+  min-height: var(--tap-size);
+  padding: 0 var(--space-4);
+  padding-right: var(--space-3);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: 1rem;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.styled-select-trigger:hover {
+  border-color: var(--color-border-strong, var(--color-text-muted));
+}
+
+.styled-select-trigger:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.styled-select-trigger.is-open {
+  border-color: var(--color-accent);
+}
+
+.styled-select-trigger.is-placeholder {
+  color: var(--color-text-muted);
+}
+
+.styled-select-value {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.styled-select-chevron {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  transition: transform 180ms ease;
+}
+
+.styled-select-chevron.is-open {
+  transform: rotate(180deg);
+  color: var(--color-accent);
+}
+
+/* -----------------------------------------------------------------------
+ * Panel (dropdown de opciones)
+ * ----------------------------------------------------------------------- */
+
+.styled-select-panel {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  left: 0;
+  right: 0;
+  z-index: 30;
+  max-height: 320px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--color-surface-elevated, var(--color-surface));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.25);
+  padding: var(--space-1);
+  animation: styled-select-fade-in 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes styled-select-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Scrollbar estilizado (webkit + firefox) */
+.styled-select-panel {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.styled-select-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.styled-select-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.styled-select-panel::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.styled-select-panel::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-strong, var(--color-text-muted));
+}
+
+/* -----------------------------------------------------------------------
+ * Options individuales
+ * ----------------------------------------------------------------------- */
+
+.styled-select-option {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: transparent;
+  color: var(--color-text);
+  border: 0;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 1rem;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  transition:
+    background-color 100ms ease,
+    color 100ms ease;
+}
+
+.styled-select-option:hover {
+  background: var(--color-surface-hover, rgba(255, 255, 255, 0.06));
+}
+
+.styled-select-option:focus-visible {
+  outline: none;
+  background: var(--color-surface-hover, rgba(255, 255, 255, 0.06));
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+}
+
+.styled-select-option.is-selected {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.styled-select-option-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.styled-select-check {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}

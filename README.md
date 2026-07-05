@@ -68,6 +68,7 @@ Lift Log helps users manage exercises, exercise variants, and routines, run acti
 ## Getting Started
 
 ### 1. Install dependencies
+
 npm install
 
 ### 2. Set up environment variables
@@ -77,15 +78,19 @@ VITE_SUPABASE_URL=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 ### 3. Start the development server
+
 npm run dev
 
 ### 4. Build for production
+
 npm run build
 
 ### 5. Preview the production build
+
 npm run preview
 
 ## Project Structure
+
 src/
 app/
 components/
