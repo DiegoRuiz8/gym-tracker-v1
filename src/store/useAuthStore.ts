@@ -3,11 +3,21 @@ import { supabase } from "../lib/supabase";
 import type { User, Session } from "@supabase/supabase-js";
 import { pullDataFromSupabase } from "../lib/syncService";
 import { useAppStore } from "./useAppStore";
+import { getDemoAppData } from "./seedData";
+import {
+  loadPersistedAppData,
+  loadPersistedDemoData,
+} from "./persistence";
+
+const DEMO_MODE_STORAGE_KEY = "gym-tracker-v1-demo-mode";
+const DEMO_DATA_VERSION_STORAGE_KEY = "gym-tracker-v1-demo-data-version";
+const DEMO_DATA_VERSION = "2";
 
 interface AuthState {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
+  isDemo: boolean;
   signUp: (
     email: string,
     password: string,
@@ -18,7 +28,35 @@ interface AuthState {
   ) => Promise<{ error: string | null }>;
   signInWithGoogle: () => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
+  enterDemo: () => void;
+  resetDemo: () => void;
   initialize: () => Promise<void>;
+}
+
+function getEmptyAppData() {
+  return {
+    exercises: [],
+    routines: [],
+    workoutLogs: [],
+    workoutSessions: [],
+    activeWorkoutSession: null,
+    preferredWeightUnit: "kg" as const,
+  };
+}
+
+function isDemoModeEnabled(): boolean {
+  return localStorage.getItem(DEMO_MODE_STORAGE_KEY) === "true";
+}
+
+function getDemoData() {
+  if (
+    localStorage.getItem(DEMO_DATA_VERSION_STORAGE_KEY) !== DEMO_DATA_VERSION
+  ) {
+    localStorage.setItem(DEMO_DATA_VERSION_STORAGE_KEY, DEMO_DATA_VERSION);
+    return getDemoAppData();
+  }
+
+  return loadPersistedDemoData()?.data ?? getDemoAppData();
 }
 
 async function loadAndApplyRemoteData(userId: string) {
@@ -29,10 +67,11 @@ async function loadAndApplyRemoteData(userId: string) {
   }
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   session: null,
   isLoading: true,
+  isDemo: false,
 
   signUp: async (email, password) => {
     const { error } = await supabase.auth.signUp({ email, password });
@@ -70,11 +109,37 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   signOut: async () => {
+    if (get().isDemo) {
+      localStorage.removeItem(DEMO_MODE_STORAGE_KEY);
+      set({ user: null, session: null, isDemo: false });
+      useAppStore
+        .getState()
+        .replaceAppData(loadPersistedAppData()?.data ?? getEmptyAppData());
+      return;
+    }
+
     await supabase.auth.signOut();
     set({ user: null, session: null });
   },
 
+  enterDemo: () => {
+    localStorage.setItem(DEMO_MODE_STORAGE_KEY, "true");
+    set({ user: null, session: null, isLoading: false, isDemo: true });
+    useAppStore.getState().replaceAppData(getDemoData());
+  },
+
+  resetDemo: () => {
+    localStorage.setItem(DEMO_DATA_VERSION_STORAGE_KEY, DEMO_DATA_VERSION);
+    useAppStore.getState().replaceAppData(getDemoAppData());
+  },
+
   initialize: async () => {
+    if (isDemoModeEnabled()) {
+      set({ user: null, session: null, isLoading: false, isDemo: true });
+      useAppStore.getState().replaceAppData(getDemoData());
+      return;
+    }
+
     const { data } = await supabase.auth.getSession();
 
     if (data.session?.user) {
@@ -93,6 +158,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
 
     supabase.auth.onAuthStateChange((_event, session) => {
+      if (get().isDemo) {
+        return;
+      }
+
       set({
         user: session?.user ?? null,
         session: session ?? null,

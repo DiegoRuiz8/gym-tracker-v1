@@ -9,6 +9,7 @@ export default function LoginPage() {
   const signIn = useAuthStore((state) => state.signIn);
   const signUp = useAuthStore((state) => state.signUp);
   const signInWithGoogle = useAuthStore((state) => state.signInWithGoogle);
+  const enterDemo = useAuthStore((state) => state.enterDemo);
 
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
@@ -66,6 +67,11 @@ export default function LoginPage() {
     setMode(newMode);
     setError(null);
     setSuccessMessage(null);
+  }
+
+  function handleTryDemo() {
+    enterDemo();
+    navigate("/", { replace: true });
   }
 
   return (
@@ -372,6 +378,34 @@ export default function LoginPage() {
                 >
                   {isLoading ? "Loading..." : mode === "login" ? "Sign In" : mode === "signup" ? "Create Account" : "Send Reset Link"}
                 </button>
+
+                {mode !== "forgot" ? (
+                  <div style={{ textAlign: "center" }}>
+                    <button
+                      type="button"
+                      onClick={handleTryDemo}
+                      style={{
+                        width: "100%",
+                        backgroundColor: "rgba(79,110,247,0.12)",
+                        color: "#cdd7ff",
+                        fontFamily: "Lexend, sans-serif",
+                        fontSize: "14px",
+                        fontWeight: "700",
+                        padding: "12px",
+                        borderRadius: "12px",
+                        border: "1px solid rgba(79,110,247,0.9)",
+                        cursor: "pointer",
+                        letterSpacing: "0.04em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Explore Demo
+                    </button>
+                    <p style={{ margin: "7px 0 0", color: "rgba(142,144,160,0.72)", fontSize: "12px" }}>
+                      No account required
+                    </p>
+                  </div>
+                ) : null}
 
                 {/* Google + footer */}
                 {mode !== "forgot" ? (

@@ -338,48 +338,48 @@ export default function ActiveWorkoutPage() {
     });
 
     setSwapExpanded((prev) => {
-  const next = { ...prev };
-  delete next[sessionExerciseId];
-  return next;
-});
+      const next = { ...prev };
+      delete next[sessionExerciseId];
+      return next;
+    });
   }
 
   function handleToggleSwap(sessionExerciseId: string) {
-  setSwapOpen((prev) => ({
-    ...prev,
-    [sessionExerciseId]: !prev[sessionExerciseId],
-  }));
-  // Al cerrar el swap, resetear también el estado expanded
-  setSwapExpanded((prev) => {
-    const next = { ...prev };
-    delete next[sessionExerciseId];
-    return next;
-  });
-}
+    setSwapOpen((prev) => ({
+      ...prev,
+      [sessionExerciseId]: !prev[sessionExerciseId],
+    }));
+    // Al cerrar el swap, resetear también el estado expanded
+    setSwapExpanded((prev) => {
+      const next = { ...prev };
+      delete next[sessionExerciseId];
+      return next;
+    });
+  }
 
   function handleSelectSwapExercise(
-  sessionExerciseId: string,
-  nextExerciseId: string,
-) {
-  swapActiveSessionExercise(sessionExerciseId, nextExerciseId);
+    sessionExerciseId: string,
+    nextExerciseId: string,
+  ) {
+    swapActiveSessionExercise(sessionExerciseId, nextExerciseId);
 
-  setSwapOpen((prev) => ({ ...prev, [sessionExerciseId]: false }));
-  setSwapSearch((prev) => ({ ...prev, [sessionExerciseId]: "" }));
-  setSwapExpanded((prev) => {
-    const next = { ...prev };
-    delete next[sessionExerciseId];
-    return next;
-  });
-}
+    setSwapOpen((prev) => ({ ...prev, [sessionExerciseId]: false }));
+    setSwapSearch((prev) => ({ ...prev, [sessionExerciseId]: "" }));
+    setSwapExpanded((prev) => {
+      const next = { ...prev };
+      delete next[sessionExerciseId];
+      return next;
+    });
+  }
 
   function hasSharedMuscle(a: Exercise, b: Exercise): boolean {
-  const aPrimary = a.primaryMuscle?.toLowerCase();
-  const bPrimary = b.primaryMuscle?.toLowerCase();
+    const aPrimary = a.primaryMuscle?.toLowerCase();
+    const bPrimary = b.primaryMuscle?.toLowerCase();
 
-  if (!aPrimary || !bPrimary) return false;
+    if (!aPrimary || !bPrimary) return false;
 
-  return aPrimary === bPrimary;
-}
+    return aPrimary === bPrimary;
+  }
   return (
     <div className="active-workout-page">
       <header className="active-workout-header">
@@ -564,137 +564,154 @@ export default function ActiveWorkoutPage() {
                         </div>
                       ) : null}
 
-                      {isSwapOpen ? (() => {
-  // Cuando NO hay búsqueda: solo mostrar Same muscle + botón "Show all".
-  // Cuando SÍ hay búsqueda: mostrar todos los resultados filtrados
-  // (con Same muscle arriba, ya viene ordenado desde swapResults).
-  const isSearching = currentSwapSearch.trim().length > 0;
-  const isExpanded = Boolean(swapExpanded[sessionExercise.id]);
+                      {isSwapOpen
+                        ? (() => {
+                            // Cuando NO hay búsqueda: solo mostrar Same muscle + botón "Show all".
+                            // Cuando SÍ hay búsqueda: mostrar todos los resultados filtrados
+                            // (con Same muscle arriba, ya viene ordenado desde swapResults).
+                            const isSearching =
+                              currentSwapSearch.trim().length > 0;
+                            const isExpanded = Boolean(
+                              swapExpanded[sessionExercise.id],
+                            );
 
-  const sameMuscleResults = exercise
-    ? swapResults.filter((item) => hasSharedMuscle(exercise, item))
-    : [];
-  const otherResults = exercise
-    ? swapResults.filter((item) => !hasSharedMuscle(exercise, item))
-    : swapResults;
+                            const sameMuscleResults = exercise
+                              ? swapResults.filter((item) =>
+                                  hasSharedMuscle(exercise, item),
+                                )
+                              : [];
+                            const otherResults = exercise
+                              ? swapResults.filter(
+                                  (item) => !hasSharedMuscle(exercise, item),
+                                )
+                              : swapResults;
 
-  // Sin búsqueda: default a mostrar solo same muscle, con opción de expandir.
-  // Con búsqueda: mostrar todos los que matchean (same muscle primero).
-  const visibleResults = isSearching
-    ? swapResults
-    : isExpanded
-      ? swapResults
-      : sameMuscleResults;
+                            // Sin búsqueda: default a mostrar solo same muscle, con opción de expandir.
+                            // Con búsqueda: mostrar todos los que matchean (same muscle primero).
+                            const visibleResults = isSearching
+                              ? swapResults
+                              : isExpanded
+                                ? swapResults
+                                : sameMuscleResults;
 
-  const hasHiddenOthers =
-    !isSearching && !isExpanded && otherResults.length > 0;
+                            const hasHiddenOthers =
+                              !isSearching &&
+                              !isExpanded &&
+                              otherResults.length > 0;
 
-  return (
-    <div className="active-workout-swap-panel">
-      <p className="active-workout-swap-label">Swap for today</p>
+                            return (
+                              <div className="active-workout-swap-panel">
+                                <p className="active-workout-swap-label">
+                                  Swap for today
+                                </p>
 
-      <div className="active-workout-add-exercise-input-wrap">
-        <input
-          className="input active-workout-add-exercise-input"
-          type="text"
-          placeholder="Search exercise"
-          value={currentSwapSearch}
-          onChange={(event) =>
-            setSwapSearch((prev) => ({
-              ...prev,
-              [sessionExercise.id]: event.target.value,
-            }))
-          }
-        />
+                                <div className="active-workout-add-exercise-input-wrap">
+                                  <input
+                                    className="input active-workout-add-exercise-input"
+                                    type="text"
+                                    placeholder="Search exercise"
+                                    value={currentSwapSearch}
+                                    onChange={(event) =>
+                                      setSwapSearch((prev) => ({
+                                        ...prev,
+                                        [sessionExercise.id]:
+                                          event.target.value,
+                                      }))
+                                    }
+                                  />
 
-        {currentSwapSearch.trim() ? (
-          <button
-            type="button"
-            className="active-workout-add-exercise-clear-btn"
-            aria-label="Clear search"
-            onClick={() =>
-              setSwapSearch((prev) => ({
-                ...prev,
-                [sessionExercise.id]: "",
-              }))
-            }
-          >
-            ×
-          </button>
-        ) : null}
-      </div>
+                                  {currentSwapSearch.trim() ? (
+                                    <button
+                                      type="button"
+                                      className="active-workout-add-exercise-clear-btn"
+                                      aria-label="Clear search"
+                                      onClick={() =>
+                                        setSwapSearch((prev) => ({
+                                          ...prev,
+                                          [sessionExercise.id]: "",
+                                        }))
+                                      }
+                                    >
+                                      ×
+                                    </button>
+                                  ) : null}
+                                </div>
 
-      {visibleResults.length > 0 ? (
-        <div className="active-workout-swap-results-scroll">
-          <div className="active-workout-add-exercise-results">
-            {visibleResults.slice(0, 20).map((item) => {
-              const sharesMuscle = exercise
-                ? hasSharedMuscle(exercise, item)
-                : false;
+                                {visibleResults.length > 0 ? (
+                                  <div className="active-workout-swap-results-scroll">
+                                    <div className="active-workout-add-exercise-results">
+                                      {visibleResults
+                                        .slice(0, 20)
+                                        .map((item) => {
+                                          const sharesMuscle = exercise
+                                            ? hasSharedMuscle(exercise, item)
+                                            : false;
 
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  className="active-workout-add-exercise-result"
-                  onClick={() =>
-                    handleSelectSwapExercise(
-                      sessionExercise.id,
-                      item.id,
-                    )
-                  }
-                >
-                  <span>{item.name}</span>
-                  {sharesMuscle && (
-                    <span className="active-workout-swap-same-muscle-tag">
-                      Same muscle
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ) : (
-        <p className="active-workout-add-exercise-empty">
-          {isSearching
-            ? "No available exercises match your search."
-            : "No exercises with the same primary muscle. Show all to browse other options."}
-        </p>
-      )}
+                                          return (
+                                            <button
+                                              key={item.id}
+                                              type="button"
+                                              className="active-workout-add-exercise-result"
+                                              onClick={() =>
+                                                handleSelectSwapExercise(
+                                                  sessionExercise.id,
+                                                  item.id,
+                                                )
+                                              }
+                                            >
+                                              <span>{item.name}</span>
+                                              {sharesMuscle && (
+                                                <span className="active-workout-swap-same-muscle-tag">
+                                                  Same muscle
+                                                </span>
+                                              )}
+                                            </button>
+                                          );
+                                        })}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <p className="active-workout-add-exercise-empty">
+                                    {isSearching
+                                      ? "No available exercises match your search."
+                                      : "No exercises with the same primary muscle. Show all to browse other options."}
+                                  </p>
+                                )}
 
-      {hasHiddenOthers ? (
-        <button
-          type="button"
-          className="active-workout-swap-show-all-btn"
-          onClick={() =>
-            setSwapExpanded((prev) => ({
-              ...prev,
-              [sessionExercise.id]: true,
-            }))
-          }
-        >
-          Show all exercises ({otherResults.length} more)
-        </button>
-      ) : null}
+                                {hasHiddenOthers ? (
+                                  <button
+                                    type="button"
+                                    className="active-workout-swap-show-all-btn"
+                                    onClick={() =>
+                                      setSwapExpanded((prev) => ({
+                                        ...prev,
+                                        [sessionExercise.id]: true,
+                                      }))
+                                    }
+                                  >
+                                    Show all exercises ({otherResults.length}{" "}
+                                    more)
+                                  </button>
+                                ) : null}
 
-      {!isSearching && isExpanded ? (
-        <button
-          type="button"
-          className="active-workout-swap-show-all-btn"
-          onClick={() =>
-            setSwapExpanded((prev) => ({
-              ...prev,
-              [sessionExercise.id]: false,
-            }))
-          }
-        >
-          Show only same muscle
-        </button>
-      ) : null}
-    </div>
-  );
-})() : null}
+                                {!isSearching && isExpanded ? (
+                                  <button
+                                    type="button"
+                                    className="active-workout-swap-show-all-btn"
+                                    onClick={() =>
+                                      setSwapExpanded((prev) => ({
+                                        ...prev,
+                                        [sessionExercise.id]: false,
+                                      }))
+                                    }
+                                  >
+                                    Show only same muscle
+                                  </button>
+                                ) : null}
+                              </div>
+                            );
+                          })()
+                        : null}
 
                       {isNotesOpen ? (
                         <div className="active-workout-notes">

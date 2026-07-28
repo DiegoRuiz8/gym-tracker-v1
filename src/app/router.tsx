@@ -62,6 +62,7 @@ function HistoryIcon() {
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((state) => state.user)
+  const isDemo = useAuthStore((state) => state.isDemo)
   const isLoading = useAuthStore((state) => state.isLoading)
 
   if (isLoading) {
@@ -72,7 +73,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     )
   }
 
-  if (!user) {
+  if (!user && !isDemo) {
     return <Navigate to="/login" replace />
   }
 

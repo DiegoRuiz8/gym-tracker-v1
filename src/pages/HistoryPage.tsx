@@ -3,7 +3,11 @@
 import { useMemo, useState } from "react";
 import { useAppStore } from "../store/useAppStore";
 import { buildResolvedWorkoutSessions } from "../store/selectors";
-import { formatLogDate, formatSingleWeight } from "../utils/format";
+import {
+  formatLogDate,
+  formatSingleWeight,
+  parseLocalDateKey,
+} from "../utils/format";
 import type { CompletedSet, WorkoutSessionExercise } from "../types/session";
 import "../styles/history-page.css";
 
@@ -11,7 +15,7 @@ type HistoryRange = "all" | "week" | "month";
 
 function getDaysDiffFromToday(dateString: string): number {
   const today = new Date();
-  const target = new Date(`${dateString}T00:00:00`);
+  const target = parseLocalDateKey(dateString);
   const todayStart = new Date(
     today.getFullYear(),
     today.getMonth(),
@@ -126,7 +130,7 @@ export default function HistoryPage() {
     const maxDays = activeRange === "week" ? 7 : 30;
 
     return sessionItems.filter((item) => {
-      const daysDiff = getDaysDiffFromToday(item.session.date);
+      const daysDiff = getDaysDiffFromToday(item.dateKey);
       return daysDiff >= 0 && daysDiff < maxDays;
     });
   }, [sessionItems, activeRange]);

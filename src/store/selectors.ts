@@ -7,6 +7,7 @@ import type {
   WorkoutSessionExercise,
 } from "../types/session";
 import type { Routine } from "../types/routine";
+import { getLocalDateKey, parseLocalDateKey } from "../utils/format";
 
 export function getExerciseById(
   exercises: Exercise[],
@@ -22,7 +23,7 @@ export function getLogsForExercise(
   return logs
     .filter((log) => log.exerciseId === exerciseId)
     .sort((a, b) => {
-      return new Date(b.date).getTime() - new Date(a.date).getTime();
+      return parseLocalDateKey(b.date).getTime() - parseLocalDateKey(a.date).getTime();
     });
 }
 
@@ -71,7 +72,7 @@ export function buildResolvedWorkoutSessions(
     return {
       session,
       routine,
-      dateKey: session.date,
+      dateKey: getLocalDateKey(session.endedAt ?? session.startedAt),
       exercises: resolvedExercises,
     };
   });
@@ -102,7 +103,7 @@ export function getSessionHistoryForExercise(
         .filter((exercise) => exercise.exerciseId === exerciseId)
         .map((sessionExercise) => ({
           sessionId: session.id,
-          date: session.date,
+          date: getLocalDateKey(session.endedAt ?? session.startedAt),
           routineId: session.routineId,
           startedAt: session.startedAt,
           endedAt: session.endedAt,

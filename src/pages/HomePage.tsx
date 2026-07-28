@@ -17,7 +17,9 @@ export default function HomePage() {
   const navigate = useNavigate();
 
   const user = useAuthStore((state) => state.user);
+  const isDemo = useAuthStore((state) => state.isDemo);
   const signOut = useAuthStore((state) => state.signOut);
+  const resetDemo = useAuthStore((state) => state.resetDemo);
 
   const [activeFilter, setActiveFilter] = useState<RoutineFilter>("All");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -38,9 +40,10 @@ export default function HomePage() {
   }, []);
 
   const userInitials = useMemo(() => {
+    if (isDemo) return "D";
     const email = user?.email ?? "";
     return email.split("@")[0].slice(0, 1).toUpperCase();
-  }, [user]);
+  }, [isDemo, user]);
 
   const visibleRoutines = useMemo(() => {
     if (activeFilter === "All") return routines.slice(0, 5);
@@ -75,6 +78,11 @@ export default function HomePage() {
     navigate("/login", { replace: true });
   }
 
+  function handleResetDemo() {
+    resetDemo();
+    setMenuOpen(false);
+  }
+
   return (
     <div className="simple-page">
       <div className="simple-page-container">
@@ -84,6 +92,11 @@ export default function HomePage() {
             <p className="simple-page-description">
               Track routines, sets, reps, and progress in one place.
             </p>
+            {isDemo ? (
+              <p style={{ margin: "8px 0 0", color: "#8ea2ff", fontSize: "12px", fontWeight: "700", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                Demo mode — local data only
+              </p>
+            ) : null}
           </div>
 
           {/* Avatar */}
@@ -127,7 +140,7 @@ export default function HomePage() {
                 {/* Email */}
                 <div style={{ padding: "8px 12px 12px 12px", borderBottom: "1px solid #2a2d3a", marginBottom: "8px" }}>
                   <p style={{ margin: 0, fontSize: "11px", color: "#8b8fa8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Account</p>
-                  <p style={{ margin: "4px 0 0 0", fontSize: "13px", color: "#ffffff", wordBreak: "break-all" }}>{user?.email}</p>
+                  <p style={{ margin: "4px 0 0 0", fontSize: "13px", color: "#ffffff", wordBreak: "break-all" }}>{isDemo ? "Demo athlete" : user?.email}</p>
                 </div>
 
                 {/* Weight unit */}
@@ -178,6 +191,27 @@ export default function HomePage() {
                   Data settings
                 </Link>
 
+                {isDemo ? (
+                  <button
+                    type="button"
+                    onClick={handleResetDemo}
+                    style={{
+                      width: "100%",
+                      padding: "10px 12px",
+                      borderRadius: "8px",
+                      border: "none",
+                      backgroundColor: "transparent",
+                      color: "#8ea2ff",
+                      fontSize: "14px",
+                      fontWeight: "500",
+                      cursor: "pointer",
+                      textAlign: "left",
+                    }}
+                  >
+                    Reset demo data
+                  </button>
+                ) : null}
+
                 {/* Sign out */}
                 <button
                   type="button"
@@ -197,7 +231,7 @@ export default function HomePage() {
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(248,113,113,0.08)"}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
                 >
-                  Sign out
+                  {isDemo ? "Exit demo" : "Sign out"}
                 </button>
               </div>
             ) : null}

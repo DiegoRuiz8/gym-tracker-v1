@@ -3,6 +3,9 @@
 import type { Exercise } from "../types/exercise";
 import type { WorkoutLog } from "../types/log";
 import type { Routine } from "../types/routine";
+import type { WorkoutSession } from "../types/session";
+import type { WeightUnit } from "./persistence";
+import { getLocalDateKey } from "../utils/format";
 
 const now = new Date().toISOString();
 
@@ -260,3 +263,123 @@ export const seedWorkoutLogs: WorkoutLog[] = [
     createdAt: now,
   },
 ];
+
+type DemoAppData = {
+  exercises: Exercise[];
+  routines: Routine[];
+  workoutLogs: WorkoutLog[];
+  workoutSessions: WorkoutSession[];
+  activeWorkoutSession: WorkoutSession | null;
+  preferredWeightUnit: WeightUnit;
+};
+
+function getDemoDate(daysAgo: number): string {
+  const date = new Date();
+  date.setDate(date.getDate() - daysAgo);
+  return date.toISOString();
+}
+
+function createDemoSets(
+  sessionId: string,
+  count: number,
+  weight: number,
+  reps: number,
+  completedAt: string,
+) {
+  return Array.from({ length: count }, (_, index) => ({
+    id: `${sessionId}-set-${index + 1}`,
+    setNumber: index + 1,
+    weight,
+    reps: reps - (index === count - 1 ? 1 : 0),
+    rir: index === count - 1 ? 1 : 2,
+    previousWeight: weight - 2.5,
+    previousReps: reps - 1,
+    previousDurationSeconds: null,
+    durationSeconds: null,
+    completedAt,
+    isCompleted: true,
+  }));
+}
+
+export function getDemoAppData(): DemoAppData {
+  const createdAt = getDemoDate(28);
+  const upperRoutineId = "demo-routine-upper";
+  const lowerRoutineId = "demo-routine-lower";
+  const exercises: Exercise[] = [
+    { id: "demo-bench", name: "Barbell Bench Press", category: "Upper", primaryMuscle: "chest", secondaryMuscleGroups: ["triceps", "shoulders"], equipment: "Barbell", gymLabel: "Flat bench", isActive: true, trackingType: "weight_reps", exerciseDbId: "Barbell_Bench_Press_-_Medium_Grip", exerciseDbLinkStatus: "manual", createdAt, updatedAt: createdAt },
+    { id: "demo-row", name: "Seated Cable Row", category: "Upper", primaryMuscle: "back", secondaryMuscleGroups: ["biceps"], equipment: "Cable", gymLabel: "Cable station", isActive: true, trackingType: "weight_reps", exerciseDbId: "Seated_Cable_Rows", exerciseDbLinkStatus: "manual", createdAt, updatedAt: createdAt },
+    { id: "demo-squat", name: "Back Squat", category: "Lower", primaryMuscle: "quads", secondaryMuscleGroups: ["glutes"], equipment: "Barbell", gymLabel: "Squat rack", isActive: true, trackingType: "weight_reps", exerciseDbId: "Barbell_Full_Squat", exerciseDbLinkStatus: "manual", createdAt, updatedAt: createdAt },
+    { id: "demo-rdl", name: "Romanian Deadlift", category: "Lower", primaryMuscle: "hamstrings", secondaryMuscleGroups: ["glutes", "lower-back"], equipment: "Barbell", gymLabel: "Platform", isActive: true, trackingType: "weight_reps", exerciseDbId: "Romanian_Deadlift", exerciseDbLinkStatus: "manual", createdAt, updatedAt: createdAt },
+  ];
+  const routines: Routine[] = [
+    {
+      id: upperRoutineId,
+      name: "Upper Strength",
+      dayType: "Upper",
+      description: "Press and pull strength focus.",
+      createdAt,
+      updatedAt: createdAt,
+      exerciseRefs: [
+        { id: "demo-upper-bench", routineId: upperRoutineId, exerciseId: "demo-bench", order: 1, prescription: { sets: 4, repRange: { min: 6, max: 8 }, targetRIR: 2, restSeconds: 150 } },
+        { id: "demo-upper-row", routineId: upperRoutineId, exerciseId: "demo-row", order: 2, prescription: { sets: 3, repRange: { min: 8, max: 12 }, targetRIR: 2, restSeconds: 90 } },
+      ],
+    },
+    {
+      id: lowerRoutineId,
+      name: "Lower Strength",
+      dayType: "Lower",
+      description: "Squat and hinge progression.",
+      createdAt,
+      updatedAt: createdAt,
+      exerciseRefs: [
+        { id: "demo-lower-squat", routineId: lowerRoutineId, exerciseId: "demo-squat", order: 1, prescription: { sets: 4, repRange: { min: 5, max: 8 }, targetRIR: 2, restSeconds: 180 } },
+        { id: "demo-lower-rdl", routineId: lowerRoutineId, exerciseId: "demo-rdl", order: 2, prescription: { sets: 3, repRange: { min: 8, max: 10 }, targetRIR: 2, restSeconds: 120 } },
+      ],
+    },
+  ];
+
+  const createSession = (
+    id: string,
+    routineId: string,
+    daysAgo: number,
+    details: Array<{ exerciseId: string; sets: number; weight: number; reps: number }>,
+  ): WorkoutSession => {
+    const startedAt = getDemoDate(daysAgo);
+    const endedAt = new Date(new Date(startedAt).getTime() + 55 * 60 * 1000).toISOString();
+    return {
+      id,
+      date: getLocalDateKey(endedAt),
+      routineId,
+      startedAt,
+      endedAt,
+      status: "completed",
+      notes: "Fictional demo workout — strong, consistent progress.",
+      createdAt: startedAt,
+      updatedAt: endedAt,
+      exercises: details.map((detail, index) => ({
+        id: `${id}-${detail.exerciseId}`,
+        sessionId: id,
+        exerciseId: detail.exerciseId,
+        order: index + 1,
+        trackingType: "weight_reps",
+        performedSets: createDemoSets(`${id}-${detail.exerciseId}`, detail.sets, detail.weight, detail.reps, endedAt),
+        isCompleted: true,
+        createdAt: startedAt,
+        updatedAt: endedAt,
+      })),
+    };
+  };
+
+  return {
+    exercises,
+    routines,
+    workoutLogs: [],
+    workoutSessions: [
+      createSession("demo-upper-1", upperRoutineId, 12, [{ exerciseId: "demo-bench", sets: 4, weight: 57.5, reps: 7 }, { exerciseId: "demo-row", sets: 3, weight: 45, reps: 10 }]),
+      createSession("demo-lower-1", lowerRoutineId, 7, [{ exerciseId: "demo-squat", sets: 4, weight: 75, reps: 6 }, { exerciseId: "demo-rdl", sets: 3, weight: 60, reps: 9 }]),
+      createSession("demo-upper-2", upperRoutineId, 2, [{ exerciseId: "demo-bench", sets: 4, weight: 60, reps: 7 }, { exerciseId: "demo-row", sets: 3, weight: 47.5, reps: 10 }]),
+    ],
+    activeWorkoutSession: null,
+    preferredWeightUnit: "kg",
+  };
+}

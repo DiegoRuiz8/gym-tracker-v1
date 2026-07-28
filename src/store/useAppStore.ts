@@ -6,12 +6,17 @@ import type { Routine, RoutineExerciseRef } from "../types/routine";
 import type { WorkoutLog } from "../types/log";
 import { getInitialAppData } from "./initialData";
 import { generateId } from "../utils/ids";
+import { getLocalDateKey, parseLocalDateKey } from "../utils/format";
 import type {
   WorkoutSession,
   WorkoutSessionExercise,
   CompletedSet,
 } from "../types/session";
-import { savePersistedAppData, type WeightUnit } from "./persistence";
+import {
+  savePersistedAppData,
+  savePersistedDemoData,
+  type WeightUnit,
+} from "./persistence";
 import { pushDataToSupabase } from "../lib/syncService";
 import { useAuthStore } from "./useAuthStore";
 
@@ -93,7 +98,7 @@ function createSessionFromRoutine(
 
   return {
     id: sessionId,
-    date: now.slice(0, 10),
+    date: getLocalDateKey(now),
     routineId: routine.id,
     startedAt: now,
     endedAt: null,
@@ -247,7 +252,10 @@ function getLatestPerformanceForExercise(
 
   const latestLog = [...workoutLogs]
     .filter((log) => log.exerciseId === exerciseId && log.performedSets.length > 0)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+    .sort(
+      (a, b) =>
+        parseLocalDateKey(b.date).getTime() - parseLocalDateKey(a.date).getTime(),
+    )[0];
 
   if (latestLog) {
     return latestLog.performedSets.map((set) => ({
@@ -781,7 +789,12 @@ useAppStore.subscribe((state) => {
     preferredWeightUnit: state.preferredWeightUnit,
   }
 
-  savePersistedAppData({ version: 2, data: appData })
+  if (useAuthStore.getState().isDemo) {
+    savePersistedDemoData({ version: 4, data: appData })
+    return
+  }
+
+  savePersistedAppData({ version: 4, data: appData })
 
   const userId = useAuthStore.getState().user?.id
   if (!userId) return

@@ -6,6 +6,7 @@ import type { Routine } from "../types/routine";
 import type { WorkoutSession } from "../types/session";
 
 const STORAGE_KEY = "gym-tracker-v1";
+const DEMO_STORAGE_KEY = "gym-tracker-v1-demo";
 
 export type WeightUnit = "kg" | "lb";
 
@@ -21,9 +22,9 @@ export type PersistedAppData = {
   };
 };
 
-export function loadPersistedAppData(): PersistedAppData | null {
+function loadPersistedData(storageKey: string): PersistedAppData | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey);
 
     if (!raw) return null;
 
@@ -59,10 +60,26 @@ export function loadPersistedAppData(): PersistedAppData | null {
   }
 }
 
-export function savePersistedAppData(payload: PersistedAppData): void {
+function savePersistedData(storageKey: string, payload: PersistedAppData): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    localStorage.setItem(storageKey, JSON.stringify(payload));
   } catch (error) {
     console.error("Failed to save app data to localStorage", error);
   }
+}
+
+export function loadPersistedAppData(): PersistedAppData | null {
+  return loadPersistedData(STORAGE_KEY);
+}
+
+export function loadPersistedDemoData(): PersistedAppData | null {
+  return loadPersistedData(DEMO_STORAGE_KEY);
+}
+
+export function savePersistedAppData(payload: PersistedAppData): void {
+  savePersistedData(STORAGE_KEY, payload);
+}
+
+export function savePersistedDemoData(payload: PersistedAppData): void {
+  savePersistedData(DEMO_STORAGE_KEY, payload);
 }

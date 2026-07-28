@@ -8,6 +8,27 @@ function parseDateOnly(dateString: string): Date {
   return new Date(year, month - 1, day);
 }
 
+export function getLocalDateKey(dateString: string): string {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    return dateString;
+  }
+
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) {
+    return dateString;
+  }
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+export function parseLocalDateKey(dateString: string): Date {
+  return parseDateOnly(getLocalDateKey(dateString));
+}
+
 
 
 export function kgToLb(valueKg: number): number {
@@ -151,7 +172,7 @@ export function formatSingleWeight(
 }
 
 export function getDateKey(date: string): string {
-  return date;
+  return getLocalDateKey(date);
 }
 
 export function formatSessionExerciseSetsDetailed(
