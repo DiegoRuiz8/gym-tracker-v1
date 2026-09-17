@@ -291,8 +291,8 @@
 
 .active-workout-swap-help-btn {
   position: absolute;
-  top: -22px;
-  right: 0;
+  top: -20px;
+  right: -10px;
   display: grid;
   width: var(--tap-size);
   height: var(--tap-size);
@@ -302,6 +302,8 @@
   background: transparent;
   color: var(--color-accent-hover);
   cursor: pointer;
+  isolation: isolate;
+  z-index: 2;
 }
 
 .active-workout-swap-help-btn::before {
@@ -309,7 +311,8 @@
   inset: 6px;
   border: 1px solid var(--color-accent-ring);
   border-radius: var(--radius-pill);
-  background: var(--color-surface);
+  background: var(--color-bg-elevated);
+  box-shadow: 0 0 0 3px var(--color-bg-elevated);
   content: "";
   transition: background-color 140ms ease, border-color 140ms ease;
 }
@@ -317,8 +320,8 @@
 .active-workout-swap-help-btn svg {
   position: relative;
   z-index: 1;
-  width: 16px;
-  height: 16px;
+  width: 19px;
+  height: 19px;
 }
 
 .active-workout-swap-help-btn:hover::before,
