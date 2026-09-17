@@ -166,6 +166,13 @@ export default function ActiveWorkoutPage() {
   const [variantName, setVariantName] = useState<Record<string, string>>({});
   const [variantError, setVariantError] = useState<Record<string, string>>({});
   const [nowMs, setNowMs] = useState(() => Date.now());
+
+  function resizeNotesTextarea(element: HTMLTextAreaElement | null) {
+    if (!element) return;
+
+    element.style.height = "42px";
+    element.style.height = `${element.scrollHeight}px`;
+  }
   const [showAddExercisePicker, setShowAddExercisePicker] = useState(false);
   const [exerciseSearch, setExerciseSearch] = useState("");
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
@@ -606,10 +613,10 @@ export default function ActiveWorkoutPage() {
               const canRemoveLastSet =
                 sessionExercise.performedSets.length > prescribedSetCount;
 
-              const isNotesOpen =
-                notesOpen[sessionExercise.id] ||
+              const hasNotes =
                 Boolean(exercise?.notes?.trim()) ||
                 Boolean(sessionExercise.notes?.trim());
+              const isNotesOpen = notesOpen[sessionExercise.id] ?? hasNotes;
 
               const isSwapOpen = Boolean(swapOpen[sessionExercise.id]);
               const isVariantFormOpen = Boolean(
@@ -976,6 +983,7 @@ export default function ActiveWorkoutPage() {
                       {isNotesOpen ? (
                         <div className="active-workout-notes">
                           <textarea
+                            ref={resizeNotesTextarea}
                             className="textarea"
                             placeholder="Cues for next time..."
                             value={exercise?.notes ?? sessionExercise.notes ?? ""}
@@ -991,13 +999,7 @@ export default function ActiveWorkoutPage() {
                                 });
                               }
 
-                              e.target.style.height = "42px";
-                              e.target.style.height = `${e.target.scrollHeight}px`;
-                            }}
-                            onInput={(e) => {
-                              const target = e.currentTarget;
-                              target.style.height = "42px";
-                              target.style.height = `${target.scrollHeight}px`;
+                              resizeNotesTextarea(e.currentTarget);
                             }}
                           />
                         </div>
