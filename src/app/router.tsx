@@ -1,6 +1,6 @@
 // src/app/router.tsx
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Routes,
   Route,
@@ -162,28 +162,45 @@ function SyncStatusIndicator() {
   const syncError = useAppStore((state) => state.syncError);
   const retrySync = useAppStore((state) => state.retrySync);
   const isDemo = useAuthStore((state) => state.isDemo);
+  const wasOffline = useRef(false);
+  const [showRecovered, setShowRecovered] = useState(false);
 
-  if (isDemo || syncStatus === "idle") {
+  useEffect(() => {
+    if (syncStatus === "offline") {
+      wasOffline.current = true;
+      return;
+    }
+
+    if (syncStatus !== "saved" || !wasOffline.current) return;
+
+    wasOffline.current = false;
+    setShowRecovered(true);
+    const timeout = window.setTimeout(() => setShowRecovered(false), 4000);
+    return () => window.clearTimeout(timeout);
+  }, [syncStatus]);
+
+  if (syncStatus === "idle" || (syncStatus === "saved" && !showRecovered)) {
     return null;
   }
 
-  const label =
-    syncStatus === "saving"
+  const label = showRecovered
+    ? isDemo
+      ? "Connection restored — demo data stays on this device"
+      : "Connection restored — changes synced"
+    : syncStatus === "saving"
       ? "Saving changes…"
-      : syncStatus === "saved"
-        ? "Saved"
-        : syncStatus === "offline"
-          ? "Offline — saved on this device"
-          : syncError ?? "Cloud sync failed";
+      : syncStatus === "offline"
+        ? "Offline — saved on this device"
+        : syncError ?? "Cloud sync failed";
 
   return (
     <div
-      className={`app-shell-sync-status is-${syncStatus}`}
+      className={`app-shell-sync-status is-${showRecovered ? "recovered" : syncStatus}`}
       role="status"
       aria-live="polite"
     >
       <span>{label}</span>
-      {syncStatus === "error" || syncStatus === "offline" ? (
+      {syncStatus === "error" ? (
         <button type="button" onClick={() => void retrySync()}>
           Retry
         </button>

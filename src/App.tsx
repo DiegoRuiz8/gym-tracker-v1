@@ -5,6 +5,7 @@ import { useAppStore } from './store/useAppStore'
 
 function App() {
   const initialize = useAuthStore((state) => state.initialize)
+  const isDemo = useAuthStore((state) => state.isDemo)
   const retrySync = useAppStore((state) => state.retrySync)
   const setSyncStatus = useAppStore((state) => state.setSyncStatus)
 
@@ -14,6 +15,11 @@ function App() {
 
   useEffect(() => {
     const handleOnline = () => {
+      if (isDemo) {
+        setSyncStatus('saved')
+        return
+      }
+
       void retrySync()
     }
     const handleOffline = () => {
@@ -30,7 +36,7 @@ function App() {
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
     }
-  }, [retrySync, setSyncStatus])
+  }, [isDemo, retrySync, setSyncStatus])
 
   return <AppRouter />
 }
