@@ -682,18 +682,6 @@
   justify-content: center;
 }
 
-.active-workout-extra-set-notice {
-  margin: 0;
-  padding: var(--space-2) 10px;
-  border: 1px solid var(--color-accent-ring);
-  border-radius: var(--radius-sm);
-  background: var(--color-accent-soft);
-  color: var(--color-accent-hover);
-  font-size: 0.84rem;
-  font-weight: var(--font-weight-semibold);
-  text-align: center;
-}
-
 .active-workout-remove-set-btn {
   width: 100%;
   min-height: 40px;

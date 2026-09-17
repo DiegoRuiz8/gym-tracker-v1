@@ -1,7 +1,7 @@
 // src/pages/ActiveWorkoutPage.tsx
 
 import { Navigate, useNavigate } from "react-router-dom";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useAppStore } from "../store/useAppStore";
 import {
   getExerciseDbCatalog,
@@ -198,24 +198,12 @@ export default function ActiveWorkoutPage() {
   >({});
   const [catalog, setCatalog] = useState<ExerciseDbEntry[]>([]);
   const [swapExpanded, setSwapExpanded] = useState<Record<string, boolean>>({});
-  const [extraSetNotice, setExtraSetNotice] = useState<Record<string, boolean>>({});
   const [extraSetRemovalConfirmOpen, setExtraSetRemovalConfirmOpen] = useState<
     Record<string, boolean>
   >({});
-  const extraSetNoticeTimeouts = useRef<Record<string, number>>({});
 
   useEffect(() => {
     getExerciseDbCatalog().then((result) => setCatalog(result.exercises));
-  }, []);
-
-  useEffect(() => {
-    const noticeTimeouts = extraSetNoticeTimeouts.current;
-
-    return () => {
-      Object.values(noticeTimeouts).forEach((timeout) => {
-        window.clearTimeout(timeout);
-      });
-    };
   }, []);
 
   useEffect(() => {
@@ -449,22 +437,10 @@ export default function ActiveWorkoutPage() {
 
   function handleAddExtraSet(sessionExerciseId: string) {
     addActiveSessionExerciseSet(sessionExerciseId);
-    setExtraSetNotice((prev) => ({ ...prev, [sessionExerciseId]: true }));
-
-    const existingTimeout = extraSetNoticeTimeouts.current[sessionExerciseId];
-    if (existingTimeout) {
-      window.clearTimeout(existingTimeout);
-    }
-
-    extraSetNoticeTimeouts.current[sessionExerciseId] = window.setTimeout(() => {
-      setExtraSetNotice((prev) => ({ ...prev, [sessionExerciseId]: false }));
-      delete extraSetNoticeTimeouts.current[sessionExerciseId];
-    }, 4000);
   }
 
   function handleRemoveLastExtraSet(sessionExerciseId: string) {
     removeLastActiveSessionExerciseSet(sessionExerciseId);
-    setExtraSetNotice((prev) => ({ ...prev, [sessionExerciseId]: false }));
     setExtraSetRemovalConfirmOpen((prev) => ({
       ...prev,
       [sessionExerciseId]: false,
@@ -508,12 +484,6 @@ export default function ActiveWorkoutPage() {
     });
 
     setSwapHelpOpen((prev) => {
-      const next = { ...prev };
-      delete next[sessionExerciseId];
-      return next;
-    });
-
-    setExtraSetNotice((prev) => {
       const next = { ...prev };
       delete next[sessionExerciseId];
       return next;
@@ -1372,12 +1342,6 @@ export default function ActiveWorkoutPage() {
                       >
                         + Add set
                       </button>
-
-                      {extraSetNotice[sessionExercise.id] ? (
-                        <p className="active-workout-extra-set-notice" role="status">
-                          Extra set added
-                        </p>
-                      ) : null}
 
                       {canRemoveLastSet ? (
                         <button
