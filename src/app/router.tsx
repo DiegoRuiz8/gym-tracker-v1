@@ -1,6 +1,6 @@
 // src/app/router.tsx
 
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, type ReactNode, useEffect, useRef, useState } from "react";
 import {
   Routes,
   Route,
@@ -13,21 +13,24 @@ import {
 import { useAuthStore } from "../store/useAuthStore";
 import { useAppStore } from "../store/useAppStore";
 import type { WorkoutSession } from "../types/session";
-import HomePage from "../pages/HomePage";
-import RoutinesPage from "../pages/RoutinesPage";
-import RoutineDetailPage from "../pages/RoutineDetailPage";
-import ExercisesPage from "../pages/ExercisesPage";
-import HistoryPage from "../pages/HistoryPage";
-import ExerciseHistoryPage from "../pages/ExerciseHistoryPage";
-import NewRoutinePage from "../pages/NewRoutinePage";
-import EditRoutinePage from "../pages/EditRoutinePage";
-import NewExercisePage from "../pages/NewExercisePage";
-import EditExercisePage from "../pages/EditExercisePage";
-import ImportExportPage from "../pages/ImportExportPage";
-import ActiveWorkoutPage from "../pages/ActiveWorkoutPage";
-import LoginPage from "../pages/LoginPage";
-import ResetPasswordPage from "../pages/ResetPasswordPage";
 import "../styles/app-shell.css";
+
+const ActiveWorkoutPage = lazy(() => import("../pages/ActiveWorkoutPage"));
+const EditExercisePage = lazy(() => import("../pages/EditExercisePage"));
+const EditRoutinePage = lazy(() => import("../pages/EditRoutinePage"));
+const ExerciseHistoryPage = lazy(
+  () => import("../pages/ExerciseHistoryPage"),
+);
+const ExercisesPage = lazy(() => import("../pages/ExercisesPage"));
+const HistoryPage = lazy(() => import("../pages/HistoryPage"));
+const HomePage = lazy(() => import("../pages/HomePage"));
+const ImportExportPage = lazy(() => import("../pages/ImportExportPage"));
+const LoginPage = lazy(() => import("../pages/LoginPage"));
+const NewExercisePage = lazy(() => import("../pages/NewExercisePage"));
+const NewRoutinePage = lazy(() => import("../pages/NewRoutinePage"));
+const ResetPasswordPage = lazy(() => import("../pages/ResetPasswordPage"));
+const RoutineDetailPage = lazy(() => import("../pages/RoutineDetailPage"));
+const RoutinesPage = lazy(() => import("../pages/RoutinesPage"));
 
 function getNavLinkClassName({ isActive }: { isActive: boolean }) {
   return isActive ? "app-shell-nav-link active" : "app-shell-nav-link";
@@ -71,7 +74,7 @@ function HistoryIcon() {
   );
 }
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function ProtectedRoute({ children }: { children: ReactNode }) {
   const user = useAuthStore((state) => state.user)
   const isDemo = useAuthStore((state) => state.isDemo)
   const isLoading = useAuthStore((state) => state.isLoading)
@@ -320,7 +323,7 @@ function SessionRecoveryPrompt() {
   );
 }
 
-function AppShell({ children }: { children: React.ReactNode }) {
+function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="app-shell">
       <main className="app-shell-main">
@@ -355,33 +358,41 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
 export function AppRouter() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
+    <Suspense
+      fallback={
+        <div className="app-route-loading" role="status" aria-live="polite">
+          Loading page...
+        </div>
+      }
+    >
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-      <Route
-        path="/*"
-        element={
-          <ProtectedRoute>
-            <AppShell>
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/routines" element={<RoutinesPage />} />
-                <Route path="/routines/new" element={<NewRoutinePage />} />
-                <Route path="/routines/:routineId" element={<RoutineDetailPage />} />
-                <Route path="/routines/:routineId/edit" element={<EditRoutinePage />} />
-                <Route path="/exercises" element={<ExercisesPage />} />
-                <Route path="/exercises/new" element={<NewExercisePage />} />
-                <Route path="/exercises/:exerciseId/edit" element={<EditExercisePage />} />
-                <Route path="/history" element={<HistoryPage />} />
-                <Route path="/history/exercise/:exerciseId" element={<ExerciseHistoryPage />} />
-                <Route path="/data" element={<ImportExportPage />} />
-                <Route path="/active-workout" element={<ActiveWorkoutPage />} />
-              </Routes>
-            </AppShell>
-          </ProtectedRoute>
-        }
-      />
-    </Routes>
+        <Route
+          path="/*"
+          element={
+            <ProtectedRoute>
+              <AppShell>
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/routines" element={<RoutinesPage />} />
+                  <Route path="/routines/new" element={<NewRoutinePage />} />
+                  <Route path="/routines/:routineId" element={<RoutineDetailPage />} />
+                  <Route path="/routines/:routineId/edit" element={<EditRoutinePage />} />
+                  <Route path="/exercises" element={<ExercisesPage />} />
+                  <Route path="/exercises/new" element={<NewExercisePage />} />
+                  <Route path="/exercises/:exerciseId/edit" element={<EditExercisePage />} />
+                  <Route path="/history" element={<HistoryPage />} />
+                  <Route path="/history/exercise/:exerciseId" element={<ExerciseHistoryPage />} />
+                  <Route path="/data" element={<ImportExportPage />} />
+                  <Route path="/active-workout" element={<ActiveWorkoutPage />} />
+                </Routes>
+              </AppShell>
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </Suspense>
   )
 }

@@ -277,3 +277,11 @@
     transform: translateY(0);
   }
 }
+
+.app-route-loading {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: var(--space-6);
+  color: var(--color-text-soft);
+}
