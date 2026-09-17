@@ -161,6 +161,7 @@ export default function ActiveWorkoutPage() {
 
   const [notesOpen, setNotesOpen] = useState<Record<string, boolean>>({});
   const [swapOpen, setSwapOpen] = useState<Record<string, boolean>>({});
+  const [swapHelpOpen, setSwapHelpOpen] = useState<Record<string, boolean>>({});
   const [swapSearch, setSwapSearch] = useState<Record<string, string>>({});
   const [variantFormOpen, setVariantFormOpen] = useState<Record<string, boolean>>({});
   const [variantName, setVariantName] = useState<Record<string, string>>({});
@@ -440,6 +441,12 @@ export default function ActiveWorkoutPage() {
       return next;
     });
 
+    setSwapHelpOpen((prev) => {
+      const next = { ...prev };
+      delete next[sessionExerciseId];
+      return next;
+    });
+
     setSwapSearch((prev) => {
       const next = { ...prev };
       delete next[sessionExerciseId];
@@ -482,6 +489,7 @@ export default function ActiveWorkoutPage() {
       delete next[sessionExerciseId];
       return next;
     });
+    setSwapHelpOpen((prev) => ({ ...prev, [sessionExerciseId]: false }));
     setVariantFormOpen((prev) => ({ ...prev, [sessionExerciseId]: false }));
     setVariantName((prev) => ({ ...prev, [sessionExerciseId]: "" }));
     setVariantError((prev) => ({ ...prev, [sessionExerciseId]: "" }));
@@ -619,6 +627,7 @@ export default function ActiveWorkoutPage() {
               const isNotesOpen = notesOpen[sessionExercise.id] ?? hasNotes;
 
               const isSwapOpen = Boolean(swapOpen[sessionExercise.id]);
+              const isSwapHelpOpen = Boolean(swapHelpOpen[sessionExercise.id]);
               const isVariantFormOpen = Boolean(
                 variantFormOpen[sessionExercise.id],
               );
@@ -786,9 +795,37 @@ export default function ActiveWorkoutPage() {
 
                             return (
                               <div className="active-workout-swap-panel">
+                                <button
+                                  type="button"
+                                  className="active-workout-swap-help-btn"
+                                  aria-label="How swapping works"
+                                  aria-controls={`swap-help-${sessionExercise.id}`}
+                                  aria-expanded={isSwapHelpOpen}
+                                  onClick={() =>
+                                    setSwapHelpOpen((prev) => ({
+                                      ...prev,
+                                      [sessionExercise.id]: !prev[sessionExercise.id],
+                                    }))
+                                  }
+                                >
+                                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="1.8" />
+                                    <path d="M9.8 9.3a2.45 2.45 0 0 1 4.77.8c0 1.72-2.04 2.06-2.04 3.6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                                    <path d="M12.5 17h.01" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+                                  </svg>
+                                </button>
                                 <p className="active-workout-swap-label">
                                   Swap for today
                                 </p>
+
+                                {isSwapHelpOpen ? (
+                                  <p
+                                    id={`swap-help-${sessionExercise.id}`}
+                                    className="active-workout-swap-help"
+                                  >
+                                    Swap changes this exercise for today only. Your routine stays unchanged. Choose another exercise or create a variant.
+                                  </p>
+                                ) : null}
 
                                 <div className="active-workout-add-exercise-input-wrap">
                                   <input
