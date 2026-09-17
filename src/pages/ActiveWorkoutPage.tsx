@@ -632,7 +632,9 @@ export default function ActiveWorkoutPage() {
               navigate("/routines", { replace: true });
             }}
           >
-            ←
+            <span className="active-workout-back-icon" aria-hidden="true">
+              ←
+            </span>
           </button>
 
           <div className="active-workout-header-main">
