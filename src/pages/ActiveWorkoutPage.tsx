@@ -695,7 +695,7 @@ export default function ActiveWorkoutPage() {
                           >
                             {isNotesOpen
                               ? "Hide exercise notes"
-                              : exercise?.notes?.trim()
+                              : hasNotes
                                 ? "Show exercise notes"
                                 : "Add exercise notes"}
                           </button>
