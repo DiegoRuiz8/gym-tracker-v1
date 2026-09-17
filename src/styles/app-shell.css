@@ -297,16 +297,11 @@
   height: 68px;
   margin-bottom: var(--space-2);
   place-items: center;
-  border: 1px solid var(--color-accent-ring);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-sm);
-  color: var(--color-accent);
 }
 
-.app-loading-mark svg {
-  width: 42px;
-  height: 42px;
+.app-loading-mark img {
+  width: 68px;
+  height: 68px;
 }
 
 .app-loading-brand,

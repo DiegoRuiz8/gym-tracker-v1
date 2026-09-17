@@ -78,10 +78,7 @@ function AppLoadingScreen() {
   return (
     <div className="app-loading-screen" role="status" aria-live="polite">
       <div className="app-loading-mark" aria-hidden="true">
-        <svg viewBox="0 0 64 64" fill="none">
-          <path d="M8 23v18M17 18v28M47 18v28M56 23v18" stroke="currentColor" strokeWidth="7" strokeLinecap="round" />
-          <path d="M24 32h16" stroke="currentColor" strokeWidth="6" strokeLinecap="round" />
-        </svg>
+        <img src="/favicon.svg" alt="" />
       </div>
       <p className="app-loading-brand">LiftLog</p>
       <p className="app-loading-message">Getting your workout ready…</p>
