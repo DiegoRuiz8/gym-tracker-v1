@@ -138,7 +138,9 @@
   color: var(--color-text);
 }
 
-.history-page-filter-chip-active {
+.history-page-filter-chip.history-page-filter-chip-active,
+.history-page-filter-chip.history-page-filter-chip-active:hover,
+.history-page-filter-chip.history-page-filter-chip-active:focus-visible {
   background: var(--color-accent);
   border-color: transparent;
   color: #f8fbff;

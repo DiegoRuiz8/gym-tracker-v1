@@ -472,8 +472,11 @@
 
 .exercises-page-variant-detail {
   margin: 0;
+  min-width: 0;
   color: var(--color-text-soft);
   line-height: 1.5;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .exercises-page-variant-detail strong {

@@ -233,6 +233,7 @@ export default function HistoryPage() {
                 activeRange === "all" ? "history-page-filter-chip-active" : ""
               }`}
               onClick={() => setActiveRange("all")}
+              aria-pressed={activeRange === "all"}
             >
               All
             </button>
@@ -243,6 +244,7 @@ export default function HistoryPage() {
                 activeRange === "week" ? "history-page-filter-chip-active" : ""
               }`}
               onClick={() => setActiveRange("week")}
+              aria-pressed={activeRange === "week"}
             >
               Week
             </button>
@@ -253,6 +255,7 @@ export default function HistoryPage() {
                 activeRange === "month" ? "history-page-filter-chip-active" : ""
               }`}
               onClick={() => setActiveRange("month")}
+              aria-pressed={activeRange === "month"}
             >
               Month
             </button>
