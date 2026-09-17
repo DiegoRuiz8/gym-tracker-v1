@@ -39,6 +39,15 @@
   color: var(--color-text);
 }
 
+.simple-page-home-brand {
+  font-family: var(--font-family-brand);
+  font-size: clamp(2rem, 8vw, 2.5rem);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.055em;
+  line-height: 0.95;
+  text-transform: none;
+}
+
 .simple-page-subtitle,
 .simple-page-description {
   margin: 0;
@@ -894,6 +903,10 @@
 
   .simple-page-title {
     font-size: 1.7rem;
+  }
+
+  .simple-page-home-brand {
+    font-size: 2rem;
   }
 
   .simple-page-title-compact {
