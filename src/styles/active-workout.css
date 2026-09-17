@@ -494,14 +494,28 @@
 }
 
 .active-workout-set-number {
-  display: flex;
-  align-items: center;
+  display: grid;
+  align-content: center;
+  gap: 1px;
   justify-content: center;
   height: 56px;
   color: var(--color-text);
   font-weight: var(--font-weight-bold);
   font-size: 1.05rem;
   text-align: center;
+}
+
+.active-workout-extra-set-label {
+  color: var(--color-accent-hover);
+  font-size: 0.58rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.05em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.active-workout-set-row.is-completed .active-workout-extra-set-label {
+  color: var(--color-accent-foreground);
 }
 
 .active-workout-cell-input {
@@ -668,6 +682,18 @@
   justify-content: center;
 }
 
+.active-workout-extra-set-notice {
+  margin: 0;
+  padding: var(--space-2) 10px;
+  border: 1px solid var(--color-accent-ring);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-hover);
+  font-size: 0.84rem;
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+}
+
 .active-workout-remove-set-btn {
   width: 100%;
   min-height: 40px;
@@ -698,6 +724,47 @@
 .active-workout-remove-set-btn:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.14);
+}
+
+.active-workout-remove-set-confirm {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 30%, transparent);
+  border-radius: var(--radius-md);
+  background: var(--color-danger-soft);
+}
+
+.active-workout-remove-set-confirm p {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 0.88rem;
+  font-weight: var(--font-weight-semibold);
+}
+
+.active-workout-remove-set-confirm > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.active-workout-remove-set-confirm .button-secondary,
+.active-workout-remove-set-confirm-btn {
+  min-height: var(--tap-size);
+}
+
+.active-workout-remove-set-confirm-btn {
+  border: 1px solid color-mix(in srgb, var(--color-danger) 46%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-danger) 18%, var(--color-bg-elevated));
+  color: var(--color-text);
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.active-workout-remove-set-confirm-btn:hover {
+  background: color-mix(in srgb, var(--color-danger) 28%, var(--color-bg-elevated));
 }
 
 .active-workout-empty {

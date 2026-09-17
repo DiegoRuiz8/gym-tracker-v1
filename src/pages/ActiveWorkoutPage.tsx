@@ -1,7 +1,7 @@
 // src/pages/ActiveWorkoutPage.tsx
 
 import { Navigate, useNavigate } from "react-router-dom";
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore } from "../store/useAppStore";
 import {
   getExerciseDbCatalog,
@@ -107,6 +107,18 @@ function getNextPendingSet(
   };
 }
 
+function hasLoggedWorkSinceSetWasAdded(
+  set: WorkoutSessionExercise["performedSets"][number],
+) {
+  return (
+    set.isCompleted ||
+    set.weight !== set.previousWeight ||
+    set.reps !== set.previousReps ||
+    set.durationSeconds !== set.previousDurationSeconds ||
+    set.rir != null
+  );
+}
+
 export default function ActiveWorkoutPage() {
   const navigate = useNavigate();
 
@@ -186,9 +198,24 @@ export default function ActiveWorkoutPage() {
   >({});
   const [catalog, setCatalog] = useState<ExerciseDbEntry[]>([]);
   const [swapExpanded, setSwapExpanded] = useState<Record<string, boolean>>({});
+  const [extraSetNotice, setExtraSetNotice] = useState<Record<string, boolean>>({});
+  const [extraSetRemovalConfirmOpen, setExtraSetRemovalConfirmOpen] = useState<
+    Record<string, boolean>
+  >({});
+  const extraSetNoticeTimeouts = useRef<Record<string, number>>({});
 
   useEffect(() => {
     getExerciseDbCatalog().then((result) => setCatalog(result.exercises));
+  }, []);
+
+  useEffect(() => {
+    const noticeTimeouts = extraSetNoticeTimeouts.current;
+
+    return () => {
+      Object.values(noticeTimeouts).forEach((timeout) => {
+        window.clearTimeout(timeout);
+      });
+    };
   }, []);
 
   useEffect(() => {
@@ -420,6 +447,45 @@ export default function ActiveWorkoutPage() {
     }));
   }
 
+  function handleAddExtraSet(sessionExerciseId: string) {
+    addActiveSessionExerciseSet(sessionExerciseId);
+    setExtraSetNotice((prev) => ({ ...prev, [sessionExerciseId]: true }));
+
+    const existingTimeout = extraSetNoticeTimeouts.current[sessionExerciseId];
+    if (existingTimeout) {
+      window.clearTimeout(existingTimeout);
+    }
+
+    extraSetNoticeTimeouts.current[sessionExerciseId] = window.setTimeout(() => {
+      setExtraSetNotice((prev) => ({ ...prev, [sessionExerciseId]: false }));
+      delete extraSetNoticeTimeouts.current[sessionExerciseId];
+    }, 4000);
+  }
+
+  function handleRemoveLastExtraSet(sessionExerciseId: string) {
+    removeLastActiveSessionExerciseSet(sessionExerciseId);
+    setExtraSetNotice((prev) => ({ ...prev, [sessionExerciseId]: false }));
+    setExtraSetRemovalConfirmOpen((prev) => ({
+      ...prev,
+      [sessionExerciseId]: false,
+    }));
+  }
+
+  function handleRequestRemoveLastExtraSet(
+    sessionExerciseId: string,
+    requiresConfirmation: boolean,
+  ) {
+    if (!requiresConfirmation) {
+      handleRemoveLastExtraSet(sessionExerciseId);
+      return;
+    }
+
+    setExtraSetRemovalConfirmOpen((prev) => ({
+      ...prev,
+      [sessionExerciseId]: true,
+    }));
+  }
+
   function handleConfirmDeleteExercise(sessionExerciseId: string) {
     removeExerciseFromActiveWorkoutSession(sessionExerciseId);
 
@@ -442,6 +508,18 @@ export default function ActiveWorkoutPage() {
     });
 
     setSwapHelpOpen((prev) => {
+      const next = { ...prev };
+      delete next[sessionExerciseId];
+      return next;
+    });
+
+    setExtraSetNotice((prev) => {
+      const next = { ...prev };
+      delete next[sessionExerciseId];
+      return next;
+    });
+
+    setExtraSetRemovalConfirmOpen((prev) => {
       const next = { ...prev };
       delete next[sessionExerciseId];
       return next;
@@ -620,6 +698,17 @@ export default function ActiveWorkoutPage() {
               const prescribedSetCount = prescription?.sets ?? 0;
               const canRemoveLastSet =
                 sessionExercise.performedSets.length > prescribedSetCount;
+              const lastExtraSet = canRemoveLastSet
+                ? sessionExercise.performedSets[
+                    sessionExercise.performedSets.length - 1
+                  ]
+                : null;
+              const lastExtraSetHasLoggedWork = lastExtraSet
+                ? hasLoggedWorkSinceSetWasAdded(lastExtraSet)
+                : false;
+              const isExtraSetRemovalConfirmOpen = Boolean(
+                extraSetRemovalConfirmOpen[sessionExercise.id],
+              );
 
               const hasNotes =
                 Boolean(exercise?.notes?.trim()) ||
@@ -1073,12 +1162,19 @@ export default function ActiveWorkoutPage() {
 
                         <tbody>
                           {sessionExercise.performedSets.map(
-                            (set, setIndex) => (
-                              <Fragment key={set.id}>
+                            (set, setIndex) => {
+                              const isExtraSet =
+                                prescription != null &&
+                                setIndex >= prescribedSetCount;
+
+                              return (
+                                <Fragment key={set.id}>
                               <tr
                                 className={
                                   `active-workout-set-row${
                                     set.isCompleted ? " is-completed" : ""
+                                  }${
+                                    isExtraSet ? " is-extra" : ""
                                   }${
                                     nextPendingSet?.setId === set.id
                                       ? " is-next-up"
@@ -1087,7 +1183,12 @@ export default function ActiveWorkoutPage() {
                                 }
                               >
                                 <td className="active-workout-set-number">
-                                  {set.setNumber}
+                                  <span>{set.setNumber}</span>
+                                  {isExtraSet ? (
+                                    <span className="active-workout-extra-set-label">
+                                      Extra
+                                    </span>
+                                  ) : null}
                                 </td>
 
                                 <td className="active-workout-previous-cell">
@@ -1250,7 +1351,8 @@ export default function ActiveWorkoutPage() {
                                 </tr>
                               ) : null}
                               </Fragment>
-                            ),
+                              );
+                            },
                           )}
                         </tbody>
                       </table>
@@ -1266,25 +1368,59 @@ export default function ActiveWorkoutPage() {
                       <button
                         type="button"
                         className="button-secondary active-workout-add-set-btn"
-                        onClick={() =>
-                          addActiveSessionExerciseSet(sessionExercise.id)
-                        }
+                        onClick={() => handleAddExtraSet(sessionExercise.id)}
                       >
                         + Add set
                       </button>
+
+                      {extraSetNotice[sessionExercise.id] ? (
+                        <p className="active-workout-extra-set-notice" role="status">
+                          Extra set added
+                        </p>
+                      ) : null}
 
                       {canRemoveLastSet ? (
                         <button
                           type="button"
                           className="active-workout-remove-set-btn"
                           onClick={() =>
-                            removeLastActiveSessionExerciseSet(
+                            handleRequestRemoveLastExtraSet(
                               sessionExercise.id,
+                              lastExtraSetHasLoggedWork,
                             )
                           }
                         >
-                          Undo add set
+                          − Remove last extra set
                         </button>
+                      ) : null}
+
+                      {canRemoveLastSet && isExtraSetRemovalConfirmOpen ? (
+                        <div className="active-workout-remove-set-confirm" role="alert">
+                          <p>This extra set has logged work. Remove it?</p>
+                          <div>
+                            <button
+                              type="button"
+                              className="button-secondary"
+                              onClick={() =>
+                                setExtraSetRemovalConfirmOpen((prev) => ({
+                                  ...prev,
+                                  [sessionExercise.id]: false,
+                                }))
+                              }
+                            >
+                              Keep set
+                            </button>
+                            <button
+                              type="button"
+                              className="active-workout-remove-set-confirm-btn"
+                              onClick={() =>
+                                handleRemoveLastExtraSet(sessionExercise.id)
+                              }
+                            >
+                              Remove set
+                            </button>
+                          </div>
+                        </div>
                       ) : null}
                     </div>
                   </div>
