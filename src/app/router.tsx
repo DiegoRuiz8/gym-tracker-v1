@@ -174,9 +174,18 @@ function SyncStatusIndicator() {
     if (syncStatus !== "saved" || !wasOffline.current) return;
 
     wasOffline.current = false;
-    setShowRecovered(true);
-    const timeout = window.setTimeout(() => setShowRecovered(false), 4000);
-    return () => window.clearTimeout(timeout);
+    let dismissTimeout: number | null = null;
+    const showTimeout = window.setTimeout(() => {
+      setShowRecovered(true);
+      dismissTimeout = window.setTimeout(() => setShowRecovered(false), 4000);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(showTimeout);
+      if (dismissTimeout !== null) {
+        window.clearTimeout(dismissTimeout);
+      }
+    };
   }, [syncStatus]);
 
   if (syncStatus === "idle" || (syncStatus === "saved" && !showRecovered)) {
