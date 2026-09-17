@@ -122,10 +122,6 @@
   position: relative;
 }
 
-.active-workout-card.is-next-up {
-  border-color: color-mix(in srgb, var(--color-success) 54%, var(--color-border));
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-success) 20%, transparent);
-}
 .active-workout-card-inner {
   overflow: hidden;
   border-radius: inherit;
@@ -404,6 +400,19 @@
 
 .active-workout-set-row.is-completed td {
   background: rgba(69, 153, 27, 0.562);
+}
+
+.active-workout-set-row.is-next-up td {
+  border-top: 2px solid color-mix(in srgb, var(--color-success) 62%, transparent);
+  border-bottom: 2px solid color-mix(in srgb, var(--color-success) 62%, transparent);
+}
+
+.active-workout-set-row.is-next-up td:first-child {
+  border-left: 2px solid color-mix(in srgb, var(--color-success) 62%, transparent);
+}
+
+.active-workout-set-row.is-next-up td:last-child {
+  border-right: 2px solid color-mix(in srgb, var(--color-success) 62%, transparent);
 }
 
 .active-workout-set-row.is-completed .active-workout-set-number,

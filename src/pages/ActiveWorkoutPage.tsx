@@ -65,10 +65,15 @@ function formatRestTime(totalSeconds: number): string {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
-function getNextPendingExerciseId(
+type NextPendingSet = {
+  sessionExerciseId: string;
+  setId: string;
+};
+
+function getNextPendingSet(
   sessionExercises: WorkoutSessionExercise[],
   restTimer: RestTimer,
-): string | null {
+): NextPendingSet | null {
   const orderedExercises = [...sessionExercises].sort(
     (a, b) => a.order - b.order,
   );
@@ -79,15 +84,27 @@ function getNextPendingExerciseId(
   if (sourceIndex === -1) return null;
 
   const sourceExercise = orderedExercises[sourceIndex];
-  if (sourceExercise.performedSets.some((set) => !set.isCompleted)) {
-    return sourceExercise.id;
+  const nextSourceSet = sourceExercise.performedSets.find(
+    (set) => !set.isCompleted,
+  );
+  if (nextSourceSet) {
+    return {
+      sessionExerciseId: sourceExercise.id,
+      setId: nextSourceSet.id,
+    };
   }
 
   const nextExercise = orderedExercises
     .slice(sourceIndex + 1)
     .find((exercise) => exercise.performedSets.some((set) => !set.isCompleted));
 
-  return nextExercise?.id ?? null;
+  const nextSet = nextExercise?.performedSets.find((set) => !set.isCompleted);
+  if (!nextExercise || !nextSet) return null;
+
+  return {
+    sessionExerciseId: nextExercise.id,
+    setId: nextSet.id,
+  };
 }
 
 export default function ActiveWorkoutPage() {
@@ -220,9 +237,9 @@ export default function ActiveWorkoutPage() {
   const routine = routines.find(
     (item) => item.id === activeWorkoutSession.routineId,
   );
-  const nextPendingExerciseId =
+  const nextPendingSet =
     restTimer?.status === "finished"
-      ? getNextPendingExerciseId(activeWorkoutSession.exercises, restTimer)
+      ? getNextPendingSet(activeWorkoutSession.exercises, restTimer)
       : null;
   const restProgress = restTimer
     ? Math.max(
@@ -598,7 +615,6 @@ export default function ActiveWorkoutPage() {
               const isVariantFormOpen = Boolean(
                 variantFormOpen[sessionExercise.id],
               );
-              const isNextUp = nextPendingExerciseId === sessionExercise.id;
               const currentSwapSearch = swapSearch[sessionExercise.id] ?? "";
               const unsortedSwapResults =
                 filterExercisesBySearch(currentSwapSearch);
@@ -612,11 +628,7 @@ export default function ActiveWorkoutPage() {
 
               return (
                 <Fragment key={sessionExercise.id}>
-                  <article
-                    className={`surface-card active-workout-card ${
-                      isNextUp ? "is-next-up" : ""
-                    }`}
-                  >
+                  <article className="surface-card active-workout-card">
                   <button
                     type="button"
                     className="active-workout-card-delete-badge"
@@ -663,12 +675,6 @@ export default function ActiveWorkoutPage() {
                               prescription?.restSeconds,
                             )}
                           </p>
-
-                          {isNextUp ? (
-                            <p className="active-workout-next-up-label">
-                              Next set ready
-                            </p>
-                          ) : null}
 
                           <button
                             type="button"
@@ -1031,9 +1037,13 @@ export default function ActiveWorkoutPage() {
                               <Fragment key={set.id}>
                               <tr
                                 className={
-                                  set.isCompleted
-                                    ? "active-workout-set-row is-completed"
-                                    : "active-workout-set-row"
+                                  `active-workout-set-row${
+                                    set.isCompleted ? " is-completed" : ""
+                                  }${
+                                    nextPendingSet?.setId === set.id
+                                      ? " is-next-up"
+                                      : ""
+                                  }`
                                 }
                               >
                                 <td className="active-workout-set-number">
