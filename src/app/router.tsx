@@ -1,7 +1,18 @@
 // src/app/router.tsx
 
-import { Routes, Route, NavLink, Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import {
+  Routes,
+  Route,
+  NavLink,
+  Navigate,
+  Link,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
+import { useAppStore } from "../store/useAppStore";
+import type { WorkoutSession } from "../types/session";
 import HomePage from "../pages/HomePage";
 import RoutinesPage from "../pages/RoutinesPage";
 import RoutineDetailPage from "../pages/RoutineDetailPage";
@@ -80,12 +91,218 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+function formatElapsedTime(startedAt: string, nowMs: number): string {
+  const elapsedSeconds = Math.max(
+    0,
+    Math.floor((nowMs - new Date(startedAt).getTime()) / 1000),
+  );
+  const hours = Math.floor(elapsedSeconds / 3600);
+  const minutes = Math.floor((elapsedSeconds % 3600) / 60);
+
+  return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+}
+
+function getLastCompletedSetTime(session: WorkoutSession): string | null {
+  return session.exercises.reduce<string | null>((latest, exercise) => {
+    return exercise.performedSets.reduce<string | null>((currentLatest, set) => {
+      if (!set.completedAt) return currentLatest;
+      if (!currentLatest) return set.completedAt;
+
+      return new Date(set.completedAt).getTime() >
+        new Date(currentLatest).getTime()
+        ? set.completedAt
+        : currentLatest;
+    }, latest);
+  }, null);
+}
+
+function ActiveWorkoutBanner() {
+  const location = useLocation();
+  const activeWorkoutSession = useAppStore(
+    (state) => state.activeWorkoutSession,
+  );
+  const routines = useAppStore((state) => state.routines);
+  const [nowMs, setNowMs] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (!activeWorkoutSession) return;
+
+    const timer = window.setInterval(() => setNowMs(Date.now()), 60_000);
+    return () => window.clearInterval(timer);
+  }, [activeWorkoutSession]);
+
+  if (!activeWorkoutSession || location.pathname === "/active-workout") {
+    return null;
+  }
+
+  const routine = routines.find(
+    (item) => item.id === activeWorkoutSession.routineId,
+  );
+
+  return (
+    <Link
+      to="/active-workout"
+      className="app-shell-active-workout"
+      aria-label={`Resume active workout: ${routine?.name ?? "Workout"}`}
+    >
+      <span className="app-shell-active-workout-indicator" aria-hidden="true" />
+      <span className="app-shell-active-workout-content">
+        <strong>Workout in progress</strong>
+        <span>
+          {routine?.name ?? "Active workout"} · {formatElapsedTime(activeWorkoutSession.startedAt, nowMs)}
+        </span>
+      </span>
+      <span className="app-shell-active-workout-action">Resume</span>
+    </Link>
+  );
+}
+
+function SyncStatusIndicator() {
+  const syncStatus = useAppStore((state) => state.syncStatus);
+  const syncError = useAppStore((state) => state.syncError);
+  const retrySync = useAppStore((state) => state.retrySync);
+  const isDemo = useAuthStore((state) => state.isDemo);
+
+  if (isDemo || syncStatus === "idle") {
+    return null;
+  }
+
+  const label =
+    syncStatus === "saving"
+      ? "Saving changes…"
+      : syncStatus === "saved"
+        ? "Saved"
+        : syncStatus === "offline"
+          ? "Offline — saved on this device"
+          : syncError ?? "Cloud sync failed";
+
+  return (
+    <div
+      className={`app-shell-sync-status is-${syncStatus}`}
+      role="status"
+      aria-live="polite"
+    >
+      <span>{label}</span>
+      {syncStatus === "error" || syncStatus === "offline" ? (
+        <button type="button" onClick={() => void retrySync()}>
+          Retry
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+function SessionRecoveryPrompt() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const activeWorkoutSession = useAppStore(
+    (state) => state.activeWorkoutSession,
+  );
+  const routines = useAppStore((state) => state.routines);
+  const completeActiveWorkoutSession = useAppStore(
+    (state) => state.completeActiveWorkoutSession,
+  );
+  const cancelActiveWorkoutSession = useAppStore(
+    (state) => state.cancelActiveWorkoutSession,
+  );
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  const [dismissedSessionId, setDismissedSessionId] = useState<string | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (!activeWorkoutSession) return;
+
+    const timer = window.setInterval(() => setNowMs(Date.now()), 60_000);
+    return () => window.clearInterval(timer);
+  }, [activeWorkoutSession]);
+
+  if (!activeWorkoutSession || location.pathname === "/active-workout") {
+    return null;
+  }
+
+  const session = activeWorkoutSession;
+
+  if (dismissedSessionId === session.id) return null;
+
+  const hasBeenOpenForFourHours =
+    nowMs - new Date(session.startedAt).getTime() >=
+    4 * 60 * 60 * 1000;
+
+  if (!hasBeenOpenForFourHours) return null;
+
+  const routine = routines.find(
+    (item) => item.id === session.routineId,
+  );
+
+  function dismiss(): void {
+    setDismissedSessionId(session.id);
+  }
+
+  return (
+    <div className="app-shell-recovery-overlay">
+      <section
+        className="app-shell-recovery-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="active-workout-recovery-title"
+      >
+        <p className="app-shell-recovery-eyebrow">Workout still active</p>
+        <h2 id="active-workout-recovery-title">
+          {routine?.name ?? "Your workout"}
+        </h2>
+        <p>
+          This session has been open for more than four hours. What would you like to do?
+        </p>
+        <div className="app-shell-recovery-actions">
+          <button
+            type="button"
+            className="button-primary"
+            onClick={() => {
+              dismiss();
+              navigate("/active-workout");
+            }}
+          >
+            Resume workout
+          </button>
+          <button
+            type="button"
+            className="button-secondary"
+            onClick={() => {
+              completeActiveWorkoutSession(
+                getLastCompletedSetTime(session) ?? session.startedAt,
+              );
+              dismiss();
+              navigate("/history");
+            }}
+          >
+            Finish at last set
+          </button>
+          <button
+            type="button"
+            className="button-danger"
+            onClick={() => {
+              cancelActiveWorkoutSession();
+              dismiss();
+            }}
+          >
+            Discard workout
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="app-shell">
       <main className="app-shell-main">
+        <ActiveWorkoutBanner />
         {children}
       </main>
+      <SessionRecoveryPrompt />
+      <SyncStatusIndicator />
       <nav className="app-shell-nav" aria-label="Primary">
         <div className="app-shell-nav-inner">
           <NavLink className={getNavLinkClassName} to="/" end>

@@ -17,17 +17,10 @@ import {
   savePersistedDemoData,
   type WeightUnit,
 } from "./persistence";
-import { pushDataToSupabase } from "../lib/syncService";
+import { pushDataToSupabase, type AppData } from "../lib/syncService";
 import { useAuthStore } from "./useAuthStore";
 
-type AppData = {
-  exercises: Exercise[];
-  routines: Routine[];
-  workoutLogs: WorkoutLog[];
-  workoutSessions: WorkoutSession[];
-  activeWorkoutSession: WorkoutSession | null;
-  preferredWeightUnit: WeightUnit;
-};
+export type SyncStatus = "idle" | "saving" | "saved" | "offline" | "error";
 
 function normalizeExerciseRefOrders(
   exerciseRefs: RoutineExerciseRef[],
@@ -117,11 +110,13 @@ type AppState = {
   workoutSessions: WorkoutSession[];
   activeWorkoutSession: WorkoutSession | null;
   preferredWeightUnit: WeightUnit;
+  syncStatus: SyncStatus;
+  syncError: string | null;
 
   setActiveWorkoutSession: (session: WorkoutSession | null) => void;
   updateActiveWorkoutSession: (session: WorkoutSession) => void;
   startWorkoutSessionFromRoutine: (routineId: string) => void;
-  completeActiveWorkoutSession: () => void;
+  completeActiveWorkoutSession: (endedAt?: string) => void;
   cancelActiveWorkoutSession: () => void;
   removeLastActiveSessionExerciseSet: (sessionExerciseId: string) => void;
   addExerciseToActiveWorkoutSession: (exerciseId: string) => void;
@@ -171,6 +166,8 @@ type AppState = {
   replaceAppData: (data: AppData) => void;
   resetAppData: () => void;
   setPreferredWeightUnit: (unit: WeightUnit) => void;
+  setSyncStatus: (status: SyncStatus, error?: string | null) => void;
+  retrySync: () => Promise<void>;
 
   addExercise: (exercise: Exercise) => void;
   updateExercise: (updatedExercise: Exercise) => void;
@@ -299,6 +296,8 @@ export const useAppStore = create<AppState>((set) => ({
   workoutSessions: initialData.workoutSessions,
   activeWorkoutSession: initialData.activeWorkoutSession,
   preferredWeightUnit: initialData.preferredWeightUnit,
+  syncStatus: "idle",
+  syncError: null,
 
   setActiveWorkoutSession: (session) => set({ activeWorkoutSession: session }),
 
@@ -319,11 +318,11 @@ export const useAppStore = create<AppState>((set) => ({
       return { activeWorkoutSession: session };
     }),
 
-  completeActiveWorkoutSession: () =>
+  completeActiveWorkoutSession: (endedAt) =>
     set((state) => {
       const session = state.activeWorkoutSession;
       if (!session) return state;
-      const completedAt = new Date().toISOString();
+      const completedAt = endedAt ?? new Date().toISOString();
       const completedSession: WorkoutSession = {
         ...session,
         status: "completed",
@@ -690,6 +689,22 @@ export const useAppStore = create<AppState>((set) => ({
 
   setPreferredWeightUnit: (unit) => set({ preferredWeightUnit: unit }),
 
+  setSyncStatus: (syncStatus, syncError = null) =>
+    set({ syncStatus, syncError }),
+
+  retrySync: async () => {
+    const state = useAppStore.getState();
+    const userId = useAuthStore.getState().user?.id;
+    if (!userId) return;
+
+    if (syncTimeout) {
+      clearTimeout(syncTimeout);
+      syncTimeout = null;
+    }
+
+    await runCloudSync(userId, getAppData(state), ++syncVersion);
+  },
+
   addExercise: (exercise) =>
     set((state) => ({ exercises: [...state.exercises, exercise] })),
 
@@ -777,30 +792,101 @@ export const useAppStore = create<AppState>((set) => ({
 }));
 
 // Persistencia local + sync a Supabase con debounce
-let syncTimeout: ReturnType<typeof setTimeout> | null = null
+let syncTimeout: ReturnType<typeof setTimeout> | null = null;
+let syncVersion = 0;
+let isCloudSyncInFlight = false;
 
-useAppStore.subscribe((state) => {
-  const appData = {
+function getAppData(state: AppState): AppData {
+  return {
     exercises: state.exercises,
     routines: state.routines,
     workoutLogs: state.workoutLogs,
     workoutSessions: state.workoutSessions,
     activeWorkoutSession: state.activeWorkoutSession,
     preferredWeightUnit: state.preferredWeightUnit,
+  };
+}
+
+function hasAppDataChanged(state: AppState, previousState: AppState): boolean {
+  return (
+    state.exercises !== previousState.exercises ||
+    state.routines !== previousState.routines ||
+    state.workoutLogs !== previousState.workoutLogs ||
+    state.workoutSessions !== previousState.workoutSessions ||
+    state.activeWorkoutSession !== previousState.activeWorkoutSession ||
+    state.preferredWeightUnit !== previousState.preferredWeightUnit
+  );
+}
+
+async function runCloudSync(
+  userId: string,
+  appData: AppData,
+  version: number,
+): Promise<void> {
+  if (isCloudSyncInFlight) return;
+
+  const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
+  if (isOffline) {
+    if (version === syncVersion) {
+      useAppStore.setState({
+        syncStatus: "offline",
+        syncError: "You are offline. Changes are saved on this device.",
+      });
+    }
+    return;
   }
+
+  isCloudSyncInFlight = true;
+  useAppStore.setState({ syncStatus: "saving", syncError: null });
+  const result = await pushDataToSupabase(userId, appData);
+  isCloudSyncInFlight = false;
+
+  if (version !== syncVersion) {
+    const latestState = useAppStore.getState();
+    const latestUserId = useAuthStore.getState().user?.id;
+    if (latestUserId) {
+      void runCloudSync(latestUserId, getAppData(latestState), syncVersion);
+    }
+    return;
+  }
+
+  if (result.ok) {
+    useAppStore.setState({ syncStatus: "saved", syncError: null });
+    return;
+  }
+
+  useAppStore.setState({
+    syncStatus: result.isOffline ? "offline" : "error",
+    syncError: result.error,
+  });
+}
+
+useAppStore.subscribe((state, previousState) => {
+  if (!hasAppDataChanged(state, previousState)) return;
+
+  const appData = getAppData(state);
 
   if (useAuthStore.getState().isDemo) {
-    savePersistedDemoData({ version: 4, data: appData })
-    return
+    savePersistedDemoData({ version: 4, data: appData });
+    return;
   }
 
-  savePersistedAppData({ version: 4, data: appData })
+  savePersistedAppData({ version: 4, data: appData });
 
-  const userId = useAuthStore.getState().user?.id
-  if (!userId) return
+  const userId = useAuthStore.getState().user?.id;
+  if (!userId) return;
 
-  if (syncTimeout) clearTimeout(syncTimeout)
+  if (syncTimeout) clearTimeout(syncTimeout);
+  const version = ++syncVersion;
+  const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
+  useAppStore.setState({
+    syncStatus: isOffline ? "offline" : "saving",
+    syncError: isOffline
+      ? "You are offline. Changes are saved on this device."
+      : null,
+  });
+
   syncTimeout = setTimeout(() => {
-    pushDataToSupabase(userId, appData)
-  }, 2000)
-})
+    void runCloudSync(userId, appData, version);
+  }, 2000);
+});

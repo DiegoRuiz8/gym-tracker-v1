@@ -60,10 +60,17 @@ function getDemoData() {
 }
 
 async function loadAndApplyRemoteData(userId: string) {
-  const remoteData = await pullDataFromSupabase(userId);
-  if (remoteData) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    useAppStore.getState().replaceAppData(remoteData as any);
+  const result = await pullDataFromSupabase(userId);
+  if (result.data) {
+    useAppStore.getState().replaceAppData(result.data);
+    return;
+  }
+
+  if (result.error) {
+    useAppStore.getState().setSyncStatus(
+      result.isOffline ? "offline" : "error",
+      result.error,
+    );
   }
 }
 
