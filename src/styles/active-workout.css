@@ -331,7 +331,7 @@
 .active-workout-swap-help-btn:hover::before,
 .active-workout-swap-help-btn[aria-expanded="true"]::before {
   border-color: var(--color-accent);
-  background: var(--color-accent-soft);
+  background: var(--color-bg-elevated);
 }
 
 .active-workout-swap-help-btn:focus-visible {
