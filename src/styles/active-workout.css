@@ -403,15 +403,16 @@
 }
 
 .active-workout-set-row.is-next-up td {
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-success) 54%, transparent), inset 0 -1px 0 color-mix(in srgb, var(--color-success) 54%, transparent);
+  border-top: 2px solid color-mix(in srgb, var(--color-success) 62%, transparent);
+  border-bottom: 2px solid color-mix(in srgb, var(--color-success) 62%, transparent);
 }
 
 .active-workout-set-row.is-next-up td:first-child {
-  box-shadow: inset 1px 0 0 color-mix(in srgb, var(--color-success) 54%, transparent), inset 0 1px 0 color-mix(in srgb, var(--color-success) 54%, transparent), inset 0 -1px 0 color-mix(in srgb, var(--color-success) 54%, transparent);
+  border-left: 2px solid color-mix(in srgb, var(--color-success) 62%, transparent);
 }
 
 .active-workout-set-row.is-next-up td:last-child {
-  box-shadow: inset -1px 0 0 color-mix(in srgb, var(--color-success) 54%, transparent), inset 0 1px 0 color-mix(in srgb, var(--color-success) 54%, transparent), inset 0 -1px 0 color-mix(in srgb, var(--color-success) 54%, transparent);
+  border-right: 2px solid color-mix(in srgb, var(--color-success) 62%, transparent);
 }
 
 .active-workout-set-row.is-completed .active-workout-set-number,
