@@ -9,6 +9,7 @@ import {
   type ExerciseDbEntry,
 } from "../lib/exerciseDbCache";
 import ExercisePhotoToggle from "../components/exercise/ExercisePhotoToggle";
+import { generateId } from "../utils/ids";
 import "../styles/active-workout.css";
 import type { Exercise } from "../types/exercise";
 
@@ -87,9 +88,8 @@ export default function ActiveWorkoutPage() {
   const removeExerciseFromActiveWorkoutSession = useAppStore(
     (state) => state.removeExerciseFromActiveWorkoutSession,
   );
-  const updateActiveSessionExerciseNotes = useAppStore(
-    (state) => state.updateActiveSessionExerciseNotes,
-  );
+  const addExercise = useAppStore((state) => state.addExercise);
+  const updateExercise = useAppStore((state) => state.updateExercise);
   const completeActiveWorkoutSession = useAppStore(
     (state) => state.completeActiveWorkoutSession,
   );
@@ -107,6 +107,9 @@ export default function ActiveWorkoutPage() {
   const [notesOpen, setNotesOpen] = useState<Record<string, boolean>>({});
   const [swapOpen, setSwapOpen] = useState<Record<string, boolean>>({});
   const [swapSearch, setSwapSearch] = useState<Record<string, string>>({});
+  const [variantFormOpen, setVariantFormOpen] = useState<Record<string, boolean>>({});
+  const [variantName, setVariantName] = useState<Record<string, string>>({});
+  const [variantError, setVariantError] = useState<Record<string, string>>({});
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [showAddExercisePicker, setShowAddExercisePicker] = useState(false);
   const [exerciseSearch, setExerciseSearch] = useState("");
@@ -342,6 +345,24 @@ export default function ActiveWorkoutPage() {
       delete next[sessionExerciseId];
       return next;
     });
+
+    setVariantFormOpen((prev) => {
+      const next = { ...prev };
+      delete next[sessionExerciseId];
+      return next;
+    });
+
+    setVariantName((prev) => {
+      const next = { ...prev };
+      delete next[sessionExerciseId];
+      return next;
+    });
+
+    setVariantError((prev) => {
+      const next = { ...prev };
+      delete next[sessionExerciseId];
+      return next;
+    });
   }
 
   function handleToggleSwap(sessionExerciseId: string) {
@@ -355,6 +376,58 @@ export default function ActiveWorkoutPage() {
       delete next[sessionExerciseId];
       return next;
     });
+    setVariantFormOpen((prev) => ({ ...prev, [sessionExerciseId]: false }));
+    setVariantName((prev) => ({ ...prev, [sessionExerciseId]: "" }));
+    setVariantError((prev) => ({ ...prev, [sessionExerciseId]: "" }));
+  }
+
+  function handleCreateVariant(
+    sessionExerciseId: string,
+    sourceExercise: Exercise,
+  ) {
+    const name = (variantName[sessionExerciseId] ?? "").trim();
+
+    if (!name) {
+      setVariantError((prev) => ({
+        ...prev,
+        [sessionExerciseId]: "Give the new variant a name.",
+      }));
+      return;
+    }
+
+    const existingExercise = exercises.find(
+      (item) => item.name.trim().toLowerCase() === name.toLowerCase(),
+    );
+
+    if (existingExercise) {
+      setVariantError((prev) => ({
+        ...prev,
+        [sessionExerciseId]: "An exercise with this name already exists. Select it above instead.",
+      }));
+      return;
+    }
+
+    const now = new Date().toISOString();
+    const newVariant: Exercise = {
+      id: generateId(),
+      name,
+      category: sourceExercise.category,
+      primaryMuscle: sourceExercise.primaryMuscle,
+      secondaryMuscleGroups: sourceExercise.secondaryMuscleGroups,
+      equipment: sourceExercise.equipment,
+      gymLabel: sourceExercise.gymLabel,
+      notes: undefined,
+      isActive: true,
+      trackingType: sourceExercise.trackingType,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    addExercise(newVariant);
+    handleSelectSwapExercise(sessionExerciseId, newVariant.id);
+    setVariantFormOpen((prev) => ({ ...prev, [sessionExerciseId]: false }));
+    setVariantName((prev) => ({ ...prev, [sessionExerciseId]: "" }));
+    setVariantError((prev) => ({ ...prev, [sessionExerciseId]: "" }));
   }
 
   function handleSelectSwapExercise(
@@ -436,9 +509,13 @@ export default function ActiveWorkoutPage() {
 
               const isNotesOpen =
                 notesOpen[sessionExercise.id] ||
+                Boolean(exercise?.notes?.trim()) ||
                 Boolean(sessionExercise.notes?.trim());
 
               const isSwapOpen = Boolean(swapOpen[sessionExercise.id]);
+              const isVariantFormOpen = Boolean(
+                variantFormOpen[sessionExercise.id],
+              );
               const currentSwapSearch = swapSearch[sessionExercise.id] ?? "";
               const unsortedSwapResults =
                 filterExercisesBySearch(currentSwapSearch);
@@ -449,8 +526,6 @@ export default function ActiveWorkoutPage() {
                     return aShares - bShares;
                   })
                 : unsortedSwapResults;
-
-              // Agregar antes del return en ActiveWorkoutPage.tsx (junto a las otras funciones helper)
 
               return (
                 <article
@@ -514,7 +589,11 @@ export default function ActiveWorkoutPage() {
                               }))
                             }
                           >
-                            {isNotesOpen ? "Hide notes" : "Add notes"}
+                            {isNotesOpen
+                              ? "Hide exercise notes"
+                              : exercise?.notes?.trim()
+                                ? "Show exercise notes"
+                                : "Add exercise notes"}
                           </button>
                         </div>
 
@@ -708,6 +787,90 @@ export default function ActiveWorkoutPage() {
                                     Show only same muscle
                                   </button>
                                 ) : null}
+
+                                {exercise ? (
+                                  <div className="active-workout-variant-create">
+                                    <button
+                                      type="button"
+                                      className="active-workout-swap-show-all-btn"
+                                      aria-expanded={isVariantFormOpen}
+                                      onClick={() => {
+                                        setVariantFormOpen((prev) => ({
+                                          ...prev,
+                                          [sessionExercise.id]: !prev[sessionExercise.id],
+                                        }));
+                                        setVariantError((prev) => ({
+                                          ...prev,
+                                          [sessionExercise.id]: "",
+                                        }));
+                                      }}
+                                    >
+                                      + Create a new variant
+                                    </button>
+
+                                    {isVariantFormOpen ? (
+                                      <div className="active-workout-variant-form">
+                                        <label
+                                          className="active-workout-add-exercise-label"
+                                          htmlFor={`variant-name-${sessionExercise.id}`}
+                                        >
+                                          Variant name
+                                        </label>
+                                        <input
+                                          id={`variant-name-${sessionExercise.id}`}
+                                          className="input active-workout-add-exercise-input"
+                                          type="text"
+                                          placeholder={`e.g. ${exercise.name} - machine`}
+                                          value={variantName[sessionExercise.id] ?? ""}
+                                          onChange={(event) => {
+                                            setVariantName((prev) => ({
+                                              ...prev,
+                                              [sessionExercise.id]: event.target.value,
+                                            }));
+                                            setVariantError((prev) => ({
+                                              ...prev,
+                                              [sessionExercise.id]: "",
+                                            }));
+                                          }}
+                                        />
+                                        <p className="active-workout-variant-help">
+                                          It will inherit this exercise’s setup and muscle data.
+                                        </p>
+                                        {variantError[sessionExercise.id] ? (
+                                          <p className="active-workout-variant-error" role="alert">
+                                            {variantError[sessionExercise.id]}
+                                          </p>
+                                        ) : null}
+                                        <div className="active-workout-variant-actions">
+                                          <button
+                                            type="button"
+                                            className="button-primary"
+                                            onClick={() =>
+                                              handleCreateVariant(
+                                                sessionExercise.id,
+                                                exercise,
+                                              )
+                                            }
+                                          >
+                                            Create and swap
+                                          </button>
+                                          <button
+                                            type="button"
+                                            className="button-secondary"
+                                            onClick={() =>
+                                              setVariantFormOpen((prev) => ({
+                                                ...prev,
+                                                [sessionExercise.id]: false,
+                                              }))
+                                            }
+                                          >
+                                            Cancel
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ) : null}
+                                  </div>
+                                ) : null}
                               </div>
                             );
                           })()
@@ -717,13 +880,19 @@ export default function ActiveWorkoutPage() {
                         <div className="active-workout-notes">
                           <textarea
                             className="textarea"
-                            placeholder="Notes for this exercise..."
-                            value={sessionExercise.notes ?? ""}
+                            placeholder="Cues, setup, or anything to remember next time..."
+                            value={exercise?.notes ?? sessionExercise.notes ?? ""}
+                            aria-label={`Persistent notes for ${
+                              exercise?.name ?? "this exercise"
+                            }`}
                             onChange={(e) => {
-                              updateActiveSessionExerciseNotes(
-                                sessionExercise.id,
-                                e.target.value,
-                              );
+                              if (exercise) {
+                                updateExercise({
+                                  ...exercise,
+                                  notes: e.target.value || undefined,
+                                  updatedAt: new Date().toISOString(),
+                                });
+                              }
 
                               e.target.style.height = "42px";
                               e.target.style.height = `${e.target.scrollHeight}px`;

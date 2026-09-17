@@ -14,6 +14,7 @@ import PageBackButton from "../components/navigation/PageBackButton";
 import "../styles/routine-detail.css";
 
 type RoutineDetailLocationState = {
+  from?: "home";
   fromRoutinesList?: boolean;
   restoreDetailScroll?: boolean;
 };
@@ -46,15 +47,16 @@ export default function RoutineDetailPage() {
     () => routines.find((item) => item.id === routineId),
     [routines, routineId],
   );
+  const locationState =
+    (location.state as RoutineDetailLocationState | null) ?? null;
+  const fallbackTo = locationState?.from === "home" ? "/" : "/routines";
 
   useEffect(() => {
     if (!routineId) {
       return;
     }
 
-    const state = (location.state as RoutineDetailLocationState | null) ?? null;
-
-    if (state?.restoreDetailScroll) {
+    if (locationState?.restoreDetailScroll) {
       const savedScroll = sessionStorage.getItem(
         getRoutineDetailScrollKey(routineId),
       );
@@ -67,18 +69,14 @@ export default function RoutineDetailPage() {
     }
 
     window.scrollTo(0, 0);
-  }, [routineId, location.state]);
+  }, [routineId, locationState]);
 
   if (!routine) {
     return (
       <div className="routine-detail-page">
         <div className="routine-detail-container">
           <div className="routine-detail-back-row">
-            <PageBackButton
-              fallbackTo={
-                (location.state as any)?.from === "home" ? "/" : "/routines"
-              }
-            />
+            <PageBackButton fallbackTo={fallbackTo} />
           </div>
 
           <section className="routine-detail-empty-state" aria-live="polite">
@@ -131,11 +129,7 @@ export default function RoutineDetailPage() {
       <div className="routine-detail-container">
         <header className="routine-detail-header">
           <div className="routine-detail-back-row">
-            <PageBackButton
-              fallbackTo={
-                (location.state as any)?.from === "home" ? "/" : "/routines"
-              }
-            />
+            <PageBackButton fallbackTo={fallbackTo} />
           </div>
 
           <div className="routine-detail-header-top">
