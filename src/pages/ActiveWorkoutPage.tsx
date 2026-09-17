@@ -615,9 +615,6 @@ export default function ActiveWorkoutPage() {
               const isVariantFormOpen = Boolean(
                 variantFormOpen[sessionExercise.id],
               );
-              const isNextExercise =
-                nextPendingSet?.sessionExerciseId === sessionExercise.id &&
-                sessionExercise.id !== restTimer?.sourceSessionExerciseId;
               const currentSwapSearch = swapSearch[sessionExercise.id] ?? "";
               const unsortedSwapResults =
                 filterExercisesBySearch(currentSwapSearch);
@@ -631,11 +628,7 @@ export default function ActiveWorkoutPage() {
 
               return (
                 <Fragment key={sessionExercise.id}>
-                  <article
-                    className={`surface-card active-workout-card ${
-                      isNextExercise ? "is-next-up" : ""
-                    }`}
-                  >
+                  <article className="surface-card active-workout-card">
                   <button
                     type="button"
                     className="active-workout-card-delete-badge"
