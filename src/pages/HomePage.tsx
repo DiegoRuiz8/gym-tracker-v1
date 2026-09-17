@@ -7,6 +7,7 @@ import {
   enableWorkoutReminders,
   getWorkoutReminderPermission,
   getWorkoutReminderPreference,
+  requiresHomeScreenInstallForWorkoutReminders,
   type WorkoutReminderPermission,
 } from "../lib/workoutNotifications";
 import "../styles/simple-page.css";
@@ -35,6 +36,8 @@ export default function HomePage() {
   );
   const [workoutReminderPermission, setWorkoutReminderPermission] =
     useState<WorkoutReminderPermission>(getWorkoutReminderPermission);
+  const requiresHomeScreenInstall =
+    requiresHomeScreenInstallForWorkoutReminders();
   const menuRef = useRef<HTMLDivElement>(null);
 
   const activeWorkoutSession = useAppStore((state) => state.activeWorkoutSession);
@@ -200,7 +203,11 @@ export default function HomePage() {
                     <p style={{ margin: "0 0 8px", fontSize: "12px", color: "#8b8fa8", lineHeight: 1.4 }}>
                       Shows one notification only while a workout is in progress.
                     </p>
-                    {workoutReminderPermission === "denied" ? (
+                    {requiresHomeScreenInstall ? (
+                      <p style={{ margin: 0, fontSize: "12px", color: "#8b8fa8", lineHeight: 1.4 }}>
+                        On iPhone and iPad, add LiftLog to your Home Screen to use this reminder.
+                      </p>
+                    ) : workoutReminderPermission === "denied" ? (
                       <p style={{ margin: 0, fontSize: "12px", color: "#8b8fa8", lineHeight: 1.4 }}>
                         Allow notifications in browser settings to turn this reminder on.
                       </p>

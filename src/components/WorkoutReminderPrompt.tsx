@@ -4,6 +4,7 @@ import {
   enableWorkoutReminders,
   getWorkoutReminderPermission,
   getWorkoutReminderPreferenceStatus,
+  requiresHomeScreenInstallForWorkoutReminders,
 } from "../lib/workoutNotifications";
 import { useAuthStore } from "../store/useAuthStore";
 import { useAppStore } from "../store/useAppStore";
@@ -19,6 +20,8 @@ export function WorkoutReminderPrompt() {
   const [dismissedSessionId, setDismissedSessionId] = useState<string | null>(
     null,
   );
+  const requiresHomeScreenInstall =
+    requiresHomeScreenInstallForWorkoutReminders();
   const shouldPrompt =
     !isLoading &&
     isAuthenticated &&
@@ -37,6 +40,10 @@ export function WorkoutReminderPrompt() {
     setDismissedSessionId(activeWorkoutSessionId);
   }
 
+  function handleHomeScreenAcknowledgement() {
+    setDismissedSessionId(activeWorkoutSessionId);
+  }
+
   if (!shouldPrompt) return null;
 
   return (
@@ -48,25 +55,52 @@ export function WorkoutReminderPrompt() {
         role="dialog"
       >
         <span className="workout-reminder-prompt-icon" aria-hidden="true">
-          ↗
+          <svg viewBox="0 0 24 24">
+            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z" />
+            <path d="M10 21h4" />
+          </svg>
         </span>
         <p className="workout-reminder-prompt-eyebrow">Active workout</p>
-        <h2 id="workout-reminder-prompt-title">Don’t lose your workout</h2>
-        <p>
-          While a workout is in progress, LiftLog shows one notification so you
-          can return and finish it.
-        </p>
-        <p className="workout-reminder-prompt-reassurance">
-          No promotions or content notifications.
-        </p>
-        <div className="workout-reminder-prompt-actions">
-          <button className="button-primary" type="button" onClick={() => void handleEnable()}>
-            Enable reminder
-          </button>
-          <button className="button-secondary" type="button" onClick={() => void handleDefer()}>
-            Not now
-          </button>
-        </div>
+        {requiresHomeScreenInstall ? (
+          <>
+            <h2 id="workout-reminder-prompt-title">Add LiftLog to your Home Screen</h2>
+            <p>
+              On iPhone and iPad, active workout reminders work only in an
+              installed web app.
+            </p>
+            <p className="workout-reminder-prompt-reassurance">
+              In Safari, tap Share, then choose Add to Home Screen.
+            </p>
+            <div className="workout-reminder-prompt-actions">
+              <button
+                className="button-primary"
+                type="button"
+                onClick={handleHomeScreenAcknowledgement}
+              >
+                Got it
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <h2 id="workout-reminder-prompt-title">Don’t lose your workout</h2>
+            <p>
+              While a workout is in progress, LiftLog shows one notification so you
+              can return and finish it.
+            </p>
+            <p className="workout-reminder-prompt-reassurance">
+              No promotions or content notifications.
+            </p>
+            <div className="workout-reminder-prompt-actions">
+              <button className="button-primary" type="button" onClick={() => void handleEnable()}>
+                Enable reminder
+              </button>
+              <button className="button-secondary" type="button" onClick={() => void handleDefer()}>
+                Not now
+              </button>
+            </div>
+          </>
+        )}
       </section>
     </div>
   );

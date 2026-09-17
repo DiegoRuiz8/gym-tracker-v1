@@ -315,8 +315,16 @@
   border-radius: var(--radius-md);
   background: var(--color-accent-soft);
   color: #bfdbfe;
-  font-size: 1.25rem;
-  font-weight: var(--font-weight-bold);
+}
+
+.workout-reminder-prompt-icon svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
 }
 
 .workout-reminder-prompt-eyebrow {

@@ -10,8 +10,29 @@ export type WorkoutReminderPermission =
 
 export type WorkoutReminderPreference = "enabled" | "disabled" | "unconfigured";
 
+type NavigatorWithStandalone = Navigator & {
+  standalone?: boolean;
+};
+
 function supportsWorkoutNotifications(): boolean {
   return "Notification" in window && "serviceWorker" in navigator;
+}
+
+function isAppleMobileDevice(): boolean {
+  return (
+    /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+  );
+}
+
+export function requiresHomeScreenInstallForWorkoutReminders(): boolean {
+  if (!isAppleMobileDevice()) return false;
+
+  const isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (navigator as NavigatorWithStandalone).standalone === true;
+
+  return !isStandalone;
 }
 
 function dispatchPreferenceChange(): void {
