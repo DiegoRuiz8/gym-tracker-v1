@@ -8,6 +8,7 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       injectRegister: "auto",
+      includeAssets: ["notification-badge.svg"],
 
       workbox: {
         importScripts: ["/workout-notification-sw.js"],
