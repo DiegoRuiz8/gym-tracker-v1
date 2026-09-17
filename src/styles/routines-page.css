@@ -137,7 +137,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 34px;
+  min-height: var(--tap-size);
   padding: 0 12px;
   border-radius: 10px;
   border: 1px solid var(--color-border);
@@ -154,7 +154,7 @@
 }
 
 .routines-page-card-icon-btn {
-  min-width: 34px;
+  min-width: var(--tap-size);
   padding: 0;
   cursor: pointer;
 }
@@ -256,11 +256,11 @@
 
   .routines-page-card-icon-btn,
   .routines-page-card-edit {
-    min-height: 32px;
+    min-height: var(--tap-size);
     font-size: 0.92rem;
   }
 
   .routines-page-card-icon-btn {
-    min-width: 32px;
+    min-width: var(--tap-size);
   }
 }

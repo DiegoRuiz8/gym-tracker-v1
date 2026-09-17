@@ -1,6 +1,6 @@
 .app-shell {
   min-height: 100vh;
-  background: var(--color-bg);
+  background: transparent;
   color: var(--color-text);
   overflow-x: hidden;
 }
@@ -20,10 +20,10 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  border-bottom: 1px solid rgba(59, 130, 246, 0.22);
+  border-bottom: 1px solid var(--color-accent-ring);
   background: linear-gradient(
     90deg,
-    rgba(59, 130, 246, 0.14),
+    var(--color-accent-soft),
     var(--color-bg-elevated) 58%
   );
   color: var(--color-text);
@@ -46,7 +46,7 @@
 }
 
 .app-shell-active-workout-content strong {
-  color: #dbeafe;
+  color: var(--color-accent-hover);
   font-size: 0.86rem;
   font-weight: var(--font-weight-bold);
   line-height: 1.2;
@@ -68,8 +68,8 @@
   align-items: center;
   padding: 0 var(--space-2);
   border-radius: var(--radius-pill);
-  background: rgba(59, 130, 246, 0.14);
-  color: #bfdbfe;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-hover);
   font-size: 0.88rem;
   font-weight: var(--font-weight-semibold);
 }
@@ -219,9 +219,9 @@
 }
 
 .app-shell-nav-link.active {
-  background: rgba(59, 130, 246, 0.06);
-  color: #f3f7ff;
-  border: 1px solid rgba(96, 165, 250, 0.14);
+  background: var(--color-accent-soft);
+  color: var(--color-text);
+  border: 1px solid var(--color-accent-ring);
 }
 
 .app-shell-nav-link.active .app-shell-nav-icon {
@@ -254,7 +254,6 @@
     height: 19px;
   }
 }
-
 @media (prefers-reduced-motion: no-preference) {
   .app-shell-active-workout {
     transition: background-color 180ms ease;
@@ -278,12 +277,71 @@
   }
 }
 
-.app-route-loading {
+.app-loading-screen {
   display: grid;
-  min-height: 100vh;
-  place-items: center;
+  min-height: 100dvh;
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-2);
   padding: var(--space-6);
+  background:
+    radial-gradient(circle at 50% 38%, var(--color-accent-soft), transparent 32%),
+    var(--color-bg);
+  color: var(--color-text);
+  text-align: center;
+}
+
+.app-loading-mark {
+  display: grid;
+  width: 68px;
+  height: 68px;
+  margin-bottom: var(--space-2);
+  place-items: center;
+  border: 1px solid var(--color-accent-ring);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-accent);
+}
+
+.app-loading-mark svg {
+  width: 42px;
+  height: 42px;
+}
+
+.app-loading-brand,
+.app-loading-message {
+  margin: 0;
+}
+
+.app-loading-brand {
+  font-family: var(--font-family-brand);
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.045em;
+}
+
+.app-loading-message {
   color: var(--color-text-soft);
+  font-size: 0.94rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .app-loading-mark {
+    animation: app-loading-pulse 1.1s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes app-loading-pulse {
+  from {
+    opacity: 0.72;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .workout-reminder-prompt-backdrop {
@@ -314,7 +372,7 @@
   place-items: center;
   border-radius: var(--radius-md);
   background: var(--color-accent-soft);
-  color: #bfdbfe;
+  color: var(--color-accent-hover);
 }
 
 .workout-reminder-prompt-icon svg {
@@ -329,7 +387,7 @@
 
 .workout-reminder-prompt-eyebrow {
   margin-bottom: var(--space-2);
-  color: #bfdbfe;
+  color: var(--color-accent-hover);
   font-size: 0.78rem;
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.08em;

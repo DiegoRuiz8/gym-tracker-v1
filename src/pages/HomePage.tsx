@@ -111,7 +111,7 @@ export default function HomePage() {
       <div className="simple-page-container">
         <header className="simple-page-header" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
           <div>
-            <h1 className="simple-page-title">Lift Log</h1>
+            <h1 className="simple-page-title simple-page-home-brand">LiftLog</h1>
             <p className="simple-page-description">
               Track routines, sets, reps, and progress in one place.
             </p>

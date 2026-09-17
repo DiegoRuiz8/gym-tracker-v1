@@ -94,7 +94,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 36px;
+  min-height: var(--tap-size);
   padding: 0 12px;
   border-radius: 10px;
   font-weight: var(--font-weight-semibold);
@@ -209,8 +209,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: var(--tap-size);
+  height: var(--tap-size);
   padding: 0;
   border: 1px solid rgba(239, 68, 68, 0.22);
   border-radius: 10px;
