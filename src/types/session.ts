@@ -38,6 +38,15 @@ export type WorkoutSessionExercise = {
   updatedAt: string;
 };
 
+export type RestTimer = {
+  sourceSessionExerciseId: ID;
+  sourceSetId: ID;
+  startedAt: string;
+  durationSeconds: number;
+  status: "running" | "finished";
+  finishedAt?: string | null;
+};
+
 export type WorkoutSession = {
   id: ID;
   date: string;
@@ -46,6 +55,7 @@ export type WorkoutSession = {
   endedAt?: string | null;
   status: SessionStatus;
   notes?: string;
+  restTimer?: RestTimer | null;
   exercises: WorkoutSessionExercise[];
   createdAt: string;
   updatedAt: string;

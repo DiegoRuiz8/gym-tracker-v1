@@ -121,6 +121,11 @@
 .active-workout-card {
   position: relative;
 }
+
+.active-workout-card.is-next-up {
+  border-color: color-mix(in srgb, var(--color-success) 54%, var(--color-border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-success) 20%, transparent);
+}
 .active-workout-card-inner {
   overflow: hidden;
   border-radius: inherit;
@@ -176,6 +181,13 @@
   margin: 6px 0 0;
   color: var(--color-text-soft);
   line-height: 1.4;
+}
+
+.active-workout-next-up-label {
+  margin: var(--space-2) 0 0;
+  color: var(--color-success);
+  font-size: 0.82rem;
+  font-weight: var(--font-weight-semibold);
 }
 
 .active-workout-notes-toggle {
@@ -506,6 +518,71 @@
   display: grid;
   gap: 10px;
   padding: 14px 16px 16px;
+}
+
+.active-workout-rest-timer {
+  display: grid;
+  gap: 8px;
+  min-height: 76px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 14px;
+  background: var(--color-bg-elevated);
+  box-shadow: var(--shadow-sm);
+}
+
+.active-workout-rest-timer-row td {
+  padding: 2px 0 4px;
+}
+
+.active-workout-rest-timer-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: var(--color-text-soft);
+  font-size: 0.9rem;
+  font-weight: var(--font-weight-semibold);
+}
+
+.active-workout-rest-timer-heading strong {
+  color: var(--color-text);
+  font-size: 1.3rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+
+.active-workout-rest-timer-track {
+  height: 6px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-hover);
+}
+
+.active-workout-rest-timer-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-success);
+  transition: width 1s linear;
+}
+
+.active-workout-rest-timer-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.active-workout-rest-timer-actions .button-secondary {
+  width: 100%;
+  min-height: 36px;
+  border-color: var(--color-border-strong);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .active-workout-rest-timer-track span {
+    transition: none;
+  }
 }
 
 .active-workout-card-footer-with-secondary {
