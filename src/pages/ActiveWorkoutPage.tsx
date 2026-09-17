@@ -977,7 +977,7 @@ export default function ActiveWorkoutPage() {
                         <div className="active-workout-notes">
                           <textarea
                             className="textarea"
-                            placeholder="Cues, setup, or anything to remember next time..."
+                            placeholder="Cues for next time..."
                             value={exercise?.notes ?? sessionExercise.notes ?? ""}
                             aria-label={`Persistent notes for ${
                               exercise?.name ?? "this exercise"

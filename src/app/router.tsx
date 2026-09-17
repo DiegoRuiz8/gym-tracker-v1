@@ -191,7 +191,11 @@ function SyncStatusIndicator() {
     };
   }, [syncStatus]);
 
-  if (syncStatus === "idle" || (syncStatus === "saved" && !showRecovered)) {
+  if (
+    syncStatus === "idle" ||
+    syncStatus === "saving" ||
+    (syncStatus === "saved" && !showRecovered)
+  ) {
     return null;
   }
 
@@ -199,11 +203,9 @@ function SyncStatusIndicator() {
     ? isDemo
       ? "Connection restored — demo data stays on this device"
       : "Connection restored — changes synced"
-    : syncStatus === "saving"
-      ? "Saving changes…"
-      : syncStatus === "offline"
-        ? "Offline — saved on this device"
-        : syncError ?? "Cloud sync failed";
+    : syncStatus === "offline"
+      ? "Offline — saved on this device"
+      : syncError ?? "Cloud sync failed";
 
   return (
     <div
