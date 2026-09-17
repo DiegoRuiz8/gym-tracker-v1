@@ -97,6 +97,7 @@ function createSessionFromRoutine(
     endedAt: null,
     status: "in_progress",
     notes: undefined,
+    restTimer: null,
     exercises: sessionExercises,
     createdAt: now,
     updatedAt: now,
@@ -150,6 +151,8 @@ type AppState = {
     sessionExerciseId: string,
     setId: string,
   ) => void;
+  extendActiveSessionRestTimer: (seconds: number) => void;
+  finishActiveSessionRestTimer: () => void;
 
   addActiveSessionExerciseSet: (sessionExerciseId: string) => void;
 
@@ -328,6 +331,7 @@ export const useAppStore = create<AppState>((set) => ({
         status: "completed",
         endedAt: completedAt,
         updatedAt: completedAt,
+        restTimer: null,
         exercises: session.exercises.map((exercise) => ({
           ...exercise,
           updatedAt: completedAt,
@@ -458,6 +462,7 @@ export const useAppStore = create<AppState>((set) => ({
       if (!state.activeWorkoutSession) return state;
       const now = new Date().toISOString();
 
+      let isSetNowCompleted = false;
       const updatedExercises = updateActiveSessionExerciseInList(
         state.activeWorkoutSession.exercises,
         sessionExerciseId,
@@ -465,6 +470,7 @@ export const useAppStore = create<AppState>((set) => ({
           const updatedSets = exercise.performedSets.map((set) => {
             if (set.id !== setId) return set;
             const nextCompleted = !set.isCompleted;
+            isSetNowCompleted = nextCompleted;
             return { ...set, isCompleted: nextCompleted, completedAt: nextCompleted ? now : null };
           });
           const allSetsCompleted = updatedSets.length > 0 && updatedSets.every((s) => s.isCompleted);
@@ -472,11 +478,76 @@ export const useAppStore = create<AppState>((set) => ({
         },
       );
 
+      const sourceExercise = updatedExercises.find(
+        (exercise) => exercise.id === sessionExerciseId,
+      );
+      const restSeconds = sourceExercise?.prescription?.restSeconds ?? null;
+      const hasNextSet = updatedExercises.some((exercise) =>
+        exercise.performedSets.some((set) => !set.isCompleted),
+      );
+      const shouldStartRestTimer =
+        isSetNowCompleted && restSeconds != null && restSeconds > 0 && hasNextSet;
+      const shouldClearRestTimer =
+        state.activeWorkoutSession.restTimer?.sourceSetId === setId &&
+        !isSetNowCompleted;
+
       return {
         activeWorkoutSession: {
           ...state.activeWorkoutSession,
           updatedAt: now,
           exercises: updatedExercises,
+          restTimer: shouldStartRestTimer
+            ? {
+                sourceSessionExerciseId: sessionExerciseId,
+                sourceSetId: setId,
+                startedAt: now,
+                durationSeconds: restSeconds,
+                status: "running",
+                finishedAt: null,
+              }
+            : shouldClearRestTimer
+              ? null
+              : state.activeWorkoutSession.restTimer,
+        },
+      };
+    }),
+
+  extendActiveSessionRestTimer: (seconds) =>
+    set((state) => {
+      const session = state.activeWorkoutSession;
+      if (!session?.restTimer || session.restTimer.status !== "running") {
+        return state;
+      }
+
+      return {
+        activeWorkoutSession: {
+          ...session,
+          updatedAt: new Date().toISOString(),
+          restTimer: {
+            ...session.restTimer,
+            durationSeconds: session.restTimer.durationSeconds + seconds,
+          },
+        },
+      };
+    }),
+
+  finishActiveSessionRestTimer: () =>
+    set((state) => {
+      const session = state.activeWorkoutSession;
+      if (!session?.restTimer || session.restTimer.status !== "running") {
+        return state;
+      }
+
+      const now = new Date().toISOString();
+      return {
+        activeWorkoutSession: {
+          ...session,
+          updatedAt: now,
+          restTimer: {
+            ...session.restTimer,
+            status: "finished",
+            finishedAt: now,
+          },
         },
       };
     }),
@@ -578,6 +649,11 @@ export const useAppStore = create<AppState>((set) => ({
           ...state.activeWorkoutSession,
           updatedAt: now,
           exercises: nextExercises,
+          restTimer:
+            state.activeWorkoutSession.restTimer?.sourceSessionExerciseId ===
+            sessionExerciseId
+              ? null
+              : state.activeWorkoutSession.restTimer,
         },
       };
     }),
@@ -593,6 +669,8 @@ export const useAppStore = create<AppState>((set) => ({
       if (targetExercise.performedSets.length <= prescribedSetCount) return state;
 
       const now = new Date().toISOString();
+      const removedSet =
+        targetExercise.performedSets[targetExercise.performedSets.length - 1];
       const nextPerformedSets = targetExercise.performedSets
         .slice(0, -1)
         .map((set, index) => ({ ...set, setNumber: index + 1 }));
@@ -611,6 +689,10 @@ export const useAppStore = create<AppState>((set) => ({
               isCompleted: nextPerformedSets.length > 0 && nextPerformedSets.every((s) => s.isCompleted),
             }),
           ),
+          restTimer:
+            state.activeWorkoutSession.restTimer?.sourceSetId === removedSet.id
+              ? null
+              : state.activeWorkoutSession.restTimer,
         },
       };
     }),

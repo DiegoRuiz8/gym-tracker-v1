@@ -1,7 +1,7 @@
 // src/pages/ActiveWorkoutPage.tsx
 
 import { Navigate, useNavigate } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useAppStore } from "../store/useAppStore";
 import {
   getExerciseDbCatalog,
@@ -12,6 +12,7 @@ import ExercisePhotoToggle from "../components/exercise/ExercisePhotoToggle";
 import { generateId } from "../utils/ids";
 import "../styles/active-workout.css";
 import type { Exercise } from "../types/exercise";
+import type { RestTimer, WorkoutSessionExercise } from "../types/session";
 
 function formatPrescriptionLabel(
   sets: number,
@@ -58,6 +59,37 @@ function formatElapsedTime(startedAt: string, nowMs: number) {
   return `${seconds}s`;
 }
 
+function formatRestTime(totalSeconds: number): string {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
+function getNextPendingExerciseId(
+  sessionExercises: WorkoutSessionExercise[],
+  restTimer: RestTimer,
+): string | null {
+  const orderedExercises = [...sessionExercises].sort(
+    (a, b) => a.order - b.order,
+  );
+  const sourceIndex = orderedExercises.findIndex(
+    (exercise) => exercise.id === restTimer.sourceSessionExerciseId,
+  );
+
+  if (sourceIndex === -1) return null;
+
+  const sourceExercise = orderedExercises[sourceIndex];
+  if (sourceExercise.performedSets.some((set) => !set.isCompleted)) {
+    return sourceExercise.id;
+  }
+
+  const nextExercise = orderedExercises
+    .slice(sourceIndex + 1)
+    .find((exercise) => exercise.performedSets.some((set) => !set.isCompleted));
+
+  return nextExercise?.id ?? null;
+}
+
 export default function ActiveWorkoutPage() {
   const navigate = useNavigate();
 
@@ -78,6 +110,12 @@ export default function ActiveWorkoutPage() {
   );
   const toggleActiveSessionSetCompleted = useAppStore(
     (state) => state.toggleActiveSessionSetCompleted,
+  );
+  const extendActiveSessionRestTimer = useAppStore(
+    (state) => state.extendActiveSessionRestTimer,
+  );
+  const finishActiveSessionRestTimer = useAppStore(
+    (state) => state.finishActiveSessionRestTimer,
   );
   const addActiveSessionExerciseSet = useAppStore(
     (state) => state.addActiveSessionExerciseSet,
@@ -144,6 +182,37 @@ export default function ActiveWorkoutPage() {
     return formatElapsedTime(activeWorkoutSession.startedAt, nowMs);
   }, [activeWorkoutSession, nowMs]);
 
+  const restTimer = activeWorkoutSession?.restTimer ?? null;
+  const remainingRestSeconds =
+    restTimer?.status === "running"
+      ? Math.max(
+          0,
+          Math.ceil(
+            (new Date(restTimer.startedAt).getTime() +
+              restTimer.durationSeconds * 1000 -
+              nowMs) /
+              1000,
+          ),
+        )
+      : 0;
+
+  useEffect(() => {
+    if (!restTimer || restTimer.status !== "running") return;
+
+    const remainingMs = Math.max(
+      0,
+      new Date(restTimer.startedAt).getTime() +
+        restTimer.durationSeconds * 1000 -
+        Date.now(),
+    );
+    const timeout = window.setTimeout(
+      finishActiveSessionRestTimer,
+      remainingMs,
+    );
+
+    return () => window.clearTimeout(timeout);
+  }, [finishActiveSessionRestTimer, restTimer]);
+
   if (!activeWorkoutSession) {
     return <Navigate to="/routines" replace />;
   }
@@ -151,6 +220,19 @@ export default function ActiveWorkoutPage() {
   const routine = routines.find(
     (item) => item.id === activeWorkoutSession.routineId,
   );
+  const nextPendingExerciseId =
+    restTimer?.status === "finished"
+      ? getNextPendingExerciseId(activeWorkoutSession.exercises, restTimer)
+      : null;
+  const restProgress = restTimer
+    ? Math.max(
+        0,
+        Math.min(
+          100,
+          (remainingRestSeconds / restTimer.durationSeconds) * 100,
+        ),
+      )
+    : 0;
 
   // Ejercicios elegibles para agregar (o intercambiar): activos y que todavia
   // no esten en la sesion. Reusado tanto por el panel "Add exercise" como por
@@ -516,6 +598,7 @@ export default function ActiveWorkoutPage() {
               const isVariantFormOpen = Boolean(
                 variantFormOpen[sessionExercise.id],
               );
+              const isNextUp = nextPendingExerciseId === sessionExercise.id;
               const currentSwapSearch = swapSearch[sessionExercise.id] ?? "";
               const unsortedSwapResults =
                 filterExercisesBySearch(currentSwapSearch);
@@ -528,10 +611,12 @@ export default function ActiveWorkoutPage() {
                 : unsortedSwapResults;
 
               return (
-                <article
-                  key={sessionExercise.id}
-                  className="surface-card active-workout-card"
-                >
+                <Fragment key={sessionExercise.id}>
+                  <article
+                    className={`surface-card active-workout-card ${
+                      isNextUp ? "is-next-up" : ""
+                    }`}
+                  >
                   <button
                     type="button"
                     className="active-workout-card-delete-badge"
@@ -578,6 +663,12 @@ export default function ActiveWorkoutPage() {
                               prescription?.restSeconds,
                             )}
                           </p>
+
+                          {isNextUp ? (
+                            <p className="active-workout-next-up-label">
+                              Next set ready
+                            </p>
+                          ) : null}
 
                           <button
                             type="button"
@@ -1101,7 +1192,43 @@ export default function ActiveWorkoutPage() {
                       ) : null}
                     </div>
                   </div>
-                </article>
+                  </article>
+                  {restTimer?.status === "running" &&
+                  restTimer.sourceSessionExerciseId === sessionExercise.id &&
+                  remainingRestSeconds > 0 ? (
+                    <section
+                      className="active-workout-rest-timer"
+                      aria-label={`Rest timer: ${formatRestTime(remainingRestSeconds)} remaining`}
+                    >
+                      <div className="active-workout-rest-timer-heading">
+                        <span>Rest</span>
+                        <strong>{formatRestTime(remainingRestSeconds)}</strong>
+                      </div>
+                      <div
+                        className="active-workout-rest-timer-track"
+                        aria-hidden="true"
+                      >
+                        <span style={{ width: `${restProgress}%` }} />
+                      </div>
+                      <div className="active-workout-rest-timer-actions">
+                        <button
+                          type="button"
+                          className="button-secondary"
+                          onClick={() => extendActiveSessionRestTimer(30)}
+                        >
+                          +30 s
+                        </button>
+                        <button
+                          type="button"
+                          className="button-ghost"
+                          onClick={finishActiveSessionRestTimer}
+                        >
+                          End rest
+                        </button>
+                      </div>
+                    </section>
+                  ) : null}
+                </Fragment>
               );
             })
           )}
