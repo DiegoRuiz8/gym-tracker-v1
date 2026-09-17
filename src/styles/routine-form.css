@@ -483,10 +483,11 @@
 }
 
 .routine-form-notes-toggle {
+  min-height: var(--tap-size);
   padding: 0;
   border: none;
   background: transparent;
-  color: #6ea8ff;
+  color: var(--color-accent);
   font: inherit;
   font-weight: 600;
   cursor: pointer;
@@ -514,9 +515,9 @@
 }
 
 .routine-form-card-highlight {
-  border-color: rgba(59, 130, 246, 0.38);
+  border-color: var(--color-accent-ring);
   box-shadow:
-    0 0 0 2px rgba(59, 130, 246, 0.14),
+    0 0 0 2px var(--color-accent-soft),
     var(--shadow-sm);
 }
 

@@ -20,10 +20,10 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  border-bottom: 1px solid rgba(59, 130, 246, 0.22);
+  border-bottom: 1px solid var(--color-accent-ring);
   background: linear-gradient(
     90deg,
-    rgba(59, 130, 246, 0.14),
+    var(--color-accent-soft),
     var(--color-bg-elevated) 58%
   );
   color: var(--color-text);
@@ -46,7 +46,7 @@
 }
 
 .app-shell-active-workout-content strong {
-  color: #dbeafe;
+  color: var(--color-accent-hover);
   font-size: 0.86rem;
   font-weight: var(--font-weight-bold);
   line-height: 1.2;
@@ -68,8 +68,8 @@
   align-items: center;
   padding: 0 var(--space-2);
   border-radius: var(--radius-pill);
-  background: rgba(59, 130, 246, 0.14);
-  color: #bfdbfe;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-hover);
   font-size: 0.88rem;
   font-weight: var(--font-weight-semibold);
 }
@@ -313,7 +313,7 @@
   place-items: center;
   border-radius: var(--radius-md);
   background: var(--color-accent-soft);
-  color: #bfdbfe;
+  color: var(--color-accent-hover);
 }
 
 .workout-reminder-prompt-icon svg {
@@ -328,7 +328,7 @@
 
 .workout-reminder-prompt-eyebrow {
   margin-bottom: var(--space-2);
-  color: #bfdbfe;
+  color: var(--color-accent-hover);
   font-size: 0.78rem;
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.08em;

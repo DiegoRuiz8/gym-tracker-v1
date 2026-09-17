@@ -173,7 +173,7 @@
 
 .active-workout-exercise-variant {
   display: inline;
-  color: #6ea8ff;
+  color: var(--color-accent-hover);
 }
 
 .active-workout-prescription {
@@ -190,11 +190,12 @@
 }
 
 .active-workout-notes-toggle {
+  min-height: var(--tap-size);
   margin-top: 8px;
   padding: 0;
   border: none;
   background: transparent;
-  color: rgba(96, 165, 250, 0.88);
+  color: var(--color-accent);
   font: inherit;
   font-weight: var(--font-weight-medium);
   text-align: left;
@@ -710,7 +711,7 @@
 
 .active-workout-add-exercise-input {
   width: 100%;
-  padding-right: 42px;
+  padding-right: 52px;
 }
 
 .active-workout-add-exercise-results {
@@ -722,7 +723,7 @@
   width: 100%;
   min-height: var(--tap-size);
   padding: 0 14px;
-  border: 1px solid rgba(59, 130, 246, 0.12);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.02);
   color: var(--color-text);
@@ -736,8 +737,8 @@
 }
 
 .active-workout-add-exercise-result:hover {
-  background: rgba(59, 130, 246, 0.08);
-  border-color: rgba(59, 130, 246, 0.22);
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent-ring);
 }
 
 .active-workout-add-exercise-empty {
@@ -749,10 +750,10 @@
 .active-workout-add-exercise-clear-btn {
   position: absolute;
   top: 50%;
-  right: 10px;
+  right: 0;
   transform: translateY(-50%);
-  width: 24px;
-  height: 24px;
+  width: var(--tap-size);
+  height: var(--tap-size);
   border: none;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.06);
@@ -776,7 +777,7 @@
 
 .active-workout-add-exercise-clear-btn:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
 }
 
 /* FINISH / DISCARD SHEETS */
@@ -1044,8 +1045,8 @@
   flex-shrink: 0;
   padding: 2px 8px;
   border-radius: var(--radius-pill);
-  background: rgba(59, 130, 246, 0.14);
-  color: #93c5fd;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-hover);
   font-size: 0.74rem;
   font-weight: var(--font-weight-semibold);
   white-space: nowrap;

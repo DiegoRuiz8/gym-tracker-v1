@@ -87,14 +87,14 @@
 }
 
 .import-export-button-secondary {
-  background: rgba(59, 130, 246, 0.08);
-  border: 1px solid rgba(59, 130, 246, 0.22);
-  color: #cfe3ff;
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-accent-ring);
+  color: var(--color-accent-hover);
 }
 
 .import-export-button-secondary:hover {
-  background: rgba(59, 130, 246, 0.12);
-  border-color: rgba(59, 130, 246, 0.3);
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
 }
 
 .import-export-help {

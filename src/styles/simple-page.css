@@ -476,7 +476,7 @@
 }
 
 .simple-page-active-workout-card {
-  border-color: rgba(59, 130, 246, 0.18);
+  border-color: var(--color-accent-ring);
 }
 
 .simple-page-active-workout-top {
