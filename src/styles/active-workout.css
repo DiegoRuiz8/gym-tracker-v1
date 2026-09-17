@@ -49,7 +49,10 @@
   margin: 0;
   font-size: 1.45rem;
   line-height: 1.1;
-  letter-spacing: -0.03em;
+  font-family: var(--font-family-display);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
   color: var(--color-text);
 }
 
@@ -69,7 +72,7 @@
 
 .active-workout-header-actions .button-secondary,
 .active-workout-header-actions .button-primary {
-  min-height: 42px;
+  min-height: var(--tap-size);
   padding: 0 14px;
 }
 
@@ -106,7 +109,7 @@
 
 .active-workout-back-btn:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
 }
 
 .active-workout-finish-btn {
@@ -199,13 +202,13 @@
 }
 
 .active-workout-notes-toggle:hover {
-  color: #93c5fd;
+  color: var(--color-accent-hover);
 }
 
 .active-workout-notes-toggle:focus,
 .active-workout-notes-toggle:active,
 .active-workout-notes-toggle:focus-visible {
-  color: #93c5fd;
+  color: var(--color-accent-hover);
   outline: none;
   box-shadow: none;
 }
@@ -231,12 +234,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
-  border: 1px solid rgba(59, 130, 246, 0.18);
+  width: var(--tap-size);
+  height: var(--tap-size);
+  border: 1px solid var(--color-accent-ring);
   border-radius: 999px;
-  background: rgba(59, 130, 246, 0.08);
-  color: #60a5fa;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-hover);
   font-size: 0.95rem;
   line-height: 1;
   cursor: pointer;
@@ -256,9 +259,9 @@
 }
 
 .active-workout-swap-btn:hover {
-  background: rgba(59, 130, 246, 0.14);
-  border-color: rgba(59, 130, 246, 0.28);
-  color: #93c5fd;
+  background: color-mix(in srgb, var(--color-accent-soft) 150%, transparent);
+  border-color: var(--color-accent);
+  color: var(--color-text);
 }
 
 .active-workout-swap-btn:active {
@@ -267,13 +270,13 @@
 
 .active-workout-swap-btn:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
 }
 
 .active-workout-swap-panel {
   margin-top: 10px;
   padding: 10px 12px;
-  border: 1px solid rgba(59, 130, 246, 0.12);
+  border: 1px solid var(--color-accent-ring);
   border-radius: 12px;
   background: rgba(11, 25, 48, 0.55);
 }
@@ -291,9 +294,9 @@
 }
 
 .active-workout-swap-option {
-  min-height: 32px;
+  min-height: var(--tap-size);
   padding: 0 12px;
-  border: 1px solid rgba(59, 130, 246, 0.14);
+  border: 1px solid var(--color-accent-ring);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.02);
   color: var(--color-text);
@@ -306,14 +309,14 @@
 }
 
 .active-workout-swap-option:hover {
-  background: rgba(59, 130, 246, 0.08);
-  border-color: rgba(59, 130, 246, 0.24);
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
 }
 
 .active-workout-swap-option-active {
-  background: rgba(59, 130, 246, 0.14);
-  border-color: rgba(59, 130, 246, 0.3);
-  color: #93c5fd;
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  color: var(--color-accent-hover);
 }
 
 .active-workout-table-wrap {
@@ -717,7 +720,7 @@
 
 .active-workout-add-exercise-result {
   width: 100%;
-  min-height: 42px;
+  min-height: var(--tap-size);
   padding: 0 14px;
   border: 1px solid rgba(59, 130, 246, 0.12);
   border-radius: 12px;
@@ -803,7 +806,7 @@
 
 .active-workout-finish-sheet-eyebrow {
   margin: 0 0 8px;
-  color: #93c5fd;
+  color: var(--color-accent-hover);
   font-size: 0.84rem;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -830,9 +833,9 @@
   min-height: 30px;
   padding: 0 10px;
   border-radius: 999px;
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.16);
-  color: #bfdbfe;
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-accent-ring);
+  color: var(--color-accent-hover);
   font-size: 0.84rem;
   font-weight: 600;
 }
