@@ -20,8 +20,12 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-bg-elevated);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.22);
+  background: linear-gradient(
+    90deg,
+    rgba(59, 130, 246, 0.14),
+    var(--color-bg-elevated) 58%
+  );
   color: var(--color-text);
 }
 
@@ -42,8 +46,12 @@
 }
 
 .app-shell-active-workout-content strong {
+  color: #dbeafe;
   font-size: 0.86rem;
+  font-weight: var(--font-weight-bold);
   line-height: 1.2;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .app-shell-active-workout-content span {
@@ -58,7 +66,10 @@
   min-height: var(--tap-size);
   display: inline-flex;
   align-items: center;
-  color: var(--color-accent);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  background: rgba(59, 130, 246, 0.14);
+  color: #bfdbfe;
   font-size: 0.88rem;
   font-weight: var(--font-weight-semibold);
 }
@@ -83,6 +94,11 @@
 }
 
 .app-shell-sync-status.is-saved {
+  color: var(--color-success);
+}
+
+.app-shell-sync-status.is-recovered {
+  border-color: color-mix(in srgb, var(--color-success) 36%, var(--color-border));
   color: var(--color-success);
 }
 

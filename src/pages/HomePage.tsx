@@ -55,10 +55,6 @@ export default function HomePage() {
     });
   }, [routines, activeFilter]);
 
-  const activeRoutine = activeWorkoutSession
-    ? routines.find((routine) => routine.id === activeWorkoutSession.routineId)
-    : null;
-
   function handleRoutineWorkoutAction(routineId: string) {
     const isSameRoutineActive = activeWorkoutSession?.routineId === routineId;
     const hasOtherRoutineActive = activeWorkoutSession !== null && activeWorkoutSession?.routineId !== routineId;
@@ -246,26 +242,6 @@ export default function HomePage() {
             </p>
           </div>
         </section>
-
-        {activeWorkoutSession && activeRoutine ? (
-          <section className="simple-page-card simple-page-card-compact simple-page-active-workout-card" aria-labelledby="home-active-workout-title">
-            <div className="simple-page-card-body simple-page-card-body-compact">
-              <div className="simple-page-active-workout-top">
-                <div>
-                  <p className="simple-page-active-workout-kicker">Workout in progress</p>
-                  <h2 id="home-active-workout-title" className="simple-page-card-title">{activeRoutine.name}</h2>
-                </div>
-                <button
-                  type="button"
-                  className="home-routine-action-btn home-routine-action-btn-primary"
-                  onClick={() => navigate("/active-workout")}
-                >
-                  Resume workout
-                </button>
-              </div>
-            </div>
-          </section>
-        ) : null}
 
         <section className="simple-page-card" aria-labelledby="home-routines-title">
           <div className="simple-page-card-body">
