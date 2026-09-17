@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { AppRouter } from './app/router'
+import { WorkoutNotificationController } from './components/WorkoutNotificationController'
 import { useAuthStore } from './store/useAuthStore'
 import { useAppStore } from './store/useAppStore'
 
@@ -38,7 +39,12 @@ function App() {
     }
   }, [isDemo, retrySync, setSyncStatus])
 
-  return <AppRouter />
+  return (
+    <>
+      <WorkoutNotificationController />
+      <AppRouter />
+    </>
+  )
 }
 
 export default App
