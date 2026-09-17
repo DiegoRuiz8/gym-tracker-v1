@@ -128,21 +128,8 @@ export default function HomePage() {
               type="button"
               onClick={() => setMenuOpen((prev) => !prev)}
               aria-label="Account menu"
-              style={{
-                width: "36px",
-                height: "36px",
-                borderRadius: "9999px",
-                backgroundColor: "#4f6ef7",
-                color: "#ffffff",
-                border: "none",
-                cursor: "pointer",
-                fontSize: "13px",
-                fontWeight: "700",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                letterSpacing: "0.05em",
-              }}
+              aria-expanded={menuOpen}
+              className="simple-page-account-button"
             >
               {userInitials}
             </button>
