@@ -689,7 +689,9 @@ export default function ActiveWorkoutPage() {
                             onClick={() =>
                               setNotesOpen((prev) => ({
                                 ...prev,
-                                [sessionExercise.id]: !prev[sessionExercise.id],
+                                [sessionExercise.id]: !(
+                                  prev[sessionExercise.id] ?? hasNotes
+                                ),
                               }))
                             }
                           >
