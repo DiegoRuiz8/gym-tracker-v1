@@ -1081,6 +1081,12 @@
   margin-top: var(--space-3);
 }
 
+.active-workout-variant-create .active-workout-swap-show-all-btn {
+  position: relative;
+  z-index: 1;
+  margin-top: 0;
+}
+
 .active-workout-variant-form {
   display: grid;
   gap: var(--space-3);
