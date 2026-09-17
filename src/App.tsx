@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { AppRouter } from './app/router'
 import { WorkoutNotificationController } from './components/WorkoutNotificationController'
+import { WorkoutReminderPrompt } from './components/WorkoutReminderPrompt'
 import { useAuthStore } from './store/useAuthStore'
 import { useAppStore } from './store/useAppStore'
 
@@ -42,6 +43,7 @@ function App() {
   return (
     <>
       <WorkoutNotificationController />
+      <WorkoutReminderPrompt />
       <AppRouter />
     </>
   )

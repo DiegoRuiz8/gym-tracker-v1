@@ -285,3 +285,72 @@
   padding: var(--space-6);
   color: var(--color-text-soft);
 }
+
+.workout-reminder-prompt-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: end center;
+  padding: var(--space-4);
+  padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+  background: rgba(0, 0, 0, 0.58);
+}
+
+.workout-reminder-prompt {
+  width: min(100%, 460px);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+
+.workout-reminder-prompt-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  margin-bottom: var(--space-3);
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--color-accent-soft);
+  color: #bfdbfe;
+  font-size: 1.25rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.workout-reminder-prompt-eyebrow {
+  margin-bottom: var(--space-2);
+  color: #bfdbfe;
+  font-size: 0.78rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.workout-reminder-prompt h2 {
+  margin-bottom: var(--space-2);
+  font-size: 1.3rem;
+}
+
+.workout-reminder-prompt > p:not(.workout-reminder-prompt-eyebrow) {
+  margin-bottom: var(--space-3);
+  color: var(--color-text-soft);
+}
+
+.workout-reminder-prompt-reassurance {
+  color: var(--color-text-muted) !important;
+  font-size: 0.88rem;
+}
+
+.workout-reminder-prompt-actions {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .workout-reminder-prompt {
+    animation: app-shell-enter 180ms ease-out;
+  }
+}

@@ -8,6 +8,8 @@ export type WorkoutReminderPermission =
   | "granted"
   | "unsupported";
 
+export type WorkoutReminderPreference = "enabled" | "disabled" | "unconfigured";
+
 function supportsWorkoutNotifications(): boolean {
   return "Notification" in window && "serviceWorker" in navigator;
 }
@@ -32,7 +34,15 @@ export function getWorkoutReminderPermission(): WorkoutReminderPermission {
 }
 
 export function getWorkoutReminderPreference(): boolean {
-  return localStorage.getItem(PREFERENCE_KEY) === "true";
+  return getWorkoutReminderPreferenceStatus() === "enabled";
+}
+
+export function getWorkoutReminderPreferenceStatus(): WorkoutReminderPreference {
+  const preference = localStorage.getItem(PREFERENCE_KEY);
+
+  if (preference === "true") return "enabled";
+  if (preference === "false") return "disabled";
+  return "unconfigured";
 }
 
 export async function enableWorkoutReminders(): Promise<WorkoutReminderPermission> {
@@ -53,7 +63,7 @@ export async function enableWorkoutReminders(): Promise<WorkoutReminderPermissio
 }
 
 export async function disableWorkoutReminders(): Promise<void> {
-  localStorage.removeItem(PREFERENCE_KEY);
+  localStorage.setItem(PREFERENCE_KEY, "false");
   await closeActiveWorkoutNotification();
   dispatchPreferenceChange();
 }
@@ -88,7 +98,7 @@ export async function syncActiveWorkoutNotification({
   await registration.showNotification(`Workout active · ${routineName ?? "Lift Log"}`, {
     body: "Tap to return and finish your workout.",
     icon: "/pwa-192x192.png",
-    badge: "/pwa-192x192.png",
+    badge: "/notification-badge.svg",
     tag: ACTIVE_WORKOUT_NOTIFICATION_TAG,
     requireInteraction: true,
     data: { path: "/active-workout" },

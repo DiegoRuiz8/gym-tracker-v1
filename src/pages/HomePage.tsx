@@ -195,11 +195,14 @@ export default function HomePage() {
                 {workoutReminderPermission === "unsupported" ? null : (
                   <div style={{ padding: "8px 12px", borderBottom: "1px solid #2a2d3a", marginBottom: "8px" }}>
                     <p style={{ margin: "0 0 8px 0", fontSize: "12px", color: "#8b8fa8" }}>
-                      Workout reminders
+                      Active workout reminder
+                    </p>
+                    <p style={{ margin: "0 0 8px", fontSize: "12px", color: "#8b8fa8", lineHeight: 1.4 }}>
+                      Shows one notification only while a workout is in progress.
                     </p>
                     {workoutReminderPermission === "denied" ? (
                       <p style={{ margin: 0, fontSize: "12px", color: "#8b8fa8", lineHeight: 1.4 }}>
-                        Allow notifications in browser settings to enable them.
+                        Allow notifications in browser settings to turn this reminder on.
                       </p>
                     ) : (
                       <button
@@ -219,8 +222,8 @@ export default function HomePage() {
                         }}
                       >
                         {workoutReminderEnabled
-                          ? "Turn off reminders"
-                          : "Enable reminders"}
+                          ? "Turn off reminder"
+                          : "Enable reminder"}
                       </button>
                     )}
                   </div>
