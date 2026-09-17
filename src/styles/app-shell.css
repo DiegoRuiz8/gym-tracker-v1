@@ -264,7 +264,6 @@
   .app-shell-recovery-card {
     animation: app-shell-enter 180ms ease-out;
   }
-  }
 }
 
 @keyframes app-shell-enter {
