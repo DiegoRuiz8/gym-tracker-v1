@@ -1028,8 +1028,8 @@ export default function ActiveWorkoutPage() {
                         <tbody>
                           {sessionExercise.performedSets.map(
                             (set, setIndex) => (
+                              <Fragment key={set.id}>
                               <tr
-                                key={set.id}
                                 className={
                                   set.isCompleted
                                     ? "active-workout-set-row is-completed"
@@ -1154,6 +1154,52 @@ export default function ActiveWorkoutPage() {
                                   </button>
                                 </td>
                               </tr>
+                              {restTimer?.status === "running" &&
+                              restTimer.sourceSessionExerciseId ===
+                                sessionExercise.id &&
+                              restTimer.sourceSetId === set.id &&
+                              remainingRestSeconds > 0 ? (
+                                <tr className="active-workout-rest-timer-row">
+                                  <td colSpan={5}>
+                                    <section
+                                      className="active-workout-rest-timer"
+                                      aria-label={`Rest timer: ${formatRestTime(remainingRestSeconds)} remaining`}
+                                    >
+                                      <div className="active-workout-rest-timer-heading">
+                                        <span>Rest</span>
+                                        <strong>
+                                          {formatRestTime(remainingRestSeconds)}
+                                        </strong>
+                                      </div>
+                                      <div
+                                        className="active-workout-rest-timer-track"
+                                        aria-hidden="true"
+                                      >
+                                        <span style={{ width: `${restProgress}%` }} />
+                                      </div>
+                                      <div className="active-workout-rest-timer-actions">
+                                        <button
+                                          type="button"
+                                          className="button-secondary"
+                                          onClick={() =>
+                                            extendActiveSessionRestTimer(30)
+                                          }
+                                        >
+                                          +30 s
+                                        </button>
+                                        <button
+                                          type="button"
+                                          className="button-secondary"
+                                          onClick={finishActiveSessionRestTimer}
+                                        >
+                                          End rest
+                                        </button>
+                                      </div>
+                                    </section>
+                                  </td>
+                                </tr>
+                              ) : null}
+                              </Fragment>
                             ),
                           )}
                         </tbody>
@@ -1193,41 +1239,6 @@ export default function ActiveWorkoutPage() {
                     </div>
                   </div>
                   </article>
-                  {restTimer?.status === "running" &&
-                  restTimer.sourceSessionExerciseId === sessionExercise.id &&
-                  remainingRestSeconds > 0 ? (
-                    <section
-                      className="active-workout-rest-timer"
-                      aria-label={`Rest timer: ${formatRestTime(remainingRestSeconds)} remaining`}
-                    >
-                      <div className="active-workout-rest-timer-heading">
-                        <span>Rest</span>
-                        <strong>{formatRestTime(remainingRestSeconds)}</strong>
-                      </div>
-                      <div
-                        className="active-workout-rest-timer-track"
-                        aria-hidden="true"
-                      >
-                        <span style={{ width: `${restProgress}%` }} />
-                      </div>
-                      <div className="active-workout-rest-timer-actions">
-                        <button
-                          type="button"
-                          className="button-secondary"
-                          onClick={() => extendActiveSessionRestTimer(30)}
-                        >
-                          +30 s
-                        </button>
-                        <button
-                          type="button"
-                          className="button-ghost"
-                          onClick={finishActiveSessionRestTimer}
-                        >
-                          End rest
-                        </button>
-                      </div>
-                    </section>
-                  ) : null}
                 </Fragment>
               );
             })
