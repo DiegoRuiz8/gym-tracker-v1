@@ -10,6 +10,7 @@ export default defineConfig({
       injectRegister: "auto",
 
       workbox: {
+        importScripts: ["/workout-notification-sw.js"],
         runtimeCaching: [
           {
             // Cachea todas las fotos de raw.githubusercontent.com (ExerciseDB)

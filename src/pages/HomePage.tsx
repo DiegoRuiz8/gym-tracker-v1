@@ -2,6 +2,13 @@ import { useMemo, useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppStore } from "../store/useAppStore";
 import { useAuthStore } from "../store/useAuthStore";
+import {
+  disableWorkoutReminders,
+  enableWorkoutReminders,
+  getWorkoutReminderPermission,
+  getWorkoutReminderPreference,
+  type WorkoutReminderPermission,
+} from "../lib/workoutNotifications";
 import "../styles/simple-page.css";
 
 type RoutineFilter = "All" | "Push" | "Pull" | "Legs" | "Upper" | "Lower";
@@ -23,6 +30,11 @@ export default function HomePage() {
 
   const [activeFilter, setActiveFilter] = useState<RoutineFilter>("All");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [workoutReminderEnabled, setWorkoutReminderEnabled] = useState(
+    getWorkoutReminderPreference,
+  );
+  const [workoutReminderPermission, setWorkoutReminderPermission] =
+    useState<WorkoutReminderPermission>(getWorkoutReminderPermission);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const activeWorkoutSession = useAppStore((state) => state.activeWorkoutSession);
@@ -77,6 +89,18 @@ export default function HomePage() {
   function handleResetDemo() {
     resetDemo();
     setMenuOpen(false);
+  }
+
+  async function handleWorkoutReminderToggle() {
+    if (workoutReminderEnabled) {
+      await disableWorkoutReminders();
+      setWorkoutReminderEnabled(false);
+      return;
+    }
+
+    const permission = await enableWorkoutReminders();
+    setWorkoutReminderPermission(permission);
+    setWorkoutReminderEnabled(permission === "granted");
   }
 
   return (
@@ -167,6 +191,40 @@ export default function HomePage() {
                     ))}
                   </div>
                 </div>
+
+                {workoutReminderPermission === "unsupported" ? null : (
+                  <div style={{ padding: "8px 12px", borderBottom: "1px solid #2a2d3a", marginBottom: "8px" }}>
+                    <p style={{ margin: "0 0 8px 0", fontSize: "12px", color: "#8b8fa8" }}>
+                      Workout reminders
+                    </p>
+                    {workoutReminderPermission === "denied" ? (
+                      <p style={{ margin: 0, fontSize: "12px", color: "#8b8fa8", lineHeight: 1.4 }}>
+                        Allow notifications in browser settings to enable them.
+                      </p>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => void handleWorkoutReminderToggle()}
+                        style={{
+                          width: "100%",
+                          minHeight: "36px",
+                          padding: "8px 10px",
+                          borderRadius: "8px",
+                          border: "1px solid #4f6ef7",
+                          backgroundColor: workoutReminderEnabled ? "#4f6ef7" : "transparent",
+                          color: workoutReminderEnabled ? "#ffffff" : "#8ea2ff",
+                          fontSize: "12px",
+                          fontWeight: "600",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {workoutReminderEnabled
+                          ? "Turn off reminders"
+                          : "Enable reminders"}
+                      </button>
+                    )}
+                  </div>
+                )}
 
                 {/* Data settings */}
                 <Link
