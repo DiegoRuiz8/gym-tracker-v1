@@ -21,6 +21,7 @@ self.addEventListener("notificationclick", (event) => {
   const path = event.notification.data?.path ?? "/active-workout";
   const destination = new URL(path, self.location.origin).href;
   const shouldRestoreActiveWorkout = event.notification.tag === "active-workout";
+  const notificationTitle = event.notification.title;
 
   event.notification.close();
   event.waitUntil(
@@ -30,11 +31,9 @@ self.addEventListener("notificationclick", (event) => {
           (client) => client.url === destination,
         );
 
-        if (existingClient) {
-          await existingClient.focus();
-        } else {
-          await self.clients.openWindow(destination);
-        }
+        const targetClient = existingClient
+          ? await existingClient.focus()
+          : await self.clients.openWindow(destination);
 
         if (!shouldRestoreActiveWorkout) return;
 
@@ -50,7 +49,10 @@ self.addEventListener("notificationclick", (event) => {
           data: { path: "/active-workout" },
         });
 
-        existingClient?.postMessage({ type: "workout-notification-clicked" });
+        targetClient?.postMessage({
+          type: "workout-notification-clicked",
+          notificationTitle,
+        });
       },
     ),
   );

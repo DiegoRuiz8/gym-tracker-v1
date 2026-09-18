@@ -78,12 +78,16 @@ export function WorkoutNotificationController() {
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
 
-    const handleNotificationClick = (event: MessageEvent<{ type?: string }>) => {
+    const handleNotificationClick = (
+      event: MessageEvent<{ type?: string; notificationTitle?: string }>,
+    ) => {
       if (event.data?.type !== "workout-notification-clicked") return;
 
       window.setTimeout(() => {
         setNowMs(Date.now());
-        setAcknowledgedRestStartedAt(restTimer?.startedAt ?? null);
+        if (event.data.notificationTitle === "Rest complete") {
+          setAcknowledgedRestStartedAt(restTimer?.startedAt ?? null);
+        }
         setNotificationRefresh((value) => value + 1);
       }, 50);
     };
