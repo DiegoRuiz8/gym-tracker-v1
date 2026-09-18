@@ -123,7 +123,9 @@ Deno.serve(async (request) => {
       .single();
 
     if (subscriptionError || !subscription) {
-      return json({ error: "Unable to save push subscription" }, 500);
+      const message = subscriptionError?.message ?? "Unable to save push subscription";
+      console.error("Unable to save push subscription", subscriptionError);
+      return json({ error: message }, 500);
     }
 
     if (payload.action === "subscribe") return json({ ok: "true" });
