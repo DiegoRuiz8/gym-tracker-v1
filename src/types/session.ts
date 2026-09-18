@@ -44,6 +44,7 @@ export type RestTimer = {
   startedAt: string;
   durationSeconds: number;
   status: "running" | "finished";
+  completion?: "elapsed" | "dismissed";
   finishedAt?: string | null;
 };
 

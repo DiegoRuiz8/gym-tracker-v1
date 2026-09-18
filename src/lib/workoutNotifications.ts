@@ -1,3 +1,9 @@
+import type { RestTimer } from "../types/session";
+import {
+  registerRestTimerPushSubscription,
+  unregisterRestTimerPushSubscription,
+} from "./restTimerPush";
+
 const PREFERENCE_KEY = "gym-tracker-v1:workout-reminders-enabled";
 const PREFERENCE_CHANGE_EVENT = "gym-tracker-v1:workout-reminders-changed";
 const ACTIVE_WORKOUT_NOTIFICATION_TAG = "active-workout";
@@ -23,6 +29,19 @@ function isAppleMobileDevice(): boolean {
     /iPhone|iPad|iPod/.test(navigator.userAgent) ||
     (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
   );
+}
+
+function formatRestTime(totalSeconds: number): string {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
+function getRemainingRestSeconds(restTimer: RestTimer, nowMs: number): number {
+  const endsAt =
+    new Date(restTimer.startedAt).getTime() + restTimer.durationSeconds * 1000;
+
+  return Math.max(0, Math.ceil((endsAt - nowMs) / 1000));
 }
 
 export function requiresHomeScreenInstallForWorkoutReminders(): boolean {
@@ -78,6 +97,12 @@ export async function enableWorkoutReminders(): Promise<WorkoutReminderPermissio
   if (permission === "granted") {
     localStorage.setItem(PREFERENCE_KEY, "true");
     dispatchPreferenceChange();
+
+    try {
+      await registerRestTimerPushSubscription();
+    } catch (error) {
+      console.error("Unable to register rest timer push notifications", error);
+    }
   }
 
   return permission;
@@ -87,6 +112,12 @@ export async function disableWorkoutReminders(): Promise<void> {
   localStorage.setItem(PREFERENCE_KEY, "false");
   await closeActiveWorkoutNotification();
   dispatchPreferenceChange();
+
+  try {
+    await unregisterRestTimerPushSubscription();
+  } catch (error) {
+    console.error("Unable to remove rest timer push notifications", error);
+  }
 }
 
 export function subscribeToWorkoutReminderPreference(
@@ -100,10 +131,16 @@ export async function syncActiveWorkoutNotification({
   hasActiveWorkout,
   routineName,
   isAuthenticated,
+  restTimer,
+  nextExerciseName,
+  nowMs,
 }: {
   hasActiveWorkout: boolean;
   routineName: string | undefined;
   isAuthenticated: boolean;
+  restTimer: RestTimer | null;
+  nextExerciseName: string | undefined;
+  nowMs: number;
 }): Promise<void> {
   if (
     !isAuthenticated ||
@@ -116,12 +153,36 @@ export async function syncActiveWorkoutNotification({
   }
 
   const registration = await navigator.serviceWorker.ready;
-  await registration.showNotification(`Workout active · ${routineName ?? "Lift Log"}`, {
-    body: "Tap to return and finish your workout.",
+  const isRestRunning = restTimer?.status === "running";
+  const isRestFinished = restTimer?.status === "finished";
+  const remainingRestSeconds = isRestRunning && restTimer
+    ? getRemainingRestSeconds(restTimer, nowMs)
+    : 0;
+  const title = isRestRunning
+    ? `Rest · ${formatRestTime(remainingRestSeconds)}`
+    : isRestFinished
+      ? "Rest complete"
+      : `Workout active · ${routineName ?? "Lift Log"}`;
+  const body = isRestRunning
+    ? nextExerciseName
+      ? `Next: ${nextExerciseName}`
+      : "Your rest timer is running."
+    : isRestFinished
+      ? nextExerciseName
+        ? `Ready for ${nextExerciseName}.`
+        : "Ready for your next set."
+      : "Tap to return and finish your workout.";
+
+  const options: NotificationOptions & { renotify: boolean } = {
+    body,
     icon: "/pwa-192x192.png",
     badge: "/notification-badge.svg",
     tag: ACTIVE_WORKOUT_NOTIFICATION_TAG,
     requireInteraction: true,
+    renotify: false,
+    silent: true,
     data: { path: "/active-workout" },
-  });
+  };
+
+  await registration.showNotification(title, options);
 }
