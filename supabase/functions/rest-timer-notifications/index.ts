@@ -54,7 +54,13 @@ const corsHeaders = {
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
-const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const supabaseSecretKeys = JSON.parse(
+  Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}",
+) as Record<string, string>;
+const supabaseServiceRoleKey =
+  supabaseSecretKeys.default ??
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ??
+  "";
 const vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY") ?? "";
 
 function json(body: Record<string, string>, status = 200): Response {

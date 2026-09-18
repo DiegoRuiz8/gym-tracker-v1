@@ -17,7 +17,13 @@ type PushSubscriptionRecord = {
 };
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const supabaseSecretKeys = JSON.parse(
+  Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}",
+) as Record<string, string>;
+const supabaseServiceRoleKey =
+  supabaseSecretKeys.default ??
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ??
+  "";
 const cronSecret = Deno.env.get("REST_TIMER_CRON_SECRET") ?? "";
 const vapidSubject = Deno.env.get("VAPID_SUBJECT") ?? "";
 const vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY") ?? "";
