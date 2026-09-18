@@ -31,13 +31,17 @@ export function WorkoutNotificationController() {
     getWorkoutReminderPreference,
   );
   const [nowMs, setNowMs] = useState(() => Date.now());
-  const [isAppVisible, setIsAppVisible] = useState(
-    () => document.visibilityState === "visible",
-  );
+  const [acknowledgedRestStartedAt, setAcknowledgedRestStartedAt] = useState<
+    string | null
+  >(null);
   const [notificationRefresh, setNotificationRefresh] = useState(0);
   const restTimer = activeWorkoutSession?.restTimer ?? null;
   const notificationRestTimer =
-    isAppVisible && restTimer?.status === "finished" ? null : restTimer;
+    restTimer?.status === "finished" &&
+    (restTimer.completion === "dismissed" ||
+      acknowledgedRestStartedAt === restTimer.startedAt)
+      ? null
+      : restTimer;
   const nextExerciseName = useMemo(() => {
     if (!restTimer || !activeWorkoutSession) return undefined;
 
@@ -58,10 +62,7 @@ export function WorkoutNotificationController() {
 
   useEffect(() => {
     const refreshAppVisibility = () => {
-      const isVisible = document.visibilityState === "visible";
-      setIsAppVisible(isVisible);
-
-      if (isVisible) setNowMs(Date.now());
+      if (document.visibilityState === "visible") setNowMs(Date.now());
     };
 
     refreshAppVisibility();
@@ -82,6 +83,7 @@ export function WorkoutNotificationController() {
 
       window.setTimeout(() => {
         setNowMs(Date.now());
+        setAcknowledgedRestStartedAt(restTimer?.startedAt ?? null);
         setNotificationRefresh((value) => value + 1);
       }, 50);
     };
@@ -91,7 +93,7 @@ export function WorkoutNotificationController() {
     return () => {
       navigator.serviceWorker.removeEventListener("message", handleNotificationClick);
     };
-  }, []);
+  }, [restTimer]);
 
   useEffect(() => {
     if (restTimer?.status !== "running") return;
@@ -156,9 +158,9 @@ export function WorkoutNotificationController() {
   }, [
     activeWorkoutSession,
     isAuthenticated,
-    isAppVisible,
     isLoading,
     isReminderEnabled,
+    acknowledgedRestStartedAt,
     nextExerciseName,
     notificationRefresh,
     nowMs,
