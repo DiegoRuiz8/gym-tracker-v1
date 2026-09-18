@@ -100,10 +100,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signInWithGoogle: async () => {
-    const redirectTo =
-      window.location.hostname === "localhost"
-        ? "http://localhost:5173/"
-        : "https://gym-tracker-v1.vercel.app/";
+    const redirectTo = window.location.origin;
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
