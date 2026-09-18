@@ -15,7 +15,7 @@ begin
 
   perform cron.schedule(
     'deliver-rest-timer-notifications',
-    '5 seconds',
+    '2 seconds',
     $delivery_job$
       select net.http_post(
         url := (select decrypted_secret from vault.decrypted_secrets where name = 'liftlog_project_url') || '/functions/v1/deliver-rest-timer-notifications',
