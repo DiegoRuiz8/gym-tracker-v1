@@ -20,21 +20,37 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   const path = event.notification.data?.path ?? "/active-workout";
   const destination = new URL(path, self.location.origin).href;
+  const shouldRestoreActiveWorkout = event.notification.tag === "active-workout";
 
   event.notification.close();
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(
-      (windowClients) => {
+      async (windowClients) => {
         const existingClient = windowClients.find(
           (client) => client.url === destination,
         );
 
         if (existingClient) {
-          existingClient.postMessage({ type: "workout-notification-clicked" });
-          return existingClient.focus();
+          await existingClient.focus();
+        } else {
+          await self.clients.openWindow(destination);
         }
 
-        return self.clients.openWindow(destination);
+        if (!shouldRestoreActiveWorkout) return;
+
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        await self.registration.showNotification("Workout active · LiftLog", {
+          body: "Tap to return and finish your workout.",
+          icon: "/pwa-192x192.png",
+          badge: "/notification-badge.svg",
+          tag: "active-workout",
+          requireInteraction: true,
+          renotify: false,
+          silent: true,
+          data: { path: "/active-workout" },
+        });
+
+        existingClient?.postMessage({ type: "workout-notification-clicked" });
       },
     ),
   );
