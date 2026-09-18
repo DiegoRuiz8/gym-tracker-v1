@@ -19,6 +19,9 @@ export function WorkoutNotificationController() {
     ),
   );
   const exercises = useAppStore((state) => state.exercises);
+  const finishActiveSessionRestTimer = useAppStore(
+    (state) => state.finishActiveSessionRestTimer,
+  );
   const isLoading = useAuthStore((state) => state.isLoading);
   const isDemo = useAuthStore((state) => state.isDemo);
   const isAuthenticated = useAuthStore(
@@ -59,6 +62,31 @@ export function WorkoutNotificationController() {
       window.removeEventListener("visibilitychange", updateNow);
     };
   }, [restTimer]);
+
+  useEffect(() => {
+    if (restTimer?.status !== "running") return;
+
+    const endsAt =
+      new Date(restTimer.startedAt).getTime() + restTimer.durationSeconds * 1000;
+    const finishIfElapsed = () => {
+      if (Date.now() >= endsAt) {
+        finishActiveSessionRestTimer("elapsed");
+      }
+    };
+
+    finishIfElapsed();
+
+    const timeout = window.setTimeout(
+      () => finishActiveSessionRestTimer("elapsed"),
+      Math.max(0, endsAt - Date.now()),
+    );
+    window.addEventListener("visibilitychange", finishIfElapsed);
+
+    return () => {
+      window.clearTimeout(timeout);
+      window.removeEventListener("visibilitychange", finishIfElapsed);
+    };
+  }, [finishActiveSessionRestTimer, restTimer]);
 
   useEffect(() => {
     if (isLoading) return;
