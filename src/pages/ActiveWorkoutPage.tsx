@@ -65,6 +65,13 @@ function formatRestTime(totalSeconds: number): string {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
+function getRemainingRestSeconds(restTimer: RestTimer, nowMs: number): number {
+  const startedAtMs = new Date(restTimer.startedAt).getTime();
+  const endsAt = startedAtMs + restTimer.durationSeconds * 1000;
+
+  return Math.max(0, Math.ceil((endsAt - Math.max(nowMs, startedAtMs)) / 1000));
+}
+
 type NextPendingSet = {
   sessionExerciseId: string;
   setId: string;
@@ -225,15 +232,7 @@ export default function ActiveWorkoutPage() {
   const restTimer = activeWorkoutSession?.restTimer ?? null;
   const remainingRestSeconds =
     restTimer?.status === "running"
-      ? Math.max(
-          0,
-          Math.ceil(
-            (new Date(restTimer.startedAt).getTime() +
-              restTimer.durationSeconds * 1000 -
-              nowMs) /
-              1000,
-          ),
-        )
+      ? getRemainingRestSeconds(restTimer, nowMs)
       : 0;
 
   useEffect(() => {

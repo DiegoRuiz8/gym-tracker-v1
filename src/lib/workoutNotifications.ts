@@ -38,10 +38,10 @@ function formatRestTime(totalSeconds: number): string {
 }
 
 function getRemainingRestSeconds(restTimer: RestTimer, nowMs: number): number {
-  const endsAt =
-    new Date(restTimer.startedAt).getTime() + restTimer.durationSeconds * 1000;
+  const startedAtMs = new Date(restTimer.startedAt).getTime();
+  const endsAt = startedAtMs + restTimer.durationSeconds * 1000;
 
-  return Math.max(0, Math.ceil((endsAt - nowMs) / 1000));
+  return Math.max(0, Math.ceil((endsAt - Math.max(nowMs, startedAtMs)) / 1000));
 }
 
 export function requiresHomeScreenInstallForWorkoutReminders(): boolean {
