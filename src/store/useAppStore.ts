@@ -152,7 +152,7 @@ type AppState = {
     setId: string,
   ) => void;
   extendActiveSessionRestTimer: (seconds: number) => void;
-  finishActiveSessionRestTimer: () => void;
+  finishActiveSessionRestTimer: (completion?: "elapsed" | "dismissed") => void;
 
   addActiveSessionExerciseSet: (sessionExerciseId: string) => void;
 
@@ -531,7 +531,7 @@ export const useAppStore = create<AppState>((set) => ({
       };
     }),
 
-  finishActiveSessionRestTimer: () =>
+  finishActiveSessionRestTimer: (completion = "elapsed") =>
     set((state) => {
       const session = state.activeWorkoutSession;
       if (!session?.restTimer || session.restTimer.status !== "running") {
@@ -546,6 +546,7 @@ export const useAppStore = create<AppState>((set) => ({
           restTimer: {
             ...session.restTimer,
             status: "finished",
+            completion,
             finishedAt: now,
           },
         },

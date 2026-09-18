@@ -132,6 +132,20 @@ It includes:
 - Installable experience on supported devices
 - Offline-ready app shell
 
+## Rest timer push notifications
+
+The rest timer keeps one `active-workout` notification updated while the app is running. When a rest period ends, Supabase sends a Web Push message that replaces that same notification and requests a vibration alert.
+
+To enable the remote alert in production:
+
+1. Generate a VAPID key pair and add the public key to Vercel as `VITE_WEB_PUSH_PUBLIC_KEY`.
+2. Apply [202609180001_rest_timer_push.sql](supabase/migrations/202609180001_rest_timer_push.sql) in the Supabase SQL editor.
+3. Set these Supabase Edge Function secrets: `VAPID_SUBJECT`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, and `REST_TIMER_CRON_SECRET`.
+4. Deploy `rest-timer-notifications` normally and deploy `deliver-rest-timer-notifications` with JWT verification disabled. The delivery function is protected by `REST_TIMER_CRON_SECRET` instead.
+5. Apply [202609180002_active_rest_timer_cron.sql](supabase/migrations/202609180002_active_rest_timer_cron.sql). It creates a five-second cron job only while a rest timer is pending, then removes it when idle.
+
+On iPhone and iPad, LiftLog must be installed to the Home Screen before the user can grant push notification permission.
+
 ## Available Scripts
 
 - `npm run dev` — start the local development server

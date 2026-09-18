@@ -1313,7 +1313,9 @@ export default function ActiveWorkoutPage() {
                                         <button
                                           type="button"
                                           className="button-secondary"
-                                          onClick={finishActiveSessionRestTimer}
+                                          onClick={() =>
+                                            finishActiveSessionRestTimer("dismissed")
+                                          }
                                         >
                                           End rest
                                         </button>
