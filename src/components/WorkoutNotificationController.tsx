@@ -31,7 +31,12 @@ export function WorkoutNotificationController() {
     getWorkoutReminderPreference,
   );
   const [nowMs, setNowMs] = useState(() => Date.now());
+  const [isAppVisible, setIsAppVisible] = useState(
+    () => document.visibilityState === "visible",
+  );
   const restTimer = activeWorkoutSession?.restTimer ?? null;
+  const notificationRestTimer =
+    isAppVisible && restTimer?.status === "finished" ? null : restTimer;
   const nextExerciseName = useMemo(() => {
     if (!restTimer || !activeWorkoutSession) return undefined;
 
@@ -49,6 +54,24 @@ export function WorkoutNotificationController() {
     }),
     [],
   );
+
+  useEffect(() => {
+    const refreshAppVisibility = () => {
+      const isVisible = document.visibilityState === "visible";
+      setIsAppVisible(isVisible);
+
+      if (isVisible) setNowMs(Date.now());
+    };
+
+    refreshAppVisibility();
+    window.addEventListener("focus", refreshAppVisibility);
+    window.addEventListener("visibilitychange", refreshAppVisibility);
+
+    return () => {
+      window.removeEventListener("focus", refreshAppVisibility);
+      window.removeEventListener("visibilitychange", refreshAppVisibility);
+    };
+  }, []);
 
   useEffect(() => {
     if (restTimer?.status !== "running") return;
@@ -69,11 +92,8 @@ export function WorkoutNotificationController() {
 
     updateNow();
     scheduleNextTick();
-    window.addEventListener("visibilitychange", updateNow);
-
     return () => {
       if (timeout != null) window.clearTimeout(timeout);
-      window.removeEventListener("visibilitychange", updateNow);
     };
   }, [restTimer]);
 
@@ -109,17 +129,19 @@ export function WorkoutNotificationController() {
       hasActiveWorkout: activeWorkoutSession !== null,
       routineName: routine?.name,
       isAuthenticated,
-      restTimer,
+      restTimer: notificationRestTimer,
       nextExerciseName,
       nowMs,
     });
   }, [
     activeWorkoutSession,
     isAuthenticated,
+    isAppVisible,
     isLoading,
     isReminderEnabled,
     nextExerciseName,
     nowMs,
+    notificationRestTimer,
     restTimer,
     routine?.name,
   ]);

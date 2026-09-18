@@ -154,24 +154,17 @@ export async function syncActiveWorkoutNotification({
 
   const registration = await navigator.serviceWorker.ready;
   const isRestRunning = restTimer?.status === "running";
-  const isRestFinished = restTimer?.status === "finished";
   const remainingRestSeconds = isRestRunning && restTimer
     ? getRemainingRestSeconds(restTimer, nowMs)
     : 0;
   const title = isRestRunning
     ? `Rest · ${formatRestTime(remainingRestSeconds)}`
-    : isRestFinished
-      ? "Rest complete"
-      : `Workout active · ${routineName ?? "Lift Log"}`;
+    : `Workout active · ${routineName ?? "Lift Log"}`;
   const body = isRestRunning
     ? nextExerciseName
       ? `Next: ${nextExerciseName}`
       : "Your rest timer is running."
-    : isRestFinished
-      ? nextExerciseName
-        ? `Ready for ${nextExerciseName}.`
-        : "Ready for your next set."
-      : "Tap to return and finish your workout.";
+    : "Tap to return and finish your workout.";
 
   const options: NotificationOptions & { renotify: boolean } = {
     body,
