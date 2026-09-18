@@ -53,12 +53,26 @@ export function WorkoutNotificationController() {
   useEffect(() => {
     if (restTimer?.status !== "running") return;
 
-    const interval = window.setInterval(() => setNowMs(Date.now()), 1000);
     const updateNow = () => setNowMs(Date.now());
+    const startedAtMs = new Date(restTimer.startedAt).getTime();
+    let timeout: number | undefined;
+
+    const scheduleNextTick = () => {
+      const elapsedMs = Math.max(0, Date.now() - startedAtMs);
+      const delayMs = 1000 - (elapsedMs % 1000) + 20;
+
+      timeout = window.setTimeout(() => {
+        updateNow();
+        scheduleNextTick();
+      }, delayMs);
+    };
+
+    updateNow();
+    scheduleNextTick();
     window.addEventListener("visibilitychange", updateNow);
 
     return () => {
-      window.clearInterval(interval);
+      if (timeout != null) window.clearTimeout(timeout);
       window.removeEventListener("visibilitychange", updateNow);
     };
   }, [restTimer]);

@@ -221,6 +221,32 @@ export default function ActiveWorkoutPage() {
     return () => window.clearInterval(interval);
   }, []);
 
+  const restTimer = activeWorkoutSession?.restTimer ?? null;
+
+  useEffect(() => {
+    if (restTimer?.status !== "running") return;
+
+    const startedAtMs = new Date(restTimer.startedAt).getTime();
+    let timeout: number | undefined;
+    const updateNow = () => setNowMs(Date.now());
+    const scheduleNextTick = () => {
+      const elapsedMs = Math.max(0, Date.now() - startedAtMs);
+      const delayMs = 1000 - (elapsedMs % 1000) + 20;
+
+      timeout = window.setTimeout(() => {
+        updateNow();
+        scheduleNextTick();
+      }, delayMs);
+    };
+
+    updateNow();
+    scheduleNextTick();
+
+    return () => {
+      if (timeout != null) window.clearTimeout(timeout);
+    };
+  }, [restTimer]);
+
   const elapsedLabel = useMemo(() => {
     if (!activeWorkoutSession) {
       return "0s";
@@ -229,7 +255,6 @@ export default function ActiveWorkoutPage() {
     return formatElapsedTime(activeWorkoutSession.startedAt, nowMs);
   }, [activeWorkoutSession, nowMs]);
 
-  const restTimer = activeWorkoutSession?.restTimer ?? null;
   const remainingRestSeconds =
     restTimer?.status === "running"
       ? getRemainingRestSeconds(restTimer, nowMs)
