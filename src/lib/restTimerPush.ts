@@ -1,8 +1,6 @@
 import { supabase } from "./supabase";
 import type { RestTimer } from "../types/session";
 
-const WEB_PUSH_PUBLIC_KEY = import.meta.env.VITE_WEB_PUSH_PUBLIC_KEY;
-
 type PushSubscriptionPayload = {
   endpoint: string;
   expirationTime: number | null;
@@ -39,9 +37,16 @@ type UnsubscribePushPayload = {
   endpoint: string;
 };
 
+type VapidPublicKeyPayload = {
+  action: "get_vapid_public_key";
+};
+
+type VapidPublicKeyResponse = {
+  publicKey: string;
+};
+
 function supportsPushSubscriptions(): boolean {
   return (
-    Boolean(WEB_PUSH_PUBLIC_KEY) &&
     "serviceWorker" in navigator &&
     "PushManager" in window
   );
@@ -75,15 +80,31 @@ function toPayload(subscription: PushSubscription): PushSubscriptionPayload | nu
   };
 }
 
+async function getVapidPublicKey(): Promise<string> {
+  const { data, error } = await supabase.functions.invoke<VapidPublicKeyResponse>(
+    "rest-timer-notifications",
+    { body: { action: "get_vapid_public_key" } satisfies VapidPublicKeyPayload },
+  );
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data?.publicKey) {
+    throw new Error("The VAPID public key is unavailable");
+  }
+
+  return data.publicKey;
+}
+
 async function getPushSubscription(): Promise<PushSubscription | null> {
   if (!supportsPushSubscriptions()) return null;
-
-  const publicKey = WEB_PUSH_PUBLIC_KEY;
-  if (!publicKey) return null;
 
   const registration = await navigator.serviceWorker.ready;
   const existingSubscription = await registration.pushManager.getSubscription();
   if (existingSubscription) return existingSubscription;
+
+  const publicKey = await getVapidPublicKey();
 
   return registration.pushManager.subscribe({
     userVisibleOnly: true,

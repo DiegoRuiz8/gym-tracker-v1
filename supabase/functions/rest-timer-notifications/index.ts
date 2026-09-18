@@ -36,11 +36,16 @@ type UnsubscribeRequest = {
   endpoint: string;
 };
 
+type VapidPublicKeyRequest = {
+  action: "get_vapid_public_key";
+};
+
 type TimerNotificationRequest =
   | SubscribeRequest
   | SyncTimerRequest
   | CancelTimerRequest
-  | UnsubscribeRequest;
+  | UnsubscribeRequest
+  | VapidPublicKeyRequest;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -50,6 +55,7 @@ const corsHeaders = {
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY") ?? "";
 
 function json(body: Record<string, string>, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -71,6 +77,13 @@ Deno.serve(async (request) => {
 
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
+  const payload = (await request.json()) as TimerNotificationRequest;
+
+  if (payload.action === "get_vapid_public_key") {
+    if (!vapidPublicKey) return json({ error: "Push is not configured" }, 500);
+    return json({ publicKey: vapidPublicKey });
+  }
+
   const authorization = request.headers.get("Authorization");
   if (!authorization || !supabaseUrl || !supabaseAnonKey || !supabaseServiceRoleKey) {
     return json({ error: "Unauthorized" }, 401);
@@ -84,7 +97,6 @@ Deno.serve(async (request) => {
 
   if (userError || !user) return json({ error: "Unauthorized" }, 401);
 
-  const payload = (await request.json()) as TimerNotificationRequest;
   const admin = createClient(supabaseUrl, supabaseServiceRoleKey);
 
   if (payload.action === "subscribe" || payload.action === "sync_timer") {
