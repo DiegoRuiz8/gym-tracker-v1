@@ -30,6 +30,7 @@ self.addEventListener("notificationclick", (event) => {
         );
 
         if (existingClient) {
+          existingClient.postMessage({ type: "workout-notification-clicked" });
           return existingClient.focus();
         }
 

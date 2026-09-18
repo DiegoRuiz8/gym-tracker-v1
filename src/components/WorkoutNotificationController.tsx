@@ -34,6 +34,7 @@ export function WorkoutNotificationController() {
   const [isAppVisible, setIsAppVisible] = useState(
     () => document.visibilityState === "visible",
   );
+  const [notificationRefresh, setNotificationRefresh] = useState(0);
   const restTimer = activeWorkoutSession?.restTimer ?? null;
   const notificationRestTimer =
     isAppVisible && restTimer?.status === "finished" ? null : restTimer;
@@ -70,6 +71,25 @@ export function WorkoutNotificationController() {
     return () => {
       window.removeEventListener("focus", refreshAppVisibility);
       window.removeEventListener("visibilitychange", refreshAppVisibility);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+
+    const handleNotificationClick = (event: MessageEvent<{ type?: string }>) => {
+      if (event.data?.type !== "workout-notification-clicked") return;
+
+      window.setTimeout(() => {
+        setNowMs(Date.now());
+        setNotificationRefresh((value) => value + 1);
+      }, 50);
+    };
+
+    navigator.serviceWorker.addEventListener("message", handleNotificationClick);
+
+    return () => {
+      navigator.serviceWorker.removeEventListener("message", handleNotificationClick);
     };
   }, []);
 
@@ -140,6 +160,7 @@ export function WorkoutNotificationController() {
     isLoading,
     isReminderEnabled,
     nextExerciseName,
+    notificationRefresh,
     nowMs,
     notificationRestTimer,
     restTimer,
