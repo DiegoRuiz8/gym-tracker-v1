@@ -82,6 +82,23 @@ export default function HomePage() {
     return () => document.removeEventListener("keydown", handleEscape);
   }, []);
 
+  useEffect(() => {
+    if (!menuOpen) {
+      return;
+    }
+
+    const previousDocumentOverflow = document.documentElement.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.documentElement.style.overflow = previousDocumentOverflow;
+      document.body.style.overflow = previousBodyOverflow;
+    };
+  }, [menuOpen]);
+
   const userInitials = useMemo(() => {
     if (isDemo) return "D";
     const email = user?.email ?? "";

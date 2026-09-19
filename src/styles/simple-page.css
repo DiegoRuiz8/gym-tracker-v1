@@ -1185,6 +1185,9 @@
     max-height: min(78dvh, 640px);
     padding: var(--space-2) var(--space-2) calc(var(--space-2) + env(safe-area-inset-bottom, 0px));
     overflow-y: auto;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
     border-right: none;
     border-bottom: none;
     border-left: none;
