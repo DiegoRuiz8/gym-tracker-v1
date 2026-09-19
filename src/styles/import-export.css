@@ -1,125 +1,279 @@
 .import-export-page {
-  padding: 20px 16px 96px;
-  max-width: 720px;
+  width: 100%;
+  max-width: 640px;
   margin: 0 auto;
+  padding: 20px var(--page-padding-x) calc(32px + env(safe-area-inset-bottom, 0px));
 }
 
 .import-export-page-header {
-  margin: 12px 0 20px;
+  margin: 12px 0 var(--space-5);
+}
+
+.import-export-eyebrow,
+.import-export-card-eyebrow {
+  margin: 0 0 var(--space-1);
+  color: var(--color-accent);
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
 }
 
 .import-export-page-header h1 {
-  margin: 0 0 8px;
-  font-size: 28px;
-  line-height: 1.1;
+  margin: 0 0 var(--space-2);
+  color: var(--color-text);
+  font-family: var(--font-family-display);
+  font-size: clamp(1.9rem, 9vw, 2.4rem);
+  line-height: 1;
+  text-transform: uppercase;
 }
 
-.import-export-page-header p {
+.import-export-page-header > p:last-child {
   margin: 0;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.import-export-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
-
-.import-export-card h2 {
-  margin: 0 0 8px;
-  font-size: 18px;
-}
-
-.import-export-card p {
-  margin: 0 0 14px;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--color-text-soft);
   line-height: 1.5;
 }
 
-.import-export-file-label {
+.import-export-overview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.import-export-overview div {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-3) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-elevated);
+  text-align: center;
+}
+
+.import-export-overview strong {
+  color: var(--color-text);
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.import-export-overview span {
+  color: var(--color-text-muted);
+  font-size: 0.74rem;
+  font-weight: var(--font-weight-semibold);
+}
+
+.import-export-card {
+  margin-bottom: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.import-export-card h2 {
+  margin: 0 0 var(--space-2);
+  color: var(--color-text);
+  font-size: 1.1rem;
+  line-height: 1.25;
+}
+
+.import-export-card > p:not(.import-export-card-eyebrow) {
+  margin: 0 0 var(--space-3);
+  color: var(--color-text-soft);
+  line-height: 1.5;
+}
+
+.import-export-file-label,
+.import-export-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 44px;
-  padding: 0 14px;
-  border-radius: 12px;
-  background: #2f6fed;
-  color: white;
-  font-weight: 600;
+  min-height: var(--tap-size);
+  padding: 0 var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  color: var(--color-accent-foreground);
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, transform 120ms ease;
+}
+
+.import-export-file-label:hover,
+.import-export-button:hover {
+  background: var(--color-accent-hover);
 }
 
 .import-export-file-label input {
   display: none;
 }
 
-.import-export-button {
-  min-height: 44px;
-  border: none;
-  border-radius: 12px;
-  padding: 0 14px;
-  background: #2f6fed;
-  color: white;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
+.import-export-file-label:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
-.import-export-message {
-  margin: 16px 0 0;
-  padding: 12px 14px;
-  border-radius: 12px;
-  font-size: 14px;
-}
-
-.import-export-message.success {
-  background: rgba(70, 186, 98, 0.14);
-  border: 1px solid rgba(70, 186, 98, 0.28);
-  color: #9ee2ae;
-}
-
-.import-export-message.error {
-  background: rgba(255, 90, 90, 0.14);
-  border: 1px solid rgba(255, 90, 90, 0.28);
-  color: #ffb3b3;
+.import-export-button:active,
+.import-export-file-label:active {
+  transform: translateY(1px);
 }
 
 .import-export-button-secondary {
-  background: var(--color-accent-soft);
-  border: 1px solid var(--color-accent-ring);
-  color: var(--color-accent-hover);
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-elevated);
+  color: var(--color-text);
 }
 
 .import-export-button-secondary:hover {
-  background: var(--color-accent-soft);
+  border-color: var(--color-accent-ring);
+  background: var(--color-surface-hover);
+  color: var(--color-accent-hover);
+}
+
+.import-export-button-template {
+  border-color: var(--color-accent-ring);
+  background: transparent;
+  color: var(--color-text);
+}
+
+.import-export-button-template:hover {
   border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-hover);
+}
+
+.import-export-button-danger {
+  background: var(--color-danger);
+  color: var(--color-text);
+}
+
+.import-export-button-danger:hover {
+  background: var(--color-danger-hover);
+}
+
+.import-export-file-label:focus-within,
+.import-export-button:focus-visible {
+  outline: 2px solid var(--color-accent-ring);
+  outline-offset: 2px;
+}
+
+.import-export-message {
+  margin: var(--space-4) 0 0;
+  padding: var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.import-export-message.success {
+  border-color: var(--color-success);
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.import-export-message.error {
+  border-color: var(--color-danger);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.import-export-import-preview {
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-warning) 8%, var(--color-bg-elevated));
+}
+
+.import-export-import-preview-title {
+  margin: 0;
+  color: var(--color-text);
+  font-weight: var(--font-weight-bold);
+}
+
+.import-export-import-preview dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin: var(--space-3) 0;
+}
+
+.import-export-import-preview dl div {
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-elevated);
+}
+
+.import-export-import-preview dt {
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+}
+
+.import-export-import-preview dd {
+  margin: 2px 0 0;
+  color: var(--color-text);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.import-export-import-preview-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: var(--space-2);
+}
+
+.import-export-import-preview-actions .import-export-button {
+  width: 100%;
+  padding: 0 var(--space-2);
 }
 
 .import-export-help {
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
 }
 
 .import-export-help-title {
-  margin: 0 0 10px;
-  font-weight: 700;
-  color: white;
+  margin: 0 0 var(--space-2);
+  color: var(--color-text);
+  font-weight: var(--font-weight-bold);
 }
 
 .import-export-help-list {
   margin: 0;
-  padding-left: 18px;
-  color: rgba(255, 255, 255, 0.72);
+  padding-left: 1.2rem;
+  color: var(--color-text-soft);
   line-height: 1.55;
 }
 
 .import-export-help-list li + li {
-  margin-top: 6px;
+  margin-top: var(--space-2);
 }
 
 .import-export-card .import-export-message-inline {
-  margin: 14px 0 0;
+  margin: var(--space-3) 0 0;
+}
+
+@media (max-width: 420px) {
+  .import-export-page {
+    padding-top: 18px;
+  }
+
+  .import-export-card {
+    padding: var(--space-3);
+  }
+
+  .import-export-file-label,
+  .import-export-button {
+    width: 100%;
+  }
+
+  .import-export-import-preview-actions {
+    grid-template-columns: 1fr;
+  }
 }

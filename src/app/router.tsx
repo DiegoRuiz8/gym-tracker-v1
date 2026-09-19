@@ -13,6 +13,7 @@ import {
 import { useAuthStore } from "../store/useAuthStore";
 import { useAppStore } from "../store/useAppStore";
 import type { WorkoutSession } from "../types/session";
+import ImportExportPage from "../pages/ImportExportPage";
 import "../styles/app-shell.css";
 
 const ActiveWorkoutPage = lazy(() => import("../pages/ActiveWorkoutPage"));
@@ -24,7 +25,6 @@ const ExerciseHistoryPage = lazy(
 const ExercisesPage = lazy(() => import("../pages/ExercisesPage"));
 const HistoryPage = lazy(() => import("../pages/HistoryPage"));
 const HomePage = lazy(() => import("../pages/HomePage"));
-const ImportExportPage = lazy(() => import("../pages/ImportExportPage"));
 const LoginPage = lazy(() => import("../pages/LoginPage"));
 const NewExercisePage = lazy(() => import("../pages/NewExercisePage"));
 const NewRoutinePage = lazy(() => import("../pages/NewRoutinePage"));

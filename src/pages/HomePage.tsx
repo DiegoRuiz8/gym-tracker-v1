@@ -31,6 +31,7 @@ export default function HomePage() {
 
   const [activeFilter, setActiveFilter] = useState<RoutineFilter>("All");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [confirmingDemoReset, setConfirmingDemoReset] = useState(false);
   const [workoutReminderEnabled, setWorkoutReminderEnabled] = useState(
     getWorkoutReminderPreference,
   );
@@ -38,6 +39,20 @@ export default function HomePage() {
     useState<WorkoutReminderPermission>(getWorkoutReminderPermission);
   const requiresHomeScreenInstall =
     requiresHomeScreenInstallForWorkoutReminders();
+  const reminderActivationBlocked =
+    !workoutReminderEnabled &&
+    (requiresHomeScreenInstall ||
+      workoutReminderPermission === "denied" ||
+      workoutReminderPermission === "unsupported");
+  const reminderControlLabel = workoutReminderEnabled
+    ? "Enabled"
+    : requiresHomeScreenInstall
+      ? "Install app"
+      : workoutReminderPermission === "denied"
+        ? "Blocked"
+        : workoutReminderPermission === "unsupported"
+          ? "Unavailable"
+          : "Enable";
   const menuRef = useRef<HTMLDivElement>(null);
 
   const activeWorkoutSession = useAppStore((state) => state.activeWorkoutSession);
@@ -48,10 +63,23 @@ export default function HomePage() {
     function handleClickOutside(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setMenuOpen(false);
+        setConfirmingDemoReset(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        setConfirmingDemoReset(false);
+      }
+    }
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
   }, []);
 
   const userInitials = useMemo(() => {
@@ -92,6 +120,16 @@ export default function HomePage() {
   function handleResetDemo() {
     resetDemo();
     setMenuOpen(false);
+    setConfirmingDemoReset(false);
+  }
+
+  function handleMenuToggle() {
+    setMenuOpen((isOpen) => {
+      if (isOpen) {
+        setConfirmingDemoReset(false);
+      }
+      return !isOpen;
+    });
   }
 
   async function handleWorkoutReminderToggle() {
@@ -116,7 +154,7 @@ export default function HomePage() {
               Track routines, sets, reps, and progress in one place.
             </p>
             {isDemo ? (
-              <p style={{ margin: "8px 0 0", color: "#8ea2ff", fontSize: "12px", fontWeight: "700", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+              <p className="simple-page-demo-badge">
                 Demo mode — local data only
               </p>
             ) : null}
@@ -126,165 +164,119 @@ export default function HomePage() {
           <div ref={menuRef} style={{ position: "relative", flexShrink: 0 }}>
             <button
               type="button"
-              onClick={() => setMenuOpen((prev) => !prev)}
+              onClick={handleMenuToggle}
               aria-label="Account menu"
               aria-expanded={menuOpen}
+              aria-controls="account-settings-menu"
               className="simple-page-account-button"
             >
               {userInitials}
             </button>
 
             {menuOpen ? (
-              <div style={{
-                position: "absolute",
-                top: "44px",
-                right: 0,
-                backgroundColor: "#1a1d27",
-                border: "1px solid #2a2d3a",
-                borderRadius: "12px",
-                padding: "8px",
-                minWidth: "220px",
-                zIndex: 100,
-                boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
-              }}>
-                {/* Email */}
-                <div style={{ padding: "8px 12px 12px 12px", borderBottom: "1px solid #2a2d3a", marginBottom: "8px" }}>
-                  <p style={{ margin: 0, fontSize: "11px", color: "#8b8fa8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Account</p>
-                  <p style={{ margin: "4px 0 0 0", fontSize: "13px", color: "#ffffff", wordBreak: "break-all" }}>{isDemo ? "Demo athlete" : user?.email}</p>
-                </div>
+              <>
+                <button
+                  type="button"
+                  className="home-settings-scrim"
+                  onClick={() => setMenuOpen(false)}
+                  aria-label="Close account menu"
+                />
+                <div
+                  id="account-settings-menu"
+                  className="home-settings-panel"
+                  role="dialog"
+                  aria-label="Account settings"
+                >
+                  <div className="home-settings-handle" aria-hidden="true" />
+                  <header className="home-settings-account">
+                    <p className="home-settings-eyebrow">Account</p>
+                    <p className="home-settings-email">{isDemo ? "Demo athlete" : user?.email}</p>
+                  </header>
 
-                {/* Weight unit */}
-                <div style={{ padding: "8px 12px", borderBottom: "1px solid #2a2d3a", marginBottom: "8px" }}>
-                  <p style={{ margin: "0 0 8px 0", fontSize: "12px", color: "#8b8fa8" }}>Weight unit</p>
-                  <div style={{ display: "flex", gap: "6px" }}>
-                    {(["kg", "lb"] as const).map((unit) => (
-                      <button
-                        key={unit}
-                        type="button"
-                        onClick={() => setPreferredWeightUnit(unit)}
-                        style={{
-                          flex: 1,
-                          padding: "6px",
-                          borderRadius: "8px",
-                          border: "1px solid",
-                          borderColor: preferredWeightUnit === unit ? "#4f6ef7" : "#2a2d3a",
-                          backgroundColor: preferredWeightUnit === unit ? "#4f6ef7" : "transparent",
-                          color: preferredWeightUnit === unit ? "#ffffff" : "#8b8fa8",
-                          fontSize: "13px",
-                          fontWeight: "600",
-                          cursor: "pointer",
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        {unit}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                  <section className="home-settings-section" aria-labelledby="preferences-heading">
+                    <p id="preferences-heading" className="home-settings-eyebrow">Preferences</p>
+                    <div className="home-settings-item">
+                      <div className="home-settings-item-text">
+                        <p className="home-settings-item-title">Weight unit</p>
+                        <p className="home-settings-item-description">Choose how weights appear across the app.</p>
+                      </div>
+                      <div className="home-settings-unit-toggle" role="group" aria-label="Weight unit">
+                        {(["kg", "lb"] as const).map((unit) => (
+                          <button
+                            key={unit}
+                            type="button"
+                            onClick={() => setPreferredWeightUnit(unit)}
+                            className={`home-settings-unit-button ${preferredWeightUnit === unit ? "home-settings-unit-button-active" : ""}`}
+                            aria-pressed={preferredWeightUnit === unit}
+                          >
+                            {unit}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
 
-                {workoutReminderPermission === "unsupported" ? null : (
-                  <div style={{ padding: "8px 12px", borderBottom: "1px solid #2a2d3a", marginBottom: "8px" }}>
-                    <p style={{ margin: "0 0 8px 0", fontSize: "12px", color: "#8b8fa8" }}>
-                      Active workout reminder
-                    </p>
-                    <p style={{ margin: "0 0 8px", fontSize: "12px", color: "#8b8fa8", lineHeight: 1.4 }}>
-                      Shows one notification only while a workout is in progress.
-                    </p>
-                    {requiresHomeScreenInstall ? (
-                      <p style={{ margin: 0, fontSize: "12px", color: "#8b8fa8", lineHeight: 1.4 }}>
-                        On iPhone and iPad, add LiftLog to your Home Screen to use this reminder.
-                      </p>
-                    ) : workoutReminderPermission === "denied" ? (
-                      <p style={{ margin: 0, fontSize: "12px", color: "#8b8fa8", lineHeight: 1.4 }}>
-                        Allow notifications in browser settings to turn this reminder on.
-                      </p>
-                    ) : (
+                    <div className="home-settings-item home-settings-reminder">
+                      <div className="home-settings-item-text">
+                        <p className="home-settings-item-title">Workout reminder</p>
+                        <p className="home-settings-item-description">
+                          {requiresHomeScreenInstall
+                            ? "Add LiftLog to your Home Screen to use reminders on iPhone or iPad."
+                            : workoutReminderPermission === "denied"
+                              ? "Allow notifications in browser settings to turn this on."
+                              : workoutReminderPermission === "unsupported"
+                                ? "Notifications are not supported in this browser."
+                                : "Get one reminder while a workout is in progress."}
+                        </p>
+                      </div>
                       <button
                         type="button"
                         onClick={() => void handleWorkoutReminderToggle()}
-                        style={{
-                          width: "100%",
-                          minHeight: "36px",
-                          padding: "8px 10px",
-                          borderRadius: "8px",
-                          border: "1px solid #4f6ef7",
-                          backgroundColor: workoutReminderEnabled ? "#4f6ef7" : "transparent",
-                          color: workoutReminderEnabled ? "#ffffff" : "#8ea2ff",
-                          fontSize: "12px",
-                          fontWeight: "600",
-                          cursor: "pointer",
-                        }}
+                        className={`home-settings-reminder-button ${workoutReminderEnabled ? "home-settings-reminder-button-active" : ""} ${reminderActivationBlocked ? "home-settings-reminder-button-blocked" : ""}`}
+                        aria-pressed={workoutReminderEnabled}
+                        disabled={reminderActivationBlocked}
                       >
-                        {workoutReminderEnabled
-                          ? "Turn off reminder"
-                          : "Enable reminder"}
+                        {reminderControlLabel}
                       </button>
-                    )}
-                  </div>
-                )}
+                    </div>
+                  </section>
 
-                {/* Data settings */}
-                <Link
-                  to="/data"
-                  onClick={() => setMenuOpen(false)}
-                  style={{
-                    display: "block",
-                    padding: "10px 12px",
-                    borderRadius: "8px",
-                    color: "#e2e1ed",
-                    fontSize: "14px",
-                    textDecoration: "none",
-                    marginBottom: "4px",
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#21242f"}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
-                >
-                  Data settings
-                </Link>
+                  <section className="home-settings-section" aria-labelledby="data-heading">
+                    <p id="data-heading" className="home-settings-eyebrow">Data</p>
+                    <Link to="/data" onClick={() => setMenuOpen(false)} className="home-settings-data-link">
+                      <span>
+                        <span className="home-settings-item-title">Data &amp; backup</span>
+                        <span className="home-settings-item-description">Export, restore, or get a JSON template.</span>
+                      </span>
+                      <svg aria-hidden="true" viewBox="0 0 24 24">
+                        <path d="m9 18 6-6-6-6" />
+                      </svg>
+                    </Link>
+                  </section>
 
-                {isDemo ? (
-                  <button
-                    type="button"
-                    onClick={handleResetDemo}
-                    style={{
-                      width: "100%",
-                      padding: "10px 12px",
-                      borderRadius: "8px",
-                      border: "none",
-                      backgroundColor: "transparent",
-                      color: "#8ea2ff",
-                      fontSize: "14px",
-                      fontWeight: "500",
-                      cursor: "pointer",
-                      textAlign: "left",
-                    }}
-                  >
-                    Reset demo data
-                  </button>
-                ) : null}
-
-                {/* Sign out */}
-                <button
-                  type="button"
-                  onClick={handleSignOut}
-                  style={{
-                    width: "100%",
-                    padding: "10px 12px",
-                    borderRadius: "8px",
-                    border: "none",
-                    backgroundColor: "transparent",
-                    color: "#f87171",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    cursor: "pointer",
-                    textAlign: "left",
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(248,113,113,0.08)"}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
-                >
-                  {isDemo ? "Exit demo" : "Sign out"}
-                </button>
-              </div>
+                  <section className="home-settings-session" aria-labelledby="session-heading">
+                    <p id="session-heading" className="home-settings-eyebrow">Session</p>
+                    {isDemo ? (
+                      confirmingDemoReset ? (
+                        <div className="home-settings-confirm" role="alert">
+                          <p>Reset demo data?</p>
+                          <span>This removes the routines and history in this demo session.</span>
+                          <div>
+                            <button type="button" onClick={() => setConfirmingDemoReset(false)} className="home-settings-confirm-cancel">Cancel</button>
+                            <button type="button" onClick={handleResetDemo} className="home-settings-confirm-action">Reset demo</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button type="button" onClick={() => setConfirmingDemoReset(true)} className="home-settings-action home-settings-action-warning">
+                          Reset demo data
+                        </button>
+                      )
+                    ) : null}
+                    <button type="button" onClick={() => void handleSignOut()} className="home-settings-action home-settings-action-danger">
+                      {isDemo ? "Exit demo" : "Sign out"}
+                    </button>
+                  </section>
+                </div>
+              </>
             ) : null}
           </div>
         </header>

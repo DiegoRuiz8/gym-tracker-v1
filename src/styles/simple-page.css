@@ -50,8 +50,8 @@
 
 .simple-page-account-button {
   display: flex;
-  width: 36px;
-  height: 36px;
+  width: var(--tap-size);
+  height: var(--tap-size);
   align-items: center;
   justify-content: center;
   padding: 0;
@@ -80,6 +80,275 @@
 .simple-page-account-button:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.simple-page-demo-badge {
+  margin: 8px 0 0;
+  color: var(--color-accent);
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.home-settings-scrim {
+  display: none;
+}
+
+.home-settings-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 100;
+  width: min(340px, calc(100vw - 32px));
+  padding: var(--space-2);
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+
+.home-settings-handle {
+  display: none;
+}
+
+.home-settings-account,
+.home-settings-section,
+.home-settings-session {
+  padding: var(--space-3);
+}
+
+.home-settings-section,
+.home-settings-session {
+  border-top: 1px solid var(--color-border);
+}
+
+.home-settings-eyebrow {
+  margin: 0 0 var(--space-1);
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.home-settings-email {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  font-weight: var(--font-weight-semibold);
+}
+
+.home-settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.home-settings-item + .home-settings-item {
+  margin-top: var(--space-4);
+}
+
+.home-settings-item-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.home-settings-item-title,
+.home-settings-item-description {
+  display: block;
+}
+
+.home-settings-item-title {
+  margin: 0 0 3px;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  font-weight: var(--font-weight-semibold);
+}
+
+.home-settings-item-description {
+  margin: 0;
+  color: var(--color-text-soft);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.home-settings-unit-toggle {
+  display: inline-flex;
+  flex-shrink: 0;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-elevated);
+}
+
+.home-settings-unit-button,
+.home-settings-reminder-button,
+.home-settings-action,
+.home-settings-confirm button {
+  min-height: var(--tap-size);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.home-settings-unit-button {
+  min-width: 46px;
+  padding: 0 var(--space-2);
+  background: transparent;
+  color: var(--color-text-soft);
+  text-transform: uppercase;
+}
+
+.home-settings-unit-button-active {
+  background: var(--color-accent);
+  color: var(--color-accent-foreground);
+}
+
+.home-settings-reminder {
+  align-items: flex-start;
+}
+
+.home-settings-reminder-button {
+  flex-shrink: 0;
+  min-width: 76px;
+  padding: 0 var(--space-2);
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-elevated);
+  color: var(--color-text-soft);
+}
+
+.home-settings-reminder-button-active {
+  border-color: var(--color-success);
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.home-settings-reminder-button-blocked {
+  border-color: var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.home-settings-reminder-button:disabled {
+  opacity: 0.72;
+}
+
+.home-settings-data-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: var(--tap-size);
+  padding: var(--space-2) 0;
+  color: inherit;
+}
+
+.home-settings-data-link:hover {
+  color: var(--color-accent-hover);
+}
+
+.home-settings-data-link svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+  color: var(--color-accent);
+}
+
+.home-settings-action {
+  width: 100%;
+  padding: 0 var(--space-3);
+  background: transparent;
+  text-align: left;
+}
+
+.home-settings-action + .home-settings-action {
+  margin-top: var(--space-1);
+}
+
+.home-settings-action-warning {
+  color: var(--color-warning);
+}
+
+.home-settings-action-warning:hover {
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+}
+
+.home-settings-action-danger {
+  color: var(--color-danger);
+}
+
+.home-settings-action-danger:hover {
+  background: var(--color-danger-soft);
+}
+
+.home-settings-confirm {
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 45%, var(--color-border));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-warning) 8%, var(--color-bg-elevated));
+}
+
+.home-settings-confirm p,
+.home-settings-confirm span {
+  display: block;
+  margin: 0;
+}
+
+.home-settings-confirm p {
+  color: var(--color-text);
+  font-weight: var(--font-weight-bold);
+}
+
+.home-settings-confirm span {
+  margin-top: var(--space-1);
+  color: var(--color-text-soft);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.home-settings-confirm > div {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.home-settings-confirm button {
+  flex: 1;
+  padding: 0 var(--space-2);
+}
+
+.home-settings-confirm-cancel {
+  border-color: var(--color-border);
+  background: var(--color-bg-elevated);
+  color: var(--color-text);
+}
+
+.home-settings-confirm-action {
+  background: var(--color-warning);
+  color: var(--color-accent-foreground);
+}
+
+.home-settings-unit-button:focus-visible,
+.home-settings-reminder-button:focus-visible,
+.home-settings-data-link:focus-visible,
+.home-settings-action:focus-visible,
+.home-settings-confirm button:focus-visible {
+  outline: 2px solid var(--color-accent-ring);
+  outline-offset: 2px;
 }
 
 .simple-page-subtitle,
@@ -897,6 +1166,54 @@
 }
 
 @media (max-width: 640px) {
+  .home-settings-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    display: block;
+    width: 100%;
+    border: none;
+    background: color-mix(in srgb, var(--color-bg) 72%, transparent);
+    cursor: default;
+  }
+
+  .home-settings-panel {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 1110;
+    width: 100%;
+    max-height: min(78dvh, 640px);
+    padding: var(--space-2) var(--space-2) calc(var(--space-2) + env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
+    border-right: none;
+    border-bottom: none;
+    border-left: none;
+    border-radius: 22px 22px 0 0;
+  }
+
+  .home-settings-handle {
+    display: block;
+    width: 36px;
+    height: 4px;
+    margin: var(--space-1) auto var(--space-2);
+    border-radius: var(--radius-pill);
+    background: var(--color-border-strong);
+  }
+
+  .home-settings-account,
+  .home-settings-section,
+  .home-settings-session {
+    padding: var(--space-3) var(--space-2);
+  }
+
+  .home-settings-item {
+    align-items: flex-start;
+  }
+
+  .home-settings-unit-toggle {
+    align-self: center;
+  }
+
   .simple-page-active-workout-top {
     flex-direction: column;
     align-items: stretch;

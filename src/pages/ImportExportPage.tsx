@@ -7,6 +7,7 @@ import {
   downloadAppDataAsJson,
   downloadImportTemplateJson,
   parseAppImportPayload,
+  type AppImportPayload,
 } from "../utils/importExport";
 import "../styles/import-export.css";
 
@@ -25,6 +26,7 @@ export default function ImportExportPage() {
   const [generalMessage, setGeneralMessage] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [isImporting, setIsImporting] = useState(false);
+  const [pendingImport, setPendingImport] = useState<AppImportPayload["data"] | null>(null);
 
   async function handleImportFile(
     event: React.ChangeEvent<HTMLInputElement>,
@@ -38,20 +40,17 @@ export default function ImportExportPage() {
     setImportMessage("");
     setGeneralMessage("");
     setError("");
+    setPendingImport(null);
     setIsImporting(true);
 
     try {
       const raw = await file.text();
       const payload = parseAppImportPayload(raw);
 
-      replaceAppData({
-        ...payload.data,
-        preferredWeightUnit: payload.data.preferredWeightUnit ?? "kg",
-      });
-
       setImportMessage(
-        `Import successful: ${payload.data.routines.length} routines, ${payload.data.exercises.length} exercises, ${payload.data.workoutLogs.length} legacy logs, ${payload.data.workoutSessions.length} sessions.`,
+        `Ready to restore: ${payload.data.routines.length} routines, ${payload.data.exercises.length} exercises, ${payload.data.workoutSessions.length} sessions.`,
       );
+      setPendingImport(payload.data);
     } catch (importError) {
       const nextError =
         importError instanceof Error
@@ -63,6 +62,28 @@ export default function ImportExportPage() {
       setIsImporting(false);
       event.target.value = "";
     }
+  }
+
+  function handleConfirmImport(): void {
+    if (!pendingImport) {
+      return;
+    }
+
+    replaceAppData({
+      ...pendingImport,
+      preferredWeightUnit: pendingImport.preferredWeightUnit ?? "kg",
+    });
+
+    setGeneralMessage(
+      `Import successful: ${pendingImport.routines.length} routines, ${pendingImport.exercises.length} exercises, ${pendingImport.workoutSessions.length} sessions restored.`,
+    );
+    setImportMessage("");
+    setPendingImport(null);
+  }
+
+  function handleCancelImport(): void {
+    setPendingImport(null);
+    setImportMessage("");
   }
 
   function handleExport(): void {
@@ -99,43 +120,21 @@ export default function ImportExportPage() {
       <PageBackButton fallbackTo="/" />
 
       <header className="import-export-page-header">
-        <h1>Import / Export</h1>
-        <p>Import your data or export your current setup.</p>
+        <p className="import-export-eyebrow">Data settings</p>
+        <h1>Data &amp; backup</h1>
+        <p>Keep a backup of your training data or restore a saved setup.</p>
       </header>
 
-      <section className="import-export-card">
-        <h2>Import data</h2>
-        <p>
-          This replaces your current local data on this device with the selected
-          file.
-        </p>
-
-        <label className="import-export-file-label">
-          <span>{isImporting ? "Importing..." : "Choose JSON file"}</span>
-          <input
-            type="file"
-            accept="application/json"
-            onChange={handleImportFile}
-            disabled={isImporting}
-          />
-        </label>
-
-        {importMessage ? (
-          <p className="import-export-message success import-export-message-inline">
-            {importMessage}
-          </p>
-        ) : null}
-
-        {error ? (
-          <p className="import-export-message error import-export-message-inline">
-            {error}
-          </p>
-        ) : null}
+      <section className="import-export-overview" aria-label="Current data">
+        <div><strong>{routines.length}</strong><span>Routines</span></div>
+        <div><strong>{exercises.length}</strong><span>Exercises</span></div>
+        <div><strong>{workoutSessions.length}</strong><span>Sessions</span></div>
       </section>
 
       <section className="import-export-card">
-        <h2>Export data</h2>
-        <p>Download your current app data as a JSON file.</p>
+        <p className="import-export-card-eyebrow">Backup</p>
+        <h2>Create a backup</h2>
+        <p>Download all routines, exercises, and workout history as a JSON file.</p>
 
         <button
           type="button"
@@ -147,7 +146,51 @@ export default function ImportExportPage() {
       </section>
 
       <section className="import-export-card">
-        <h2>JSON template</h2>
+        <p className="import-export-card-eyebrow">Restore</p>
+        <h2>Restore from a backup</h2>
+        <p>This replaces the local data on this device. You will review the file before anything changes.</p>
+
+        <label className="import-export-file-label">
+          <span>{isImporting ? "Checking file..." : "Choose JSON file"}</span>
+          <input
+            type="file"
+            accept="application/json"
+            onChange={handleImportFile}
+            disabled={isImporting}
+          />
+        </label>
+
+        {importMessage ? (
+          <p className="import-export-message success import-export-message-inline" role="status">
+            {importMessage}
+          </p>
+        ) : null}
+
+        {pendingImport ? (
+          <div className="import-export-import-preview" role="alert">
+            <p className="import-export-import-preview-title">Ready to replace your local data</p>
+            <dl>
+              <div><dt>Routines</dt><dd>{pendingImport.routines.length}</dd></div>
+              <div><dt>Exercises</dt><dd>{pendingImport.exercises.length}</dd></div>
+              <div><dt>Sessions</dt><dd>{pendingImport.workoutSessions.length}</dd></div>
+            </dl>
+            <div className="import-export-import-preview-actions">
+              <button type="button" className="import-export-button import-export-button-secondary" onClick={handleCancelImport}>Cancel</button>
+              <button type="button" className="import-export-button import-export-button-danger" onClick={handleConfirmImport}>Replace local data</button>
+            </div>
+          </div>
+        ) : null}
+
+        {error ? (
+          <p className="import-export-message error import-export-message-inline" role="alert">
+            {error}
+          </p>
+        ) : null}
+      </section>
+
+      <section className="import-export-card">
+        <p className="import-export-card-eyebrow">Template</p>
+        <h2>JSON template &amp; help</h2>
         <p>
           Download the exact JSON shape this app expects. You can give this
           template to ChatGPT and ask it to fill it with your routines,
@@ -156,7 +199,7 @@ export default function ImportExportPage() {
 
         <button
           type="button"
-          className="import-export-button import-export-button-secondary"
+          className="import-export-button import-export-button-template"
           onClick={handleDownloadTemplate}
         >
           Download template
@@ -183,7 +226,7 @@ export default function ImportExportPage() {
       </section>
 
       {generalMessage ? (
-        <p className="import-export-message success">{generalMessage}</p>
+        <p className="import-export-message success" role="status">{generalMessage}</p>
       ) : null}
     </div>
   );
