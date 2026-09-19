@@ -11,6 +11,7 @@ import {
   formatSetPerformanceInline,
 } from "../../utils/format";
 import ExercisePhotoToggle from "../exercise/ExercisePhotoToggle";
+import { useTranslation } from "../../i18n/useTranslation";
 
 type Props = {
   routine: Routine;
@@ -30,6 +31,7 @@ export default function RoutineExerciseCard({
   onBeforeNavigate,
 }: Props) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const preferredWeightUnit = useAppStore((state) => state.preferredWeightUnit);
 
   const exerciseName = exercise?.name ?? "Unknown exercise";
@@ -87,7 +89,7 @@ export default function RoutineExerciseCard({
 
       {exerciseRef.prescription.notes && (
         <p className="routine-exercise-note">
-          <strong>Notes:</strong> {exerciseRef.prescription.notes}
+          <strong>{t("Notes")}:</strong> {exerciseRef.prescription.notes}
         </p>
       )}
 

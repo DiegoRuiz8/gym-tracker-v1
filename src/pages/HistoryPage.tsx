@@ -9,6 +9,8 @@ import {
   parseLocalDateKey,
 } from "../utils/format";
 import type { CompletedSet, WorkoutSessionExercise } from "../types/session";
+import { getLocale } from "../i18n/i18n";
+import { useTranslation } from "../i18n/useTranslation";
 import "../styles/history-page.css";
 
 type HistoryRange = "all" | "week" | "month";
@@ -29,7 +31,7 @@ function getDaysDiffFromToday(dateString: string): number {
 function formatTime(dateString?: string | null): string | null {
   if (!dateString) return null;
 
-  return new Date(dateString).toLocaleTimeString("es-MX", {
+  return new Date(dateString).toLocaleTimeString(getLocale(), {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -68,11 +70,12 @@ function getRelevantSets(exercise: WorkoutSessionExercise): CompletedSet[] {
 function formatSessionExercisePerformance(
   exercise: WorkoutSessionExercise,
   preferredWeightUnit: "kg" | "lb",
+  noCompletedSets: string,
 ): string {
   const relevantSets = getRelevantSets(exercise);
 
   if (relevantSets.length === 0) {
-    return "No completed sets";
+    return noCompletedSets;
   }
 
   const parts = relevantSets
@@ -101,10 +104,11 @@ function formatSessionExercisePerformance(
     })
     .filter((value): value is string => value !== null);
 
-  return parts.length > 0 ? parts.join(" • ") : "No completed sets";
+  return parts.length > 0 ? parts.join(" • ") : noCompletedSets;
 }
 
 export default function HistoryPage() {
+  const { t } = useTranslation();
   const [activeRange, setActiveRange] = useState<HistoryRange>("all");
   const [search, setSearch] = useState("");
   const [pendingDeleteSessionId, setPendingDeleteSessionId] = useState<string | null>(null);
@@ -296,8 +300,13 @@ export default function HistoryPage() {
                               </h3>
 
                               <p className="history-page-card-routine">
-                                {exercises.length} exercise
-                                {exercises.length === 1 ? "" : "s"}
+                                {exercises.length === 1
+                                  ? t("{{count}} exercise", {
+                                      count: exercises.length,
+                                    })
+                                  : t("{{count}} exercises", {
+                                      count: exercises.length,
+                                    })}
                               </p>
                             </div>
 
@@ -376,12 +385,13 @@ export default function HistoryPage() {
                                 {formatSessionExercisePerformance(
                                   sessionExercise,
                                   preferredWeightUnit,
+                                  t("No completed sets"),
                                 )}
                               </p>
 
                               {sessionExercise.notes?.trim() && (
                                 <p className="history-page-card-notes">
-                                  <strong>Notes:</strong>{" "}
+                                  <strong>{t("Notes")}:</strong>{" "}
                                   {sessionExercise.notes}
                                 </p>
                               )}

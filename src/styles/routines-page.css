@@ -50,6 +50,7 @@
   font-weight: var(--font-weight-semibold);
   white-space: nowrap;
   flex-shrink: 0;
+  gap: 6px;
   transition:
     background-color 140ms ease,
     transform 120ms ease,
@@ -115,13 +116,6 @@
   font-weight: var(--font-weight-semibold);
   color: var(--color-text);
   word-break: break-word;
-}
-
-.routines-page-card-day {
-  margin: 0;
-  color: var(--color-text-soft);
-  font-size: 0.98rem;
-  font-weight: var(--font-weight-semibold);
 }
 
 .routines-page-card-actions {
@@ -233,7 +227,7 @@
   }
 
   .routines-page-create-btn {
-    min-height: 40px;
+    min-height: var(--tap-size);
     padding: 0 14px;
   }
 
@@ -242,12 +236,13 @@
   }
 
   .routines-page-card-top {
-    align-items: flex-start;
-    gap: 12px;
+    gap: 8px;
+    margin-bottom: 10px;
   }
 
   .routines-page-card-title {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
+    line-height: 1.18;
   }
 
   .routines-page-card-actions {
@@ -262,5 +257,9 @@
 
   .routines-page-card-icon-btn {
     min-width: var(--tap-size);
+  }
+
+  .routines-page-card-edit {
+    padding: 0 10px;
   }
 }

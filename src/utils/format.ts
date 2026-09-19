@@ -2,6 +2,7 @@ import type { WorkoutLog } from "../types/log";
 import type { Prescription } from "../types/routine";
 import type { WeightUnit } from "../store/persistence";
 import type { WorkoutSessionExercise } from "../types/session";
+import { getLocale, translateText } from "../i18n/i18n";
 
 function parseDateOnly(dateString: string): Date {
   const [year, month, day] = dateString.split("-").map(Number);
@@ -83,7 +84,7 @@ export function formatLogDate(date?: string): string {
 
   const parsed = parseDateOnly(date);
 
-  return parsed.toLocaleDateString("es-MX", {
+  return parsed.toLocaleDateString(getLocale(), {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -105,7 +106,7 @@ export function formatPrescriptionInline(prescription: Prescription): string {
 
     parts.push(`${prescription.sets} × ${repText}`);
   } else if (prescription.sets != null) {
-    parts.push(`${prescription.sets} sets`);
+    parts.push(`${prescription.sets} ${translateText("sets")}`);
   }
 
   if (prescription.targetRIR != null) {
@@ -116,7 +117,7 @@ export function formatPrescriptionInline(prescription: Prescription): string {
     parts.push(`${prescription.restSeconds}s`);
   }
 
-  return parts.length > 0 ? parts.join(" • ") : "No prescription";
+  return parts.length > 0 ? parts.join(" • ") : translateText("No prescription");
 }
 
 export function formatLatestPerformance(
@@ -124,7 +125,7 @@ export function formatLatestPerformance(
   unit: WeightUnit = "kg",
 ): string {
   if (!log || log.performedSets.length === 0) {
-    return "No logs yet";
+    return translateText("No logs yet");
   }
 
   return `${formatTopWeight(log, unit)} • ${formatPerformedSets(log)}`;
@@ -135,7 +136,7 @@ export function formatSetPerformanceInline(
   unit: WeightUnit = "kg",
 ): string {
   if (!log || log.performedSets.length === 0) {
-    return "No logs yet";
+    return translateText("No logs yet");
   }
 
   const allWeights = log.performedSets.map((set) => set.weight);
@@ -200,7 +201,7 @@ export function formatSessionExerciseSetsDetailed(
     }
 
     if (set.reps != null) {
-      return `${set.reps} reps`;
+      return `${set.reps} ${translateText("reps")}`;
     }
 
     if (set.weight != null) {

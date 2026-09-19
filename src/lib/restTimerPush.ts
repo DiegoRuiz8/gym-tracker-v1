@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { translateText } from "../i18n/i18n";
 import type { RestTimer } from "../types/session";
 
 type PushSubscriptionPayload = {
@@ -157,7 +158,9 @@ export async function syncRestTimerPush({
   const dueAt = new Date(
     new Date(restTimer.startedAt).getTime() + restTimer.durationSeconds * 1000,
   ).toISOString();
-  const target = nextExerciseName ? `Next: ${nextExerciseName}` : "Ready for your next set";
+  const target = nextExerciseName
+    ? `${translateText("Next:")} ${nextExerciseName}`
+    : translateText("Ready for your next set.");
 
   await invokeTimerPush({
     action: "sync_timer",
@@ -166,7 +169,7 @@ export async function syncRestTimerPush({
       sessionId,
       timerKey: restTimer.sourceSetId,
       dueAt,
-      title: "Rest complete",
+      title: translateText("Rest complete"),
       body: target,
     },
   });

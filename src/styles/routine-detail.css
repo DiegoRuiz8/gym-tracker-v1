@@ -17,15 +17,19 @@
 }
 
 .routine-detail-header-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "title action"
+    "description description";
+  align-items: start;
+  column-gap: 16px;
+  row-gap: 8px;
 }
 
 .routine-detail-title-wrap {
+  grid-area: title;
   min-width: 0;
-  flex: 1;
 }
 
 .routine-detail-title {
@@ -37,6 +41,7 @@
 }
 
 .routine-detail-description {
+  grid-area: description;
   margin: 0;
   color: var(--color-text-soft);
   font-size: 0.98rem;
@@ -168,9 +173,11 @@
 }
 
 .routine-detail-add-exercise-btn {
+  grid-area: action;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   min-height: var(--tap-size);
   padding: 0 14px;
   border-radius: 10px;
@@ -248,9 +255,14 @@
 }
 
 @media (max-width: 640px) {
+  .routine-detail-header-top {
+    column-gap: 12px;
+    row-gap: 8px;
+  }
+
   .routine-detail-start-btn {
     width: 100%;
-    min-height: 40px;
+    min-height: var(--tap-size);
     font-size: 0.95rem;
   }
 }

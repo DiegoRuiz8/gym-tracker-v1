@@ -1,11 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useAppStore } from "../store/useAppStore";
+import { useTranslation } from "../i18n/useTranslation";
 import "../styles/routines-page.css";
 
 const ROUTINES_SCROLL_KEY = "routines-page-scroll-y";
 
 export default function RoutinesPage() {
+  const { t } = useTranslation();
   const routines = useAppStore((state) => state.routines);
   const moveRoutine = useAppStore((state) => state.moveRoutine);
   const navigate = useNavigate();
@@ -72,7 +74,8 @@ export default function RoutinesPage() {
             <h1 className="routines-page-title">Routines</h1>
 
             <Link to="/routines/new" className="routines-page-create-btn">
-              + New routine
+              <span aria-hidden="true">+</span>
+              <span>{t("New routine")}</span>
             </Link>
           </div>
 
@@ -106,15 +109,11 @@ export default function RoutinesPage() {
                 }}
                 role="button"
                 tabIndex={0}
-                aria-label={`Open routine ${routine.name}`}
+                aria-label={`${t("Open routine")} ${routine.name}`}
               >
                 <div className="routines-page-card-top">
                   <div className="routines-page-card-title-wrap">
                     <h2 className="routines-page-card-title">{routine.name}</h2>
-
-                    {routine.dayType && (
-                      <p className="routines-page-card-day">{routine.dayType}</p>
-                    )}
                   </div>
 
                   <div className="routines-page-card-actions">

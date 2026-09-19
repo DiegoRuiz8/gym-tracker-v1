@@ -22,9 +22,11 @@ import {
 import ExercisePhotoToggle from "../components/exercise/ExercisePhotoToggle";
 import PageBackButton from "../components/navigation/PageBackButton";
 import StyledSelect from "../components/ui/StyledSelect";
+import { useTranslation } from "../i18n/useTranslation";
 import "../styles/simple-page.css";
 
 export default function EditExercisePage() {
+  const { t } = useTranslation();
   const { exerciseId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -47,6 +49,7 @@ export default function EditExercisePage() {
 
   const [catalog, setCatalog] = useState<ExerciseDbEntry[]>([]);
   const [exerciseDbSearch, setExerciseDbSearch] = useState("");
+  const [isExerciseDbHighlighted, setIsExerciseDbHighlighted] = useState(false);
   const exerciseDbSectionRef = useRef<HTMLDivElement | null>(null);
 
   const [name, setName] = useState(exercise?.name ?? "");
@@ -96,9 +99,17 @@ export default function EditExercisePage() {
         behavior: "smooth",
         block: "start",
       });
+      setIsExerciseDbHighlighted(true);
     }, 80);
+    const clearHighlightTimer = window.setTimeout(
+      () => setIsExerciseDbHighlighted(false),
+      2080,
+    );
 
-    return () => window.clearTimeout(scrollTimer);
+    return () => {
+      window.clearTimeout(scrollTimer);
+      window.clearTimeout(clearHighlightTimer);
+    };
   }, [location.state]);
 
   useEffect(() => {
@@ -290,15 +301,15 @@ export default function EditExercisePage() {
                   id="exercise-primary-muscle"
                   value={primaryMuscle}
                   onChange={setPrimaryMuscle}
-                  placeholder="Select a primary muscle"
-                  ariaLabel="Primary muscle"
+                  placeholder={t("Select a primary muscle")}
+                  ariaLabel={t("Primary muscle")}
                   options={PRIMARY_MUSCLE_OPTIONS.map((option) => ({
                     value: option,
                     label: option,
                   }))}
                 />
                 <p className="simple-page-help">
-                  Used for exercise swaps by matching muscle.
+                  {t("Used for exercise swaps by matching muscle.")}
                 </p>
               </div>
 
@@ -315,10 +326,10 @@ export default function EditExercisePage() {
                   type="text"
                   value={secondaryMuscles}
                   onChange={(event) => setSecondaryMuscles(event.target.value)}
-                  placeholder="e.g. triceps, shoulders"
+                  placeholder={t("e.g. triceps, shoulders")}
                 />
                 <p className="simple-page-help">
-                  Optional. Separate multiple muscles with commas.
+                  {t("Optional. Separate multiple muscles with commas.")}
                 </p>
               </div>
 
@@ -332,11 +343,10 @@ export default function EditExercisePage() {
                   type="text"
                   value={setup}
                   onChange={(event) => setSetup(event.target.value)}
-                  placeholder="e.g. Smith machine, flat bench, cable station"
+                  placeholder={t("e.g. Smith machine, flat bench, cable station")}
                 />
                 <p className="simple-page-help">
-                  Use this for whatever helps you recognize the setup in your
-                  gym.
+                  {t("Use this for whatever helps you recognize the setup in your gym.")}
                 </p>
               </div>
 
@@ -380,22 +390,30 @@ export default function EditExercisePage() {
 
                 <p className="simple-page-help">
                   {exerciseLogCount > 0
-                    ? `This exercise has ${exerciseLogCount} log${
-                        exerciseLogCount === 1 ? "" : "s"
-                      }. Deactivating it will keep existing history but hide it from new selections.`
-                    : "Inactive exercises stay in history but should not be used for new selections."}
+                    ? exerciseLogCount === 1
+                      ? t(
+                          "This exercise has {{count}} log. Deactivating it will keep existing history but hide it from new selections.",
+                          { count: exerciseLogCount },
+                        )
+                      : t(
+                          "This exercise has {{count}} logs. Deactivating it will keep existing history but hide it from new selections.",
+                          { count: exerciseLogCount },
+                        )
+                    : t("Inactive exercises stay in history but should not be used for new selections.")}
                 </p>
               </div>
 
               {showStatusConfirm && (
                 <div className="simple-page-inline-confirm">
                   <p className="simple-page-inline-confirm-title">
-                    {isActive ? "Deactivate exercise?" : "Reactivate exercise?"}
+                    {isActive
+                      ? t("Deactivate exercise?")
+                      : t("Reactivate exercise?")}
                   </p>
                   <p className="simple-page-inline-confirm-text">
                     {isActive
-                      ? "The exercise will stay in your history, but it should no longer appear for new routine selections."
-                      : "The exercise will become available again for new routine selections."}
+                      ? t("The exercise will stay in your history, but it should no longer appear for new routine selections.")
+                      : t("The exercise will become available again for new routine selections.")}
                   </p>
 
                   <div className="simple-page-inline-confirm-actions">
@@ -443,10 +461,13 @@ export default function EditExercisePage() {
         {/* Vinculo a ExerciseDB - vive fuera del <form>, actua de inmediato */}
         <div
           ref={exerciseDbSectionRef}
-          className="simple-page-card simple-page-card-spaced-top"
+          className={`simple-page-card simple-page-card-spaced-top${
+            isExerciseDbHighlighted ? " simple-page-card-highlight" : ""
+          }`}
         >
           <div className="simple-page-card-body">
-            <label className="simple-page-label">Exercise photo</label>
+            <label className="simple-page-label">{t("Exercise photo")}</label>
+            <p className="simple-page-help">{t("Add or search a photo for this exercise.")}</p>
 
             {currentEntry ? (
               <div className="exercisedb-current-link">
@@ -484,7 +505,9 @@ export default function EditExercisePage() {
                     />
                     <div className="exercisedb-suggestion-info">
                       <p className="exercisedb-suggestion-name">
-                        Is this it? {bestSuggestion.entry.name}
+                        {t("Is this it? {{name}}", {
+                          name: bestSuggestion.entry.name,
+                        })}
                       </p>
                     </div>
                     <button
@@ -501,8 +524,8 @@ export default function EditExercisePage() {
 
                 <p className="simple-page-help">
                   {bestSuggestion
-                    ? "Not the right exercise? Search manually:"
-                    : "No automatic suggestion found. Search manually:"}
+                    ? t("Not the right exercise? Search manually:")
+                    : t("No automatic suggestion found. Search manually:")}
                 </p>
 
                 <input
@@ -536,7 +559,9 @@ export default function EditExercisePage() {
 
                 {exerciseDbSearch.trim() && searchResults.length === 0 && (
                   <p className="simple-page-help">
-                    No results for "{exerciseDbSearch}".
+                    {t("No results for \"{{query}}\".", {
+                      query: exerciseDbSearch,
+                    })}
                   </p>
                 )}
               </>

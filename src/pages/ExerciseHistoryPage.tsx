@@ -19,6 +19,7 @@ import {
 } from "../lib/exerciseDbCache";
 import ExercisePhotoToggle from "../components/exercise/ExercisePhotoToggle";
 import PageBackButton from "../components/navigation/PageBackButton";
+import { useTranslation } from "../i18n/useTranslation";
 import "../styles/variant-history.css";
 
 type ExerciseHistoryLocationState = {
@@ -27,6 +28,7 @@ type ExerciseHistoryLocationState = {
 };
 
 export default function ExerciseHistoryPage() {
+  const { t } = useTranslation();
   const { exerciseId } = useParams();
   const location = useLocation();
   const [pendingRemoveExerciseId, setPendingRemoveExerciseId] = useState<string | null>(null);
@@ -113,7 +115,9 @@ export default function ExerciseHistoryPage() {
 
           <h1 className="variant-history-title">{exercise.name}</h1>
           <p className="variant-history-meta">
-            {sessionItems.length} session{sessionItems.length === 1 ? "" : "s"}
+            {sessionItems.length === 1
+              ? t("{{count}} session", { count: sessionItems.length })
+              : t("{{count}} sessions", { count: sessionItems.length })}
           </p>
 
           <div className="variant-history-photo-wrap">
@@ -218,14 +222,14 @@ export default function ExerciseHistoryPage() {
                       ))
                     ) : (
                       <p className="variant-history-card-text">
-                        No completed sets recorded.
+                        {t("No completed sets recorded.")}
                       </p>
                     )}
                   </div>
 
                   {item.sessionExercise.notes && (
                     <p className="variant-history-notes">
-                      <strong>Notes:</strong> {item.sessionExercise.notes}
+                      <strong>{t("Notes")}:</strong> {item.sessionExercise.notes}
                     </p>
                   )}
 

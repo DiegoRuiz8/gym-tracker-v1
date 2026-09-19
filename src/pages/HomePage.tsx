@@ -2,6 +2,7 @@ import { useMemo, useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppStore } from "../store/useAppStore";
 import { useAuthStore } from "../store/useAuthStore";
+import { useTranslation } from "../i18n/useTranslation";
 import {
   disableWorkoutReminders,
   enableWorkoutReminders,
@@ -19,6 +20,7 @@ const ROUTINE_FILTERS: RoutineFilter[] = [
 ];
 
 export default function HomePage() {
+  const { language, setLanguage, t } = useTranslation();
   const routines = useAppStore((state) => state.routines);
   const preferredWeightUnit = useAppStore((state) => state.preferredWeightUnit);
   const setPreferredWeightUnit = useAppStore((state) => state.setPreferredWeightUnit);
@@ -45,14 +47,14 @@ export default function HomePage() {
       workoutReminderPermission === "denied" ||
       workoutReminderPermission === "unsupported");
   const reminderControlLabel = workoutReminderEnabled
-    ? "Enabled"
+    ? t("Enabled")
     : requiresHomeScreenInstall
-      ? "Install app"
+      ? t("Install app")
       : workoutReminderPermission === "denied"
-        ? "Blocked"
+        ? t("Blocked")
         : workoutReminderPermission === "unsupported"
-          ? "Unavailable"
-          : "Enable";
+          ? t("Unavailable")
+          : t("Enable");
   const menuRef = useRef<HTMLDivElement>(null);
 
   const activeWorkoutSession = useAppStore((state) => state.activeWorkoutSession);
@@ -232,6 +234,26 @@ export default function HomePage() {
                       </div>
                     </div>
 
+                    <div className="home-settings-item">
+                      <div className="home-settings-item-text">
+                        <p className="home-settings-item-title">{t("Language")}</p>
+                        <p className="home-settings-item-description">{t("Choose the language used across LiftLog.")}</p>
+                      </div>
+                      <div className="home-settings-unit-toggle home-settings-language-toggle" role="group" aria-label={t("Language")}>
+                        {(["en", "es"] as const).map((option) => (
+                          <button
+                            key={option}
+                            type="button"
+                            onClick={() => setLanguage(option)}
+                            className={`home-settings-unit-button home-settings-language-button ${language === option ? "home-settings-unit-button-active" : ""}`}
+                            aria-pressed={language === option}
+                          >
+                            {option === "en" ? "English" : "Español"}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
                     <div className="home-settings-item home-settings-reminder">
                       <div className="home-settings-item-text">
                         <p className="home-settings-item-title">Workout reminder</p>
@@ -353,7 +375,7 @@ export default function HomePage() {
                     className="simple-page-home-routine-item simple-page-home-routine-item-clickable"
                     role="button"
                     tabIndex={0}
-                    aria-label={`Open routine ${routine.name}`}
+                    aria-label={`${t("Open routine")} ${routine.name}`}
                     onClick={() => navigate(`/routines/${routine.id}`, { state: { from: "home" } })}
                     onKeyDown={(event) => {
                       if (event.key === "Enter" || event.key === " ") {
@@ -386,10 +408,10 @@ export default function HomePage() {
                           }}
                         >
                           {activeWorkoutSession?.routineId === routine.id
-                            ? "Resume workout"
+                            ? t("Resume")
                             : activeWorkoutSession
-                              ? "Open routine"
-                              : "Start workout"}
+                              ? t("Open")
+                              : t("Train")}
                         </button>
                       </div>
                     </div>

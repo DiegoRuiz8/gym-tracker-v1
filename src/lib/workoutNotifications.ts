@@ -1,4 +1,5 @@
 import type { RestTimer } from "../types/session";
+import { translateText } from "../i18n/i18n";
 import {
   registerRestTimerPushSubscription,
   unregisterRestTimerPushSubscription,
@@ -161,17 +162,17 @@ export async function syncActiveWorkoutNotification({
   const title = isRestRunning
     ? `Rest · ${formatRestTime(remainingRestSeconds)}`
     : isRestFinished
-      ? "Rest complete"
-      : `Workout active · ${routineName ?? "Lift Log"}`;
+      ? translateText("Rest complete")
+      : `${translateText("Active workout")} · ${routineName ?? "LiftLog"}`;
   const body = isRestRunning
     ? nextExerciseName
-      ? `Next: ${nextExerciseName}`
-      : "Your rest timer is running."
+      ? `${translateText("Next:")} ${nextExerciseName}`
+      : translateText("Your rest timer is running.")
     : isRestFinished
       ? nextExerciseName
-        ? `Ready for ${nextExerciseName}.`
-        : "Ready for your next set."
-      : "Tap to return and finish your workout.";
+        ? `${translateText("Ready for")} ${nextExerciseName}.`
+        : translateText("Ready for your next set.")
+      : translateText("Tap to return and finish your workout.");
 
   const options: NotificationOptions & { renotify: boolean } = {
     body,

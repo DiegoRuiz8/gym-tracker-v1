@@ -11,6 +11,7 @@ import {
 } from "../lib/exerciseDbCache";
 import RoutineExerciseCard from "../components/routine/RoutineExersiceCard";
 import PageBackButton from "../components/navigation/PageBackButton";
+import { useTranslation } from "../i18n/useTranslation";
 import "../styles/routine-detail.css";
 
 type RoutineDetailLocationState = {
@@ -23,6 +24,7 @@ const getRoutineDetailScrollKey = (routineId: string) =>
   `routine-detail-scroll-y:${routineId}`;
 
 export default function RoutineDetailPage() {
+  const { t } = useTranslation();
   const { routineId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -135,12 +137,6 @@ export default function RoutineDetailPage() {
           <div className="routine-detail-header-top">
             <div className="routine-detail-title-wrap">
               <h1 className="routine-detail-title">{safeRoutine.name}</h1>
-
-              {safeRoutine.description && (
-                <p className="routine-detail-description">
-                  {safeRoutine.description}
-                </p>
-              )}
             </div>
 
             <Link
@@ -153,8 +149,15 @@ export default function RoutineDetailPage() {
               className="routine-detail-add-exercise-btn"
               onClick={saveCurrentDetailScroll}
             >
-              + Add exercise
+              <span aria-hidden="true">+</span>
+              <span>{t("Add exercise")}</span>
             </Link>
+
+            {safeRoutine.description && (
+              <p className="routine-detail-description">
+                {safeRoutine.description}
+              </p>
+            )}
           </div>
         </header>
 
@@ -163,17 +166,22 @@ export default function RoutineDetailPage() {
             type="button"
             className="routine-detail-start-btn"
             onClick={handlePrimaryWorkoutAction}
+            aria-label={
+              isSameRoutineActive || hasOtherRoutineActive
+                ? t("Resume")
+                : t("Start workout")
+            }
           >
             {isSameRoutineActive
-              ? "Resume workout"
+              ? t("Resume")
               : hasOtherRoutineActive
-                ? "Resume current workout"
-                : "Start workout"}
+                ? t("Resume")
+                : t("Train")}
           </button>
 
           {hasOtherRoutineActive && (
             <p className="routine-detail-workout-note">
-              You already have an active workout in progress.
+              {t("You already have an active workout in progress.")}
             </p>
           )}
         </section>
