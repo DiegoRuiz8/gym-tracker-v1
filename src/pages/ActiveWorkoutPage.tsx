@@ -1414,7 +1414,7 @@ export default function ActiveWorkoutPage() {
                             )
                           }
                         >
-                          − Remove last extra set
+                          − {t("Remove last extra set")}
                         </button>
                       ) : null}
 
