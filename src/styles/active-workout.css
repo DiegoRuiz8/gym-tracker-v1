@@ -7,11 +7,11 @@
   width: 100%;
   max-width: var(--page-max-width);
   margin: 0 auto;
-  padding: 92px var(--page-padding-x) 28px;
+  padding: 16px var(--page-padding-x) 28px;
 }
 
 .active-workout-header {
-  position: fixed;
+  position: sticky;
   top: 0;
   left: 0;
   right: 0;
@@ -1248,7 +1248,7 @@
 
 @media (max-width: 640px) {
   .active-workout-container {
-    padding: 88px var(--page-padding-x) 24px;
+    padding: 16px var(--page-padding-x) 24px;
   }
 
   .active-workout-header {
