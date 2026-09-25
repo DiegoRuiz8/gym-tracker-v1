@@ -10,6 +10,7 @@ import {
 } from "../lib/exerciseDbCache";
 import ExercisePhotoToggle from "../components/exercise/ExercisePhotoToggle";
 import { generateId } from "../utils/ids";
+import { useTranslation } from "../i18n/useTranslation";
 import "../styles/active-workout.css";
 import type { Exercise } from "../types/exercise";
 import type { RestTimer, WorkoutSessionExercise } from "../types/session";
@@ -128,6 +129,7 @@ function hasLoggedWorkSinceSetWasAdded(
 
 export default function ActiveWorkoutPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const activeWorkoutSession = useAppStore(
     (state) => state.activeWorkoutSession,
@@ -444,6 +446,23 @@ export default function ActiveWorkoutPage() {
 
       return hasAnyIncompleteSet;
     }).length;
+
+  const incompleteExercisesMessage =
+    incompleteExercisesCount === 1
+      ? t("{{count}} exercise is still incomplete.", {
+          count: incompleteExercisesCount,
+        })
+      : t("{{count}} exercises are still incomplete.", {
+          count: incompleteExercisesCount,
+        });
+  const unfinishedSetsMessage =
+    exercisesWithIncompleteSetsCount === 1
+      ? t("{{count}} exercise still has unfinished sets.", {
+          count: exercisesWithIncompleteSetsCount,
+        })
+      : t("{{count}} exercises still have unfinished sets.", {
+          count: exercisesWithIncompleteSetsCount,
+        });
 
   function handleRequestDeleteExercise(sessionExerciseId: string) {
     setDeleteConfirmOpen((prev) => ({
@@ -995,8 +1014,9 @@ export default function ActiveWorkoutPage() {
                                       }))
                                     }
                                   >
-                                    Show all exercises ({otherResults.length}{" "}
-                                    more)
+                                    {t("Show all exercises ({{count}} more)", {
+                                      count: otherResults.length,
+                                    })}
                                   </button>
                                 ) : null}
 
@@ -1032,7 +1052,7 @@ export default function ActiveWorkoutPage() {
                                         }));
                                       }}
                                     >
-                                      + Create a new variant
+                                      {t("+ Create a new variant")}
                                     </button>
 
                                     {isVariantFormOpen ? (
@@ -1079,7 +1099,7 @@ export default function ActiveWorkoutPage() {
                                               )
                                             }
                                           >
-                                            Create and swap
+                                            {t("Create and swap")}
                                           </button>
                                           <button
                                             type="button"
@@ -1520,11 +1540,15 @@ export default function ActiveWorkoutPage() {
                 {elapsedLabel}
               </span>
               <span className="active-workout-finish-stat-chip">
-                {totalExercisesCount} exercise
-                {totalExercisesCount === 1 ? "" : "s"}
+                {totalExercisesCount === 1
+                  ? t("{{count}} exercise", { count: totalExercisesCount })
+                  : t("{{count}} exercises", { count: totalExercisesCount })}
               </span>
               <span className="active-workout-finish-stat-chip">
-                {completedExercisesCount}/{totalExercisesCount} completed
+                {t("{{completed}}/{{total}} completed", {
+                  completed: completedExercisesCount,
+                  total: totalExercisesCount,
+                })}
               </span>
             </div>
 
@@ -1545,32 +1569,19 @@ export default function ActiveWorkoutPage() {
                   incompleteExercisesCount ===
                     exercisesWithIncompleteSetsCount ? (
                     <p className="active-workout-finish-warning-item">
-                      {incompleteExercisesCount} exercise
-                      {incompleteExercisesCount === 1 ? "" : "s"}{" "}
-                      {incompleteExercisesCount === 1 ? "is" : "are"} still
-                      incomplete.
+                      {incompleteExercisesMessage}
                     </p>
                   ) : (
                     <>
                       {incompleteExercisesCount > 0 ? (
                         <p className="active-workout-finish-warning-item">
-                          {incompleteExercisesCount} exercise
-                          {incompleteExercisesCount === 1 ? "" : "s"}{" "}
-                          {incompleteExercisesCount === 1 ? "is" : "are"} still
-                          incomplete.
+                          {incompleteExercisesMessage}
                         </p>
                       ) : null}
 
                       {exercisesWithIncompleteSetsCount > 0 ? (
                         <p className="active-workout-finish-warning-item">
-                          {exercisesWithIncompleteSetsCount} exercise
-                          {exercisesWithIncompleteSetsCount === 1
-                            ? ""
-                            : "s"}{" "}
-                          {exercisesWithIncompleteSetsCount === 1
-                            ? "still has"
-                            : "still have"}{" "}
-                          unfinished sets.
+                          {unfinishedSetsMessage}
                         </p>
                       ) : null}
                     </>
