@@ -1639,8 +1639,9 @@ export default function ActiveWorkoutPage() {
                 {elapsedLabel}
               </span>
               <span className="active-workout-finish-stat-chip">
-                {totalExercisesCount} exercise
-                {totalExercisesCount === 1 ? "" : "s"}
+                {totalExercisesCount === 1
+                  ? t("{{count}} exercise", { count: totalExercisesCount })
+                  : t("{{count}} exercises", { count: totalExercisesCount })}
               </span>
             </div>
 
