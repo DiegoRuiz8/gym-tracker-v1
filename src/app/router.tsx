@@ -132,6 +132,9 @@ function ActiveWorkoutBanner() {
   const activeWorkoutSession = useAppStore(
     (state) => state.activeWorkoutSession,
   );
+  const isWorkoutLaunchPending = useAppStore(
+    (state) => state.isWorkoutLaunchPending,
+  );
   const routines = useAppStore((state) => state.routines);
   const [nowMs, setNowMs] = useState(() => Date.now());
 
@@ -142,7 +145,11 @@ function ActiveWorkoutBanner() {
     return () => window.clearInterval(timer);
   }, [activeWorkoutSession]);
 
-  if (!activeWorkoutSession || location.pathname === "/active-workout") {
+  if (
+    isWorkoutLaunchPending ||
+    !activeWorkoutSession ||
+    location.pathname === "/active-workout"
+  ) {
     return null;
   }
 

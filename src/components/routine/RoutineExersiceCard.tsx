@@ -73,6 +73,7 @@ export default function RoutineExerciseCard({
             navigate(`/exercises/${exerciseRef.exerciseId}/edit`, {
               state: {
                 returnTo: `/routines/${routine.id}`,
+                restoreDetailScroll: true,
                 scrollToExerciseDbSection: true,
               },
             });

@@ -110,11 +110,13 @@ type AppState = {
   workoutLogs: WorkoutLog[];
   workoutSessions: WorkoutSession[];
   activeWorkoutSession: WorkoutSession | null;
+  isWorkoutLaunchPending: boolean;
   preferredWeightUnit: WeightUnit;
   syncStatus: SyncStatus;
   syncError: string | null;
 
   setActiveWorkoutSession: (session: WorkoutSession | null) => void;
+  clearWorkoutLaunchPending: () => void;
   updateActiveWorkoutSession: (session: WorkoutSession) => void;
   startWorkoutSessionFromRoutine: (routineId: string) => void;
   completeActiveWorkoutSession: (endedAt?: string) => void;
@@ -298,11 +300,14 @@ export const useAppStore = create<AppState>((set) => ({
   workoutLogs: initialData.workoutLogs,
   workoutSessions: initialData.workoutSessions,
   activeWorkoutSession: initialData.activeWorkoutSession,
+  isWorkoutLaunchPending: false,
   preferredWeightUnit: initialData.preferredWeightUnit,
   syncStatus: "idle",
   syncError: null,
 
   setActiveWorkoutSession: (session) => set({ activeWorkoutSession: session }),
+
+  clearWorkoutLaunchPending: () => set({ isWorkoutLaunchPending: false }),
 
   updateActiveWorkoutSession: (session) =>
     set({ activeWorkoutSession: { ...session, updatedAt: new Date().toISOString() } }),
@@ -318,7 +323,7 @@ export const useAppStore = create<AppState>((set) => ({
         state.workoutSessions,
         state.workoutLogs,
       );
-      return { activeWorkoutSession: session };
+      return { activeWorkoutSession: session, isWorkoutLaunchPending: true };
     }),
 
   completeActiveWorkoutSession: (endedAt) =>
@@ -340,13 +345,14 @@ export const useAppStore = create<AppState>((set) => ({
       return {
         workoutSessions: [completedSession, ...state.workoutSessions],
         activeWorkoutSession: null,
+        isWorkoutLaunchPending: false,
       };
     }),
 
   cancelActiveWorkoutSession: () =>
     set((state) => {
       if (!state.activeWorkoutSession) return state;
-      return { activeWorkoutSession: null };
+      return { activeWorkoutSession: null, isWorkoutLaunchPending: false };
     }),
 
   deleteWorkoutSession: (sessionId) =>
@@ -757,6 +763,7 @@ export const useAppStore = create<AppState>((set) => ({
       workoutLogs: data.workoutLogs,
       workoutSessions: data.workoutSessions,
       activeWorkoutSession: data.activeWorkoutSession,
+      isWorkoutLaunchPending: false,
       preferredWeightUnit: data.preferredWeightUnit,
     }),
 
@@ -767,6 +774,7 @@ export const useAppStore = create<AppState>((set) => ({
       workoutLogs: [],
       workoutSessions: [],
       activeWorkoutSession: null,
+      isWorkoutLaunchPending: false,
       preferredWeightUnit: "kg",
     }),
 

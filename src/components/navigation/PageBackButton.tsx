@@ -8,6 +8,7 @@ type Props = {
 type BackLocationState = {
   returnTo?: string;
   restoreDetailScroll?: boolean;
+  restoreActiveWorkoutScroll?: boolean;
 };
 
 export default function PageBackButton({
@@ -21,10 +22,16 @@ export default function PageBackButton({
 
   const returnTo = state?.returnTo ?? fallbackTo;
   const restoreDetailScroll = state?.restoreDetailScroll ?? false;
+  const restoreActiveWorkoutScroll =
+    state?.restoreActiveWorkoutScroll ?? false;
 
   function handleBack() {
     navigate(returnTo, {
-      state: restoreDetailScroll ? { restoreDetailScroll: true } : undefined,
+      state: restoreDetailScroll
+        ? { restoreDetailScroll: true }
+        : restoreActiveWorkoutScroll
+          ? { restoreActiveWorkoutScroll: true }
+          : undefined,
     });
   }
 
