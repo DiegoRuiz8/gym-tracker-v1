@@ -225,11 +225,25 @@ export default function ActiveWorkoutPage() {
     if (Number.isNaN(scrollPosition)) return;
 
     hasRestoredActiveWorkoutScroll.current = true;
-    const restoreTimer = window.setTimeout(() => {
-      window.scrollTo(0, scrollPosition);
-    }, 80);
+    let animationFrame: number | undefined;
+    let attempts = 0;
 
-    return () => window.clearTimeout(restoreTimer);
+    const restoreScroll = () => {
+      window.scrollTo(0, scrollPosition);
+
+      attempts += 1;
+      if (attempts < 20) {
+        animationFrame = window.requestAnimationFrame(restoreScroll);
+      }
+    };
+
+    animationFrame = window.requestAnimationFrame(restoreScroll);
+
+    return () => {
+      if (animationFrame !== undefined) {
+        window.cancelAnimationFrame(animationFrame);
+      }
+    };
   }, [activeWorkoutSession, location.state]);
 
   function resizeNotesTextarea(element: HTMLTextAreaElement | null) {

@@ -27,6 +27,7 @@ import "../styles/simple-page.css";
 
 type EditExerciseLocationState = {
   returnTo?: string;
+  restoreDetailScroll?: boolean;
   restoreActiveWorkoutScroll?: boolean;
   scrollToExerciseDbSection?: boolean;
 };
@@ -52,9 +53,11 @@ export default function EditExercisePage() {
     typeof locationState?.returnTo === "string"
       ? locationState.returnTo
       : "/exercises";
-  const returnState = locationState?.restoreActiveWorkoutScroll
-    ? { restoreActiveWorkoutScroll: true }
-    : undefined;
+  const returnState = locationState?.restoreDetailScroll
+    ? { restoreDetailScroll: true }
+    : locationState?.restoreActiveWorkoutScroll
+      ? { restoreActiveWorkoutScroll: true }
+      : undefined;
 
   // --- Todos los hooks ANTES del early return ---
 

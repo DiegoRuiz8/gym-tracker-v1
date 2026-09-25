@@ -64,9 +64,26 @@ export default function RoutineDetailPage() {
       );
       const parsed = Number(savedScroll);
 
-      if (!Number.isNaN(parsed)) {
-        window.scrollTo(0, parsed);
-        return;
+      if (savedScroll !== null && !Number.isNaN(parsed)) {
+        let animationFrame: number | undefined;
+        let attempts = 0;
+
+        const restoreScroll = () => {
+          window.scrollTo(0, parsed);
+
+          attempts += 1;
+          if (attempts < 20) {
+            animationFrame = window.requestAnimationFrame(restoreScroll);
+          }
+        };
+
+        animationFrame = window.requestAnimationFrame(restoreScroll);
+
+        return () => {
+          if (animationFrame !== undefined) {
+            window.cancelAnimationFrame(animationFrame);
+          }
+        };
       }
     }
 
