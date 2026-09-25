@@ -669,6 +669,7 @@
   width: 100%;
   min-height: 36px;
   border-color: var(--color-border-strong);
+  white-space: nowrap;
 }
 
 @media (prefers-reduced-motion: reduce) {
