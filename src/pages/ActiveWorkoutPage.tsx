@@ -788,7 +788,12 @@ export default function ActiveWorkoutPage() {
                               aria-expanded={isSwapOpen}
                               title="Swap exercise"
                             >
-                              ⇄
+                              <span
+                                aria-hidden="true"
+                                className="active-workout-swap-icon"
+                              >
+                                ⇄
+                              </span>
                             </button>
                           </div>
 
