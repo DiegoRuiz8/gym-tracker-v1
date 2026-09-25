@@ -6,10 +6,12 @@ import {
   getWorkoutReminderPreferenceStatus,
   requiresHomeScreenInstallForWorkoutReminders,
 } from "../lib/workoutNotifications";
+import { useTranslation } from "../i18n/useTranslation";
 import { useAuthStore } from "../store/useAuthStore";
 import { useAppStore } from "../store/useAppStore";
 
 export function WorkoutReminderPrompt() {
+  const { t } = useTranslation();
   const activeWorkoutSessionId = useAppStore(
     (state) => state.activeWorkoutSession?.id ?? null,
   );
@@ -31,13 +33,21 @@ export function WorkoutReminderPrompt() {
     getWorkoutReminderPreferenceStatus() === "unconfigured";
 
   async function handleEnable() {
-    await enableWorkoutReminders();
     setDismissedSessionId(activeWorkoutSessionId);
+
+    try {
+      await enableWorkoutReminders();
+    } catch (error) {
+      console.error("Unable to enable workout reminders", error);
+    }
   }
 
-  async function handleDefer() {
-    await disableWorkoutReminders();
+  function handleDefer() {
     setDismissedSessionId(activeWorkoutSessionId);
+
+    void disableWorkoutReminders().catch((error: Error) => {
+      console.error("Unable to disable workout reminders", error);
+    });
   }
 
   function handleHomeScreenAcknowledgement() {
@@ -60,16 +70,15 @@ export function WorkoutReminderPrompt() {
             <path d="M10 21h4" />
           </svg>
         </span>
-        <p className="workout-reminder-prompt-eyebrow">Active workout</p>
+        <p className="workout-reminder-prompt-eyebrow">{t("Active workout")}</p>
         {requiresHomeScreenInstall ? (
           <>
-            <h2 id="workout-reminder-prompt-title">Add LiftLog to your Home Screen</h2>
-            <p>
-              On iPhone and iPad, active workout reminders work only in an
-              installed web app.
-            </p>
+            <h2 id="workout-reminder-prompt-title">
+              {t("Add LiftLog to your Home Screen")}
+            </h2>
+            <p>{t("On iPhone and iPad, active workout reminders work only in an installed web app.")}</p>
             <p className="workout-reminder-prompt-reassurance">
-              In Safari, tap Share, then choose Add to Home Screen.
+              {t("In Safari, tap Share, then choose Add to Home Screen.")}
             </p>
             <div className="workout-reminder-prompt-actions">
               <button
@@ -77,26 +86,27 @@ export function WorkoutReminderPrompt() {
                 type="button"
                 onClick={handleHomeScreenAcknowledgement}
               >
-                Got it
+                {t("Got it")}
               </button>
             </div>
           </>
         ) : (
           <>
-            <h2 id="workout-reminder-prompt-title">Don’t lose your workout</h2>
+            <h2 id="workout-reminder-prompt-title">
+              {t("Don’t lose your workout")}
+            </h2>
             <p>
-              While a workout is in progress, LiftLog shows one notification so you
-              can return and finish it.
+              {t("While a workout is in progress, LiftLog shows one notification so you can return and finish it.")}
             </p>
             <p className="workout-reminder-prompt-reassurance">
-              No promotions or content notifications.
+              {t("No promotions or content notifications.")}
             </p>
             <div className="workout-reminder-prompt-actions">
               <button className="button-primary" type="button" onClick={() => void handleEnable()}>
-                Enable reminder
+                {t("Enable reminder")}
               </button>
               <button className="button-secondary" type="button" onClick={() => void handleDefer()}>
-                Not now
+                {t("Not now")}
               </button>
             </div>
           </>
