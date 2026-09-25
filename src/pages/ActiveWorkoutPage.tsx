@@ -134,6 +134,9 @@ export default function ActiveWorkoutPage() {
   const activeWorkoutSession = useAppStore(
     (state) => state.activeWorkoutSession,
   );
+  const clearWorkoutLaunchPending = useAppStore(
+    (state) => state.clearWorkoutLaunchPending,
+  );
   const routines = useAppStore((state) => state.routines);
   const exercises = useAppStore((state) => state.exercises);
 
@@ -188,6 +191,10 @@ export default function ActiveWorkoutPage() {
   const [variantName, setVariantName] = useState<Record<string, string>>({});
   const [variantError, setVariantError] = useState<Record<string, string>>({});
   const [nowMs, setNowMs] = useState(() => Date.now());
+
+  useEffect(() => {
+    clearWorkoutLaunchPending();
+  }, [clearWorkoutLaunchPending]);
 
   function resizeNotesTextarea(element: HTMLTextAreaElement | null) {
     if (!element) return;
