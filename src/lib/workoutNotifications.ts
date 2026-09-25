@@ -32,6 +32,10 @@ function isAppleMobileDevice(): boolean {
   );
 }
 
+export function usesStaticWorkoutNotifications(): boolean {
+  return isAppleMobileDevice();
+}
+
 function formatRestTime(totalSeconds: number): string {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
@@ -67,6 +71,31 @@ async function closeActiveWorkoutNotification(): Promise<void> {
     tag: ACTIVE_WORKOUT_NOTIFICATION_TAG,
   });
   notifications.forEach((notification) => notification.close());
+}
+
+async function showActiveWorkoutNotification(
+  registration: ServiceWorkerRegistration,
+  title: string,
+  options: NotificationOptions & { renotify: boolean },
+): Promise<void> {
+  if (!usesStaticWorkoutNotifications()) {
+    await registration.showNotification(title, options);
+    return;
+  }
+
+  const notifications = await registration.getNotifications();
+  const activeNotifications = notifications.filter(
+    (notification) => notification.tag === ACTIVE_WORKOUT_NOTIFICATION_TAG,
+  );
+  const matchingNotification = activeNotifications.find(
+    (notification) =>
+      notification.title === title && notification.body === options.body,
+  );
+
+  if (matchingNotification) return;
+
+  activeNotifications.forEach((notification) => notification.close());
+  await registration.showNotification(title, options);
 }
 
 export function getWorkoutReminderPermission(): WorkoutReminderPermission {
@@ -154,13 +183,16 @@ export async function syncActiveWorkoutNotification({
   }
 
   const registration = await navigator.serviceWorker.ready;
+  const usesStaticNotifications = usesStaticWorkoutNotifications();
   const isRestRunning = restTimer?.status === "running";
   const isRestFinished = restTimer?.status === "finished";
   const remainingRestSeconds = isRestRunning && restTimer
     ? getRemainingRestSeconds(restTimer, nowMs)
     : 0;
   const title = isRestRunning
-    ? `Rest · ${formatRestTime(remainingRestSeconds)}`
+    ? usesStaticNotifications
+      ? "Rest timer running"
+      : `Rest · ${formatRestTime(remainingRestSeconds)}`
     : isRestFinished
       ? translateText("Rest complete")
       : `${translateText("Active workout")} · ${routineName ?? "LiftLog"}`;
@@ -185,5 +217,5 @@ export async function syncActiveWorkoutNotification({
     data: { path: "/active-workout" },
   };
 
-  await registration.showNotification(title, options);
+  await showActiveWorkoutNotification(registration, title, options);
 }

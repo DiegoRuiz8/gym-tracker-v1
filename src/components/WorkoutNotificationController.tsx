@@ -3,6 +3,7 @@ import {
   getWorkoutReminderPreference,
   subscribeToWorkoutReminderPreference,
   syncActiveWorkoutNotification,
+  usesStaticWorkoutNotifications,
 } from "../lib/workoutNotifications";
 import {
   cancelRestTimerPush,
@@ -36,6 +37,7 @@ export function WorkoutNotificationController() {
   >(null);
   const [notificationRefresh, setNotificationRefresh] = useState(0);
   const restTimer = activeWorkoutSession?.restTimer ?? null;
+  const notificationNowMs = usesStaticWorkoutNotifications() ? 0 : nowMs;
   const notificationRestTimer =
     restTimer?.status === "finished" &&
     (restTimer.completion === "dismissed" ||
@@ -157,7 +159,7 @@ export function WorkoutNotificationController() {
       isAuthenticated,
       restTimer: notificationRestTimer,
       nextExerciseName,
-      nowMs,
+      nowMs: notificationNowMs,
     });
   }, [
     activeWorkoutSession,
@@ -167,7 +169,7 @@ export function WorkoutNotificationController() {
     acknowledgedRestStartedAt,
     nextExerciseName,
     notificationRefresh,
-    nowMs,
+    notificationNowMs,
     notificationRestTimer,
     restTimer,
     routine?.name,

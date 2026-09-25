@@ -1,10 +1,29 @@
+function isAppleMobileDevice() {
+  return (
+    /iPhone|iPad|iPod/.test(self.navigator.userAgent) ||
+    (self.navigator.platform === "MacIntel" &&
+      self.navigator.maxTouchPoints > 1)
+  );
+}
+
+async function showWorkoutNotification(title, options) {
+  if (isAppleMobileDevice()) {
+    const notifications = await self.registration.getNotifications();
+    notifications
+      .filter((notification) => notification.tag === options.tag)
+      .forEach((notification) => notification.close());
+  }
+
+  await self.registration.showNotification(title, options);
+}
+
 self.addEventListener("push", (event) => {
   const payload = event.data?.json();
 
   if (!payload?.title) return;
 
   event.waitUntil(
-    self.registration.showNotification(payload.title, {
+    showWorkoutNotification(payload.title, {
       body: payload.body,
       icon: "/pwa-192x192.png",
       badge: "/notification-badge.svg",
@@ -38,7 +57,7 @@ self.addEventListener("notificationclick", (event) => {
         if (!shouldRestoreActiveWorkout) return;
 
         await new Promise((resolve) => setTimeout(resolve, 300));
-        await self.registration.showNotification("Workout active · LiftLog", {
+        await showWorkoutNotification("Workout active · LiftLog", {
           body: "Tap to return and finish your workout.",
           icon: "/pwa-192x192.png",
           badge: "/notification-badge.svg",
