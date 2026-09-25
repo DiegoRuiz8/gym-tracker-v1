@@ -25,6 +25,12 @@ import StyledSelect from "../components/ui/StyledSelect";
 import { useTranslation } from "../i18n/useTranslation";
 import "../styles/simple-page.css";
 
+type EditExerciseLocationState = {
+  returnTo?: string;
+  restoreActiveWorkoutScroll?: boolean;
+  scrollToExerciseDbSection?: boolean;
+};
+
 export default function EditExercisePage() {
   const { t } = useTranslation();
   const { exerciseId } = useParams();
@@ -40,10 +46,15 @@ export default function EditExercisePage() {
     [exercises, exerciseId],
   );
 
+  const locationState =
+    (location.state as EditExerciseLocationState | null) ?? null;
   const returnTo =
-    typeof location.state?.returnTo === "string"
-      ? location.state.returnTo
+    typeof locationState?.returnTo === "string"
+      ? locationState.returnTo
       : "/exercises";
+  const returnState = locationState?.restoreActiveWorkoutScroll
+    ? { restoreActiveWorkoutScroll: true }
+    : undefined;
 
   // --- Todos los hooks ANTES del early return ---
 
@@ -86,11 +97,7 @@ export default function EditExercisePage() {
   }, [exerciseDbSearch, catalog]);
 
   useEffect(() => {
-    const state = location.state as {
-      scrollToExerciseDbSection?: boolean;
-    } | null;
-
-    if (!state?.scrollToExerciseDbSection) {
+    if (!locationState?.scrollToExerciseDbSection) {
       return;
     }
 
@@ -110,7 +117,7 @@ export default function EditExercisePage() {
       window.clearTimeout(scrollTimer);
       window.clearTimeout(clearHighlightTimer);
     };
-  }, [location.state]);
+  }, [locationState]);
 
   useEffect(() => {
     getExerciseDbCatalog().then((result) => setCatalog(result.exercises));
@@ -194,7 +201,7 @@ export default function EditExercisePage() {
     };
 
     updateExercise(updatedExercise);
-    navigate(returnTo);
+    navigate(returnTo, { state: returnState });
   }
 
   function handleRequestToggleActive() {
@@ -449,7 +456,7 @@ export default function EditExercisePage() {
                 <button
                   type="button"
                   className="simple-page-btn simple-page-btn-secondary"
-                  onClick={() => navigate(returnTo)}
+                  onClick={() => navigate(returnTo, { state: returnState })}
                 >
                   Cancel
                 </button>

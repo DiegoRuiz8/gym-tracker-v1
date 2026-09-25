@@ -1,7 +1,7 @@
 // src/pages/ActiveWorkoutPage.tsx
 
-import { Navigate, useNavigate } from "react-router-dom";
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore } from "../store/useAppStore";
 import {
   getExerciseDbCatalog,
@@ -64,6 +64,10 @@ function formatRestTime(totalSeconds: number): string {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
+function getActiveWorkoutScrollKey(sessionId: string): string {
+  return `active-workout-scroll-y:${sessionId}`;
 }
 
 function getRemainingRestSeconds(restTimer: RestTimer, nowMs: number): number {
@@ -129,6 +133,7 @@ function hasLoggedWorkSinceSetWasAdded(
 
 export default function ActiveWorkoutPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
 
   const activeWorkoutSession = useAppStore(
@@ -191,10 +196,41 @@ export default function ActiveWorkoutPage() {
   const [variantName, setVariantName] = useState<Record<string, string>>({});
   const [variantError, setVariantError] = useState<Record<string, string>>({});
   const [nowMs, setNowMs] = useState(() => Date.now());
+  const hasRestoredActiveWorkoutScroll = useRef(false);
 
   useEffect(() => {
     clearWorkoutLaunchPending();
   }, [clearWorkoutLaunchPending]);
+
+  useEffect(() => {
+    const state = location.state as {
+      restoreActiveWorkoutScroll?: boolean;
+    } | null;
+
+    if (
+      !state?.restoreActiveWorkoutScroll ||
+      !activeWorkoutSession ||
+      hasRestoredActiveWorkoutScroll.current
+    ) {
+      return;
+    }
+
+    const savedScroll = sessionStorage.getItem(
+      getActiveWorkoutScrollKey(activeWorkoutSession.id),
+    );
+    if (!savedScroll) return;
+
+    const scrollPosition = Number(savedScroll);
+
+    if (Number.isNaN(scrollPosition)) return;
+
+    hasRestoredActiveWorkoutScroll.current = true;
+    const restoreTimer = window.setTimeout(() => {
+      window.scrollTo(0, scrollPosition);
+    }, 80);
+
+    return () => window.clearTimeout(restoreTimer);
+  }, [activeWorkoutSession, location.state]);
 
   function resizeNotesTextarea(element: HTMLTextAreaElement | null) {
     if (!element) return;
@@ -836,6 +872,22 @@ export default function ActiveWorkoutPage() {
                             )}
                             alt={exercise?.name ?? "Unknown exercise"}
                             mode="compact"
+                            onPlaceholderClick={() => {
+                              sessionStorage.setItem(
+                                getActiveWorkoutScrollKey(activeWorkoutSession.id),
+                                String(window.scrollY),
+                              );
+                              navigate(
+                                `/exercises/${sessionExercise.exerciseId}/edit`,
+                                {
+                                  state: {
+                                    returnTo: "/active-workout",
+                                    restoreActiveWorkoutScroll: true,
+                                    scrollToExerciseDbSection: true,
+                                  },
+                                },
+                              );
+                            }}
                           />
                         </div>
                       </div>
