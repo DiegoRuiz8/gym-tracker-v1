@@ -7,6 +7,7 @@ type RestTimerPushJob = {
   timer_key: string;
   title: string;
   body: string;
+  language: "en" | "es";
 };
 
 type PushSubscriptionRecord = {
@@ -99,7 +100,12 @@ Deno.serve(async (request) => {
             title: job.title,
             body: job.body,
             tag: "active-workout",
-            data: { path: "/active-workout", timerKey: job.timer_key },
+            data: {
+              path: "/active-workout",
+              timerKey: job.timer_key,
+              language: job.language,
+              notificationType: "rest-complete",
+            },
           }),
           { TTL: 60 },
         );

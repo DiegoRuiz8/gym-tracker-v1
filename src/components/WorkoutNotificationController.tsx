@@ -9,10 +9,12 @@ import {
   cancelRestTimerPush,
   syncRestTimerPush,
 } from "../lib/restTimerPush";
+import { useTranslation } from "../i18n/useTranslation";
 import { useAuthStore } from "../store/useAuthStore";
 import { useAppStore } from "../store/useAppStore";
 
 export function WorkoutNotificationController() {
+  const { language } = useTranslation();
   const activeWorkoutSession = useAppStore((state) => state.activeWorkoutSession);
   const routine = useAppStore((state) =>
     state.routines.find(
@@ -81,13 +83,13 @@ export function WorkoutNotificationController() {
     if (!("serviceWorker" in navigator)) return;
 
     const handleNotificationClick = (
-      event: MessageEvent<{ type?: string; notificationTitle?: string }>,
+      event: MessageEvent<{ type?: string; notificationType?: string }>,
     ) => {
       if (event.data?.type !== "workout-notification-clicked") return;
 
       window.setTimeout(() => {
         setNowMs(Date.now());
-        if (event.data.notificationTitle === "Rest complete") {
+        if (event.data.notificationType === "rest-complete") {
           setAcknowledgedRestStartedAt(restTimer?.startedAt ?? null);
         }
         setNotificationRefresh((value) => value + 1);
@@ -160,11 +162,13 @@ export function WorkoutNotificationController() {
       restTimer: notificationRestTimer,
       nextExerciseName,
       nowMs: notificationNowMs,
+      language,
     });
   }, [
     activeWorkoutSession,
     isAuthenticated,
     isLoading,
+    language,
     isReminderEnabled,
     acknowledgedRestStartedAt,
     nextExerciseName,
@@ -183,6 +187,7 @@ export function WorkoutNotificationController() {
         sessionId: activeWorkoutSession.id,
         restTimer,
         nextExerciseName,
+        language,
       }).catch((error: Error) => {
         console.error("Unable to schedule the rest timer notification", error);
       });
@@ -206,6 +211,7 @@ export function WorkoutNotificationController() {
     isDemo,
     isLoading,
     isReminderEnabled,
+    language,
     nextExerciseName,
     restTimer,
   ]);

@@ -9,6 +9,8 @@ type PushSubscriptionPayload = {
   };
 };
 
+type NotificationLanguage = "en" | "es";
+
 type SubscribeRequest = {
   action: "subscribe";
   subscription: PushSubscriptionPayload;
@@ -23,6 +25,7 @@ type SyncTimerRequest = {
     dueAt: string;
     title: string;
     body: string;
+    language: NotificationLanguage;
   };
 };
 
@@ -142,7 +145,8 @@ Deno.serve(async (request) => {
       !payload.timer.sessionId ||
       !payload.timer.timerKey ||
       !payload.timer.title ||
-      !payload.timer.body
+      !payload.timer.body ||
+      !["en", "es"].includes(payload.timer.language)
     ) {
       return json({ error: "Invalid timer" }, 400);
     }
@@ -158,6 +162,7 @@ Deno.serve(async (request) => {
           due_at: dueAt.toISOString(),
           title: payload.timer.title,
           body: payload.timer.body,
+          language: payload.timer.language,
           status: "scheduled",
           delivered_at: null,
           updated_at: new Date().toISOString(),

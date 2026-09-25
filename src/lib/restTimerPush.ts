@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
 import { translateText } from "../i18n/i18n";
+import type { Language } from "../i18n/translations";
 import type { RestTimer } from "../types/session";
 
 type PushSubscriptionPayload = {
@@ -20,6 +21,7 @@ type TimerPushPayload = {
     dueAt: string;
     title: string;
     body: string;
+    language: Language;
   };
 };
 
@@ -144,10 +146,12 @@ export async function syncRestTimerPush({
   sessionId,
   restTimer,
   nextExerciseName,
+  language,
 }: {
   sessionId: string;
   restTimer: RestTimer;
   nextExerciseName: string | undefined;
+  language: Language;
 }): Promise<void> {
   if (restTimer.status !== "running") return;
 
@@ -159,8 +163,8 @@ export async function syncRestTimerPush({
     new Date(restTimer.startedAt).getTime() + restTimer.durationSeconds * 1000,
   ).toISOString();
   const target = nextExerciseName
-    ? `${translateText("Next:")} ${nextExerciseName}`
-    : translateText("Ready for your next set.");
+    ? `${translateText("Next:", language)} ${nextExerciseName}`
+    : translateText("Ready for your next set.", language);
 
   await invokeTimerPush({
     action: "sync_timer",
@@ -169,8 +173,9 @@ export async function syncRestTimerPush({
       sessionId,
       timerKey: restTimer.sourceSetId,
       dueAt,
-      title: translateText("Rest complete"),
+      title: translateText("Rest complete", language),
       body: target,
+      language,
     },
   });
 }

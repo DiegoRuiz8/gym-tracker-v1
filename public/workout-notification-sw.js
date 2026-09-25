@@ -17,6 +17,20 @@ async function showWorkoutNotification(title, options) {
   await self.registration.showNotification(title, options);
 }
 
+function getNotificationCopy(language) {
+  if (language === "es") {
+    return {
+      activeTitle: "Entrenamiento activo · LiftLog",
+      activeBody: "Toca para volver y terminar tu entrenamiento.",
+    };
+  }
+
+  return {
+    activeTitle: "Workout active · LiftLog",
+    activeBody: "Tap to return and finish your workout.",
+  };
+}
+
 self.addEventListener("push", (event) => {
   const payload = event.data?.json();
 
@@ -37,10 +51,12 @@ self.addEventListener("push", (event) => {
 });
 
 self.addEventListener("notificationclick", (event) => {
-  const path = event.notification.data?.path ?? "/active-workout";
+  const notificationData = event.notification.data ?? {};
+  const path = notificationData.path ?? "/active-workout";
   const destination = new URL(path, self.location.origin).href;
   const shouldRestoreActiveWorkout = event.notification.tag === "active-workout";
-  const notificationTitle = event.notification.title;
+  const language = notificationData.language === "es" ? "es" : "en";
+  const notificationType = notificationData.notificationType;
 
   event.notification.close();
   event.waitUntil(
@@ -57,20 +73,25 @@ self.addEventListener("notificationclick", (event) => {
         if (!shouldRestoreActiveWorkout) return;
 
         await new Promise((resolve) => setTimeout(resolve, 300));
-        await showWorkoutNotification("Workout active · LiftLog", {
-          body: "Tap to return and finish your workout.",
+        const copy = getNotificationCopy(language);
+        await showWorkoutNotification(copy.activeTitle, {
+          body: copy.activeBody,
           icon: "/pwa-192x192.png",
           badge: "/notification-badge.svg",
           tag: "active-workout",
           requireInteraction: true,
           renotify: false,
           silent: true,
-          data: { path: "/active-workout" },
+          data: {
+            path: "/active-workout",
+            language,
+            notificationType: "workout-active",
+          },
         });
 
         targetClient?.postMessage({
           type: "workout-notification-clicked",
-          notificationTitle,
+          notificationType,
         });
       },
     ),
