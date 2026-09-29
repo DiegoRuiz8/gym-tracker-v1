@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   getWorkoutReminderPreference,
   subscribeToWorkoutReminderPreference,
@@ -8,6 +8,7 @@ import {
 import {
   cancelRestTimerPush,
   syncRestTimerPush,
+  unregisterRestTimerPushSubscription,
 } from "../lib/restTimerPush";
 import { useTranslation } from "../i18n/useTranslation";
 import { useAuthStore } from "../store/useAuthStore";
@@ -38,6 +39,7 @@ export function WorkoutNotificationController() {
     string | null
   >(null);
   const [notificationRefresh, setNotificationRefresh] = useState(0);
+  const hasClearedAppleRestPush = useRef(false);
   const restTimer = activeWorkoutSession?.restTimer ?? null;
   const notificationNowMs = usesStaticWorkoutNotifications() ? 0 : nowMs;
   const notificationRestTimer =
@@ -180,7 +182,35 @@ export function WorkoutNotificationController() {
   ]);
 
   useEffect(() => {
+    if (!usesStaticWorkoutNotifications()) {
+      hasClearedAppleRestPush.current = false;
+      return;
+    }
+
+    if (
+      isLoading ||
+      !isAuthenticated ||
+      isDemo ||
+      hasClearedAppleRestPush.current
+    ) {
+      return;
+    }
+
+    hasClearedAppleRestPush.current = true;
+
+    const removeAppleRestPush = async () => {
+      await cancelRestTimerPush("");
+      await unregisterRestTimerPushSubscription();
+    };
+
+    void removeAppleRestPush().catch((error: Error) => {
+      console.error("Unable to disable rest timer push notifications on Apple devices", error);
+    });
+  }, [isAuthenticated, isDemo, isLoading]);
+
+  useEffect(() => {
     if (isLoading || !isAuthenticated || isDemo || !isReminderEnabled) return;
+    if (usesStaticWorkoutNotifications()) return;
 
     if (activeWorkoutSession && restTimer?.status === "running") {
       void syncRestTimerPush({
