@@ -35,6 +35,12 @@ self.addEventListener("push", (event) => {
   const payload = event.data?.json();
 
   if (!payload?.title) return;
+  if (
+    isAppleMobileDevice() &&
+    payload.data?.notificationType === "rest-complete"
+  ) {
+    return;
+  }
 
   event.waitUntil(
     showWorkoutNotification(payload.title, {

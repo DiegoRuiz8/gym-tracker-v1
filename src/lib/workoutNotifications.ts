@@ -130,9 +130,13 @@ export async function enableWorkoutReminders(): Promise<WorkoutReminderPermissio
     dispatchPreferenceChange();
 
     try {
-      await registerRestTimerPushSubscription();
+      if (usesStaticWorkoutNotifications()) {
+        await unregisterRestTimerPushSubscription();
+      } else {
+        await registerRestTimerPushSubscription();
+      }
     } catch (error) {
-      console.error("Unable to register rest timer push notifications", error);
+      console.error("Unable to update rest timer push notifications", error);
     }
   }
 
@@ -192,22 +196,24 @@ export async function syncActiveWorkoutNotification({
   const remainingRestSeconds = isRestRunning && restTimer
     ? getRemainingRestSeconds(restTimer, nowMs)
     : 0;
-  const title = isRestRunning
-    ? usesStaticNotifications
-      ? translateText("Rest timer running", language)
-      : `${translateText("Rest", language)} · ${formatRestTime(remainingRestSeconds)}`
-    : isRestFinished
-      ? translateText("Rest complete", language)
-      : `${translateText("Active workout", language)} · ${routineName ?? "LiftLog"}`;
-  const body = isRestRunning
-    ? nextExerciseName
-      ? `${translateText("Next:", language)} ${nextExerciseName}`
-      : translateText("Your rest timer is running.", language)
-    : isRestFinished
+  const title = usesStaticNotifications
+    ? `${translateText("Active workout", language)} · ${routineName ?? "LiftLog"}`
+    : isRestRunning
+      ? `${translateText("Rest", language)} · ${formatRestTime(remainingRestSeconds)}`
+      : isRestFinished
+        ? translateText("Rest complete", language)
+        : `${translateText("Active workout", language)} · ${routineName ?? "LiftLog"}`;
+  const body = usesStaticNotifications
+    ? translateText("Tap to return and finish your workout.", language)
+    : isRestRunning
       ? nextExerciseName
-        ? `${translateText("Ready for", language)} ${nextExerciseName}.`
-        : translateText("Ready for your next set.", language)
-      : translateText("Tap to return and finish your workout.", language);
+        ? `${translateText("Next:", language)} ${nextExerciseName}`
+        : translateText("Your rest timer is running.", language)
+      : isRestFinished
+        ? nextExerciseName
+          ? `${translateText("Ready for", language)} ${nextExerciseName}.`
+          : translateText("Ready for your next set.", language)
+        : translateText("Tap to return and finish your workout.", language);
 
   const options: NotificationOptions & { renotify: boolean } = {
     body,
@@ -220,7 +226,9 @@ export async function syncActiveWorkoutNotification({
     data: {
       path: "/active-workout",
       language,
-      notificationType: isRestFinished
+      notificationType: usesStaticNotifications
+        ? "workout-active"
+        : isRestFinished
         ? "rest-complete"
         : isRestRunning
           ? "rest-running"
