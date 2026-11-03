@@ -41,6 +41,7 @@ function getEmptyAppData() {
     workoutSessions: [],
     activeWorkoutSession: null,
     preferredWeightUnit: "kg" as const,
+    restTimerEnabled: true,
   };
 }
 

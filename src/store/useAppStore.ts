@@ -112,6 +112,7 @@ type AppState = {
   activeWorkoutSession: WorkoutSession | null;
   isWorkoutLaunchPending: boolean;
   preferredWeightUnit: WeightUnit;
+  restTimerEnabled: boolean;
   syncStatus: SyncStatus;
   syncError: string | null;
 
@@ -171,6 +172,7 @@ type AppState = {
   replaceAppData: (data: AppData) => void;
   resetAppData: () => void;
   setPreferredWeightUnit: (unit: WeightUnit) => void;
+  setRestTimerEnabled: (enabled: boolean) => void;
   setSyncStatus: (status: SyncStatus, error?: string | null) => void;
   retrySync: () => Promise<void>;
 
@@ -302,6 +304,7 @@ export const useAppStore = create<AppState>((set) => ({
   activeWorkoutSession: initialData.activeWorkoutSession,
   isWorkoutLaunchPending: false,
   preferredWeightUnit: initialData.preferredWeightUnit,
+  restTimerEnabled: initialData.restTimerEnabled,
   syncStatus: "idle",
   syncError: null,
 
@@ -492,7 +495,11 @@ export const useAppStore = create<AppState>((set) => ({
         exercise.performedSets.some((set) => !set.isCompleted),
       );
       const shouldStartRestTimer =
-        isSetNowCompleted && restSeconds != null && restSeconds > 0 && hasNextSet;
+        state.restTimerEnabled &&
+        isSetNowCompleted &&
+        restSeconds != null &&
+        restSeconds > 0 &&
+        hasNextSet;
       const shouldClearRestTimer =
         state.activeWorkoutSession.restTimer?.sourceSetId === setId &&
         !isSetNowCompleted;
@@ -765,6 +772,7 @@ export const useAppStore = create<AppState>((set) => ({
       activeWorkoutSession: data.activeWorkoutSession,
       isWorkoutLaunchPending: false,
       preferredWeightUnit: data.preferredWeightUnit,
+      restTimerEnabled: data.restTimerEnabled ?? true,
     }),
 
   resetAppData: () =>
@@ -776,9 +784,23 @@ export const useAppStore = create<AppState>((set) => ({
       activeWorkoutSession: null,
       isWorkoutLaunchPending: false,
       preferredWeightUnit: "kg",
+      restTimerEnabled: true,
     }),
 
   setPreferredWeightUnit: (unit) => set({ preferredWeightUnit: unit }),
+
+  setRestTimerEnabled: (enabled) =>
+    set((state) => ({
+      restTimerEnabled: enabled,
+      activeWorkoutSession:
+        !enabled && state.activeWorkoutSession?.restTimer
+          ? {
+              ...state.activeWorkoutSession,
+              updatedAt: new Date().toISOString(),
+              restTimer: null,
+            }
+          : state.activeWorkoutSession,
+    })),
 
   setSyncStatus: (syncStatus, syncError = null) =>
     set({ syncStatus, syncError }),
@@ -895,6 +917,7 @@ function getAppData(state: AppState): AppData {
     workoutSessions: state.workoutSessions,
     activeWorkoutSession: state.activeWorkoutSession,
     preferredWeightUnit: state.preferredWeightUnit,
+    restTimerEnabled: state.restTimerEnabled,
   };
 }
 
@@ -905,7 +928,8 @@ function hasAppDataChanged(state: AppState, previousState: AppState): boolean {
     state.workoutLogs !== previousState.workoutLogs ||
     state.workoutSessions !== previousState.workoutSessions ||
     state.activeWorkoutSession !== previousState.activeWorkoutSession ||
-    state.preferredWeightUnit !== previousState.preferredWeightUnit
+    state.preferredWeightUnit !== previousState.preferredWeightUnit ||
+    state.restTimerEnabled !== previousState.restTimerEnabled
   );
 }
 

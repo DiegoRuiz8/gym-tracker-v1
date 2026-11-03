@@ -744,13 +744,6 @@ export default function ActiveWorkoutPage() {
             <p className="active-workout-timer">{elapsedLabel}</p>
           </div>
 
-          <button
-            type="button"
-            className="button-primary active-workout-finish-btn"
-            onClick={() => setShowFinishConfirm(true)}
-          >
-            Finish
-          </button>
         </div>
       </header>
 
@@ -1586,6 +1579,14 @@ export default function ActiveWorkoutPage() {
               )}
             </div>
           ) : null}
+
+          <button
+            type="button"
+            className="button-primary active-workout-finish-btn"
+            onClick={() => setShowFinishConfirm(true)}
+          >
+            Finish workout
+          </button>
 
           <button
             type="button"

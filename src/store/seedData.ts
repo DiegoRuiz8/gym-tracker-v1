@@ -271,6 +271,7 @@ type DemoAppData = {
   workoutSessions: WorkoutSession[];
   activeWorkoutSession: WorkoutSession | null;
   preferredWeightUnit: WeightUnit;
+  restTimerEnabled: boolean;
 };
 
 function getDemoDate(daysAgo: number): string {
@@ -381,5 +382,6 @@ export function getDemoAppData(): DemoAppData {
     ],
     activeWorkoutSession: null,
     preferredWeightUnit: "kg",
+    restTimerEnabled: true,
   };
 }

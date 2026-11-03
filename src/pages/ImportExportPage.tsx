@@ -16,6 +16,7 @@ export default function ImportExportPage() {
   const routines = useAppStore((state) => state.routines);
   const workoutLogs = useAppStore((state) => state.workoutLogs);
   const preferredWeightUnit = useAppStore((state) => state.preferredWeightUnit);
+  const restTimerEnabled = useAppStore((state) => state.restTimerEnabled);
   const replaceAppData = useAppStore((state) => state.replaceAppData);
   const workoutSessions = useAppStore((state) => state.workoutSessions);
   const activeWorkoutSession = useAppStore(
@@ -100,6 +101,7 @@ export default function ImportExportPage() {
         workoutSessions,
         activeWorkoutSession,
         preferredWeightUnit,
+        restTimerEnabled,
       },
     });
 

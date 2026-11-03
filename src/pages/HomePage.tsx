@@ -24,6 +24,8 @@ export default function HomePage() {
   const routines = useAppStore((state) => state.routines);
   const preferredWeightUnit = useAppStore((state) => state.preferredWeightUnit);
   const setPreferredWeightUnit = useAppStore((state) => state.setPreferredWeightUnit);
+  const restTimerEnabled = useAppStore((state) => state.restTimerEnabled);
+  const setRestTimerEnabled = useAppStore((state) => state.setRestTimerEnabled);
   const navigate = useNavigate();
 
   const user = useAuthStore((state) => state.user);
@@ -275,6 +277,24 @@ export default function HomePage() {
                         disabled={reminderActivationBlocked}
                       >
                         {reminderControlLabel}
+                      </button>
+                    </div>
+
+                    <div className="home-settings-item home-settings-reminder">
+                      <div className="home-settings-item-text">
+                        <p className="home-settings-item-title">{t("Rest timer")}</p>
+                        <p className="home-settings-item-description">
+                          {t("Controls rest timers and alerts only. Your active workout reminder is managed separately.")}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setRestTimerEnabled(!restTimerEnabled)}
+                        className={`home-settings-reminder-button ${restTimerEnabled ? "home-settings-reminder-button-active" : ""}`}
+                        aria-label={t("Rest timer")}
+                        aria-pressed={restTimerEnabled}
+                      >
+                        {restTimerEnabled ? t("On") : t("Off")}
                       </button>
                     </div>
                   </section>

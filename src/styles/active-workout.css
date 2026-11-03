@@ -34,7 +34,7 @@
 .active-workout-header-compact,
 .active-workout-header-inner.active-workout-header-compact {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 12px;
   min-height: 64px;
@@ -117,7 +117,8 @@
 }
 
 .active-workout-finish-btn {
-  min-width: 92px;
+  width: 100%;
+  min-height: var(--tap-size);
 }
 
 .active-workout-list {
@@ -1266,7 +1267,7 @@
 
   .active-workout-header-compact,
   .active-workout-header-inner.active-workout-header-compact {
-    grid-template-columns: 44px 1fr auto;
+    grid-template-columns: 44px minmax(0, 1fr);
     gap: 10px;
   }
 

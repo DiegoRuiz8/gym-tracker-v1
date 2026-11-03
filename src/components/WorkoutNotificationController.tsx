@@ -23,6 +23,7 @@ export function WorkoutNotificationController() {
     ),
   );
   const exercises = useAppStore((state) => state.exercises);
+  const restTimerEnabled = useAppStore((state) => state.restTimerEnabled);
   const finishActiveSessionRestTimer = useAppStore(
     (state) => state.finishActiveSessionRestTimer,
   );
@@ -43,11 +44,13 @@ export function WorkoutNotificationController() {
   const restTimer = activeWorkoutSession?.restTimer ?? null;
   const notificationNowMs = usesStaticWorkoutNotifications() ? 0 : nowMs;
   const notificationRestTimer =
-    restTimer?.status === "finished" &&
-    (restTimer.completion === "dismissed" ||
-      acknowledgedRestStartedAt === restTimer.startedAt)
+    !restTimerEnabled
       ? null
-      : restTimer;
+      : restTimer?.status === "finished" &&
+          (restTimer.completion === "dismissed" ||
+            acknowledgedRestStartedAt === restTimer.startedAt)
+        ? null
+        : restTimer;
   const nextExerciseName = useMemo(() => {
     if (!restTimer || !activeWorkoutSession) return undefined;
 
@@ -212,7 +215,11 @@ export function WorkoutNotificationController() {
     if (isLoading || !isAuthenticated || isDemo || !isReminderEnabled) return;
     if (usesStaticWorkoutNotifications()) return;
 
-    if (activeWorkoutSession && restTimer?.status === "running") {
+    if (
+      restTimerEnabled &&
+      activeWorkoutSession &&
+      restTimer?.status === "running"
+    ) {
       void syncRestTimerPush({
         sessionId: activeWorkoutSession.id,
         restTimer,
@@ -225,6 +232,7 @@ export function WorkoutNotificationController() {
     }
 
     if (
+      !restTimerEnabled ||
       !activeWorkoutSession ||
       !restTimer ||
       restTimer.completion === "dismissed"
@@ -244,6 +252,7 @@ export function WorkoutNotificationController() {
     language,
     nextExerciseName,
     restTimer,
+    restTimerEnabled,
   ]);
 
   return null;

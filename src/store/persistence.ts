@@ -19,6 +19,7 @@ export type PersistedAppData = {
     workoutSessions: WorkoutSession[];
     activeWorkoutSession: WorkoutSession | null;
     preferredWeightUnit: WeightUnit;
+    restTimerEnabled: boolean;
   };
 };
 
@@ -37,6 +38,7 @@ function loadPersistedData(storageKey: string): PersistedAppData | null {
         workoutSessions?: WorkoutSession[];
         activeWorkoutSession?: WorkoutSession | null;
         preferredWeightUnit?: WeightUnit;
+        restTimerEnabled?: boolean;
       };
     };
     if (!parsed.version || !parsed.data) {
@@ -52,6 +54,7 @@ function loadPersistedData(storageKey: string): PersistedAppData | null {
         workoutSessions: parsed.data.workoutSessions ?? [],
         activeWorkoutSession: parsed.data.activeWorkoutSession ?? null,
         preferredWeightUnit: parsed.data.preferredWeightUnit ?? "kg",
+        restTimerEnabled: parsed.data.restTimerEnabled ?? true,
       },
     };
   } catch (error) {

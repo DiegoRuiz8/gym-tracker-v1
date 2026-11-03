@@ -19,6 +19,7 @@ export type AppImportPayload = {
     workoutSessions: WorkoutSession[];
     activeWorkoutSession: WorkoutSession | null;
     preferredWeightUnit?: WeightUnit;
+    restTimerEnabled: boolean;
   };
 };
 
@@ -282,6 +283,10 @@ export function parseAppImportPayload(raw: string): AppImportPayload {
       activeWorkoutSession,
       preferredWeightUnit:
         parsed.data.preferredWeightUnit === "lb" ? "lb" : "kg",
+      restTimerEnabled:
+        parsed.data.restTimerEnabled === undefined
+          ? true
+          : parsed.data.restTimerEnabled === true,
     },
   };
 }
@@ -306,6 +311,7 @@ export function downloadImportTemplateJson(): void {
     version: 4,
     data: {
       preferredWeightUnit: "kg",
+      restTimerEnabled: true,
       exercises: [
         {
           id: "ex-row-seated-cable",

@@ -13,6 +13,7 @@ export function getInitialAppData() {
       workoutSessions: [],
       activeWorkoutSession: null,
       preferredWeightUnit: "kg" as const,
+      restTimerEnabled: true,
     };
   }
 
